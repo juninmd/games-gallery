@@ -1,6 +1,8 @@
 import { Download, ExternalLink, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PlatformTag, ProgressBar } from "../components/Badges";
+import { EmulatorInstallPanel } from "../components/EmulatorInstallPanel";
+import { InstallScript } from "../components/InstallScript";
 import { PlaylistExport } from "../components/PlaylistExport";
 import { EMULATORS, NO_EMULATOR_NOTE } from "../domain/emulators";
 import { PLATFORMS } from "../domain/platforms";
@@ -56,6 +58,8 @@ function EmulatorCard({ emulator: e, usage }: { emulator: Emulator; usage?: Emul
       <Usage usage={usage} />
       {e.id === "retroarch" && <PlaylistExport />}
       <pre className="cmd small">{[e.exe, ...e.args].join(" ")}</pre>
+      {!e.launchVerified && <p className="muted small">Comando de launch heurístico: confira na versão instalada.</p>}
+      <EmulatorInstallPanel emulator={e} />
       {task && <ProgressBar value={task.progress} label={task.label} />}
       <div className="vcard-foot">
         {e.homepage ? (
@@ -94,6 +98,7 @@ export function EmulatorsView() {
             <option value="">Todas as plataformas</option>
             {PLATFORMS.filter((p) => p.id !== "pc").map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
+          <InstallScript />
           <label className="check"><input type="checkbox" checked={onlyInstalled} onChange={(e) => setOnlyInstalled(e.target.checked)} /> Só instalados</label>
         </div>
       </header>

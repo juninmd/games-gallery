@@ -141,6 +141,14 @@
 .needed li { display: flex; align-items: center; gap: 10px; }
 .needed .btn { width: auto; }
 
+/* emulator install commands */
+.install { margin-top: 6px; }
+.install summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+.install-cmd { display: grid; gap: 4px; margin-top: 8px; }
+.install-cmd pre { white-space: pre-wrap; word-break: break-all; margin: 0; }
+.install-cmd .btn { justify-self: start; }
+.install .link { display: inline-flex; margin-top: 8px; }
+.install-script { gap: 8px; }
 /* stats */
 .bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .bars li { display: grid; grid-template-columns: 120px 1fr auto; gap: 10px; align-items: center; font-size: 13px; }
