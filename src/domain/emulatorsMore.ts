@@ -1,0 +1,24 @@
+import type { Emulator } from "./types";
+
+const ALL_OS: Emulator["os"] = ["windows", "linux", "macos"];
+
+// Added after the first 20 so the platform defaults chosen by `defaultEmulator` stay stable.
+// Names and platforms come from each project's official site; `exe`/`args` are heuristics unless
+// `launchVerified` is set (documented command line). Validate before enabling real execution.
+export const MORE_EMULATORS: Emulator[] = [
+  { id: "project64", name: "Project64", platforms: ["n64"], os: ["windows"], status: "active", homepage: "https://www.pj64-emu.com", exe: "Project64.exe", args: ["{rom}"], needsBios: false, notes: "N64 só para Windows; as builds de 64 bits são marcadas como experimentais." },
+  { id: "snes9x", name: "Snes9x", platforms: ["snes"], os: ALL_OS, status: "active", homepage: "https://github.com/snes9xgit/snes9x", exe: "snes9x-x64.exe", args: ["{rom}"], needsBios: false, notes: "SNES leve e portátil; o desenvolvimento segue no GitHub." },
+  { id: "bsnes", name: "bsnes", platforms: ["snes"], os: ALL_OS, status: "active", homepage: "https://github.com/bsnes-emu/bsnes", exe: "bsnes.exe", args: ["{rom}"], needsBios: false, notes: "Foco em precisão de SNES, com suporte a Super Game Boy." },
+  { id: "fceux", name: "FCEUX", platforms: ["nes"], os: ["windows", "linux"], status: "active", homepage: "https://fceux.com", exe: "fceux64.exe", args: ["{rom}"], needsBios: false, notes: "NES/Famicom com Famicom Disk System (a BIOS do FDS é do usuário)." },
+  { id: "ares", name: "ares", platforms: ["nes", "snes", "n64", "gb", "gbc", "gba", "genesis", "sms", "gg", "pce", "neogeo", "ps1"], os: ALL_OS, status: "active", homepage: "https://ares-emu.net", exe: "ares.exe", args: ["{rom}"], needsBios: false, notes: "Multi-sistema de alta precisão (sucessor do higan). PS1 e Neo Geo são experimentais; alguns sistemas exigem firmware." },
+  { id: "mednafen", name: "Mednafen", platforms: ["nes", "snes", "gb", "gbc", "gba", "pce", "gg", "sms", "genesis", "saturn", "ps1"], os: ALL_OS, status: "active", homepage: "https://mednafen.github.io", exe: "mednafen.exe", args: ["{rom}"], needsBios: true, notes: "Multi-sistema por linha de comando. PS1 e Saturn exigem BIOS; o último release é de abr/2024." },
+  { id: "bizhawk", name: "BizHawk", platforms: ["gb", "n64", "snes", "nds", "ps1", "dos", "arcade"], os: ["windows", "linux"], status: "active", homepage: "https://github.com/TASEmulators/BizHawk", exe: "EmuHawk.exe", args: ["{rom}"], needsBios: true, notes: "Voltado a TAS; a lista de plataformas aqui é parcial. NDS e PS1 exigem BIOS." },
+  { id: "sameboy", name: "SameBoy", platforms: ["gb", "gbc"], os: ALL_OS, status: "active", homepage: "https://sameboy.github.io", exe: "SameBoy.exe", args: ["{rom}"], needsBios: false, notes: "Game Boy e GBC de alta precisão; traz boot ROMs próprias." },
+  { id: "vba-m", name: "VisualBoyAdvance-M", platforms: ["gb", "gbc", "gba"], os: ALL_OS, status: "active", homepage: "https://github.com/visualboyadvance-m/visualboyadvance-m", exe: "visualboyadvance-m.exe", args: ["{rom}"], needsBios: false, notes: "Continuação do VisualBoyAdvance; o mGBA já cobre GBA com mais precisão." },
+  { id: "stella", name: "Stella", platforms: ["atari2600"], os: ALL_OS, status: "active", homepage: "https://stella-emu.github.io", exe: "stella.exe", args: ["{rom}"], needsBios: false, launchVerified: true, notes: "Atari 2600 mantido pela equipe do Stella; linha de comando: stella [opções] ROM." },
+  { id: "dosbox-staging", name: "DOSBox Staging", platforms: ["dos"], os: ALL_OS, status: "active", homepage: "https://www.dosbox-staging.org", exe: "dosbox.exe", args: ["{rom}"], needsBios: false, notes: "Continuação moderna do DOSBox para jogos de DOS." },
+  { id: "dosbox-x", name: "DOSBox-X", platforms: ["dos"], os: ALL_OS, status: "active", homepage: "https://dosbox-x.com", exe: "dosbox-x.exe", args: ["{rom}"], needsBios: false, notes: "Fork focado em compatibilidade, inclui guests Windows 3.x/9x." },
+  { id: "ymir", name: "Ymir", platforms: ["saturn"], os: ALL_OS, status: "experimental", homepage: "https://github.com/StrikerX3/Ymir", exe: "ymir-sdl3.exe", args: ["{rom}"], needsBios: true, launchVerified: true, notes: "Saturn em desenvolvimento; exige a IPL (BIOS) do console na pasta roms/ipl." },
+  { id: "redream", name: "Redream", platforms: ["dc"], os: ALL_OS, status: "active", homepage: "https://redream.io", exe: "redream.exe", args: ["{rom}"], needsBios: true, notes: "Dreamcast de código fechado e gratuito; a exigência de BIOS não foi confirmada no site." },
+  { id: "fbneo", name: "FinalBurn Neo", platforms: ["arcade", "neogeo", "sms", "genesis"], os: ALL_OS, status: "active", homepage: "https://github.com/finalburnneo/FBNeo", exe: "fbneo64.exe", args: ["{rom}"], needsBios: true, notes: "Arcade (CPS, Neo Geo, System 16); só builds nightly. Neo Geo exige a neogeo.zip do usuário." },
+];

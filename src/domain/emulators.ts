@@ -1,14 +1,16 @@
+import { MORE_EMULATORS } from "./emulatorsMore";
+import { INSTALL_SOURCES } from "./emulatorSources";
 import type { Emulator } from "./types";
 
 const ALL_OS: Emulator["os"] = ["windows", "linux", "macos"];
 
 // exe/args are per-emulator heuristics; each one must be validated against the
 // installed build in the Tauri phase before enabling real execution.
-export const EMULATORS: Emulator[] = [
+const CORE: Emulator[] = [
   { id: "duckstation", name: "DuckStation", platforms: ["ps1"], os: ALL_OS, status: "active", homepage: "https://www.duckstation.org", exe: "duckstation-qt-x64-ReleaseLTCG.exe", args: ["-batch", "-fullscreen", "--", "{rom}"], needsBios: true, notes: "Exige BIOS do PS1 (dump do seu console)." },
   { id: "pcsx2", name: "PCSX2", platforms: ["ps2"], os: ALL_OS, status: "active", homepage: "https://pcsx2.net", exe: "pcsx2-qt.exe", args: ["-batch", "-fullscreen", "--", "{rom}"], needsBios: true, notes: "Exige BIOS do PS2." },
   { id: "rpcs3", name: "RPCS3", platforms: ["ps3"], os: ALL_OS, status: "active", homepage: "https://rpcs3.net", exe: "rpcs3.exe", args: ["--no-gui", "{rom}"], needsBios: false, notes: "Firmware do PS3 instalado pelo próprio emulador. Exige GPU Vulkan." },
-  { id: "shadps4", name: "shadPS4", platforms: ["ps4"], os: ALL_OS, status: "experimental", homepage: "https://shadps4.net", exe: "shadPS4.exe", args: ["-g", "{rom}"], needsBios: false, notes: "Experimental: compatibilidade limitada, checar a lista de jogos." },
+  { id: "shadps4", name: "shadPS4", platforms: ["ps4"], os: ALL_OS, status: "experimental", homepage: "https://shadps4.net", exe: "shadPS4.exe", args: ["-g", "{rom}"], launchVerified: true, needsBios: false, notes: "Experimental: compatibilidade limitada, checar a lista de jogos." },
   { id: "ppsspp", name: "PPSSPP", platforms: ["psp"], os: ALL_OS, status: "active", homepage: "https://www.ppsspp.org", exe: "PPSSPPWindows64.exe", args: ["{rom}"], needsBios: false, notes: "Sem BIOS." },
   { id: "vita3k", name: "Vita3K", platforms: ["vita"], os: ALL_OS, status: "experimental", homepage: "https://vita3k.org", exe: "Vita3K.exe", args: ["-r", "{rom}"], needsBios: true, notes: "Usa o ID do título (ex.: PCSE00120) em vez do caminho; exige firmware do Vita." },
   { id: "xemu", name: "xemu", platforms: ["xbox"], os: ALL_OS, status: "active", homepage: "https://xemu.app", exe: "xemu.exe", args: ["-dvd_path", "{rom}"], needsBios: true, notes: "Exige BIOS, MCPX boot ROM e HDD image do Xbox original." },
@@ -21,7 +23,7 @@ export const EMULATORS: Emulator[] = [
   { id: "melonds", name: "melonDS", platforms: ["nds"], os: ALL_OS, status: "active", homepage: "https://melonds.kuribo64.net", exe: "melonDS.exe", args: ["{rom}"], needsBios: false, notes: "Roda sem BIOS (firmware livre), mas BIOS original melhora a precisão." },
   { id: "mgba", name: "mGBA", platforms: ["gba", "gb", "gbc"], os: ALL_OS, status: "active", homepage: "https://mgba.io", exe: "mGBA.exe", args: ["-f", "{rom}"], needsBios: false, notes: "Sem BIOS necessária." },
   { id: "flycast", name: "Flycast", platforms: ["dc"], os: ALL_OS, status: "active", homepage: "https://github.com/flyinghead/flycast", exe: "flycast.exe", args: ["{rom}"], needsBios: true, notes: "BIOS do Dreamcast (dc_boot.bin, dc_flash.bin)." },
-  { id: "mesen", name: "Mesen", platforms: ["nes", "snes", "pce", "sms", "gg", "gb", "gba"], os: ALL_OS, status: "active", homepage: "https://www.mesen.ca", exe: "Mesen.exe", args: ["{rom}"], needsBios: false, notes: "Alta precisão para 8/16 bits." },
+  { id: "mesen", name: "MesenCE (fork do Mesen)", platforms: ["nes", "snes", "pce", "sms", "gg", "gb", "gba"], os: ALL_OS, status: "community-fork", homepage: "https://github.com/nesdev-org/MesenCE", exe: "Mesen.exe", args: ["{rom}"], needsBios: false, notes: "Alta precisão para 8/16 bits. O Mesen2 original foi arquivado em jun/2026; o MesenCE é o fork mantido." },
   { id: "mame", name: "MAME", platforms: ["arcade", "neogeo"], os: ALL_OS, status: "active", homepage: "https://www.mamedev.org", exe: "mame.exe", args: ["{rom}"], needsBios: true, notes: "Usa o nome do set (ex.: sf2) e exige o set de ROMs correspondente na pasta roms." },
   { id: "scummvm", name: "ScummVM", platforms: ["dos"], os: ALL_OS, status: "active", homepage: "https://www.scummvm.org", exe: "scummvm.exe", args: ["--fullscreen", "{rom}"], needsBios: false, notes: "Aventuras gráficas clássicas; recebe o ID do jogo." },
   {
@@ -45,6 +47,9 @@ export const EMULATORS: Emulator[] = [
     notes: "Frontend único com cores (libretro); BIOS depende do core (Saturn, PS1, Dreamcast).",
   },
 ];
+
+/** Official download page and verified package ids are merged in from emulatorSources.ts. */
+export const EMULATORS: Emulator[] = [...CORE, ...MORE_EMULATORS].map((e) => ({ ...e, install: INSTALL_SOURCES[e.id] }));
 
 export const EMULATOR_BY_ID: Record<string, Emulator> = Object.fromEntries(
   EMULATORS.map((e) => [e.id, e]),

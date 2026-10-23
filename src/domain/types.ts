@@ -27,6 +27,17 @@ export interface Provider {
 
 export type EmulatorStatus = "active" | "experimental" | "community-fork" | "discontinued";
 
+/** Where to get an emulator, taken from its official site; ids are verified package-manager ids. */
+export interface EmulatorInstall {
+  /** Official download page (https). */
+  downloadUrl: string;
+  winget?: string;
+  /** `bucket/app`, e.g. `extras/dolphin`. */
+  scoop?: string;
+  flatpak?: string;
+  brew?: { kind: "cask" | "formula"; name: string };
+}
+
 export interface Emulator {
   id: string;
   name: string;
@@ -41,6 +52,9 @@ export interface Emulator {
   cores?: Record<string, string>;
   needsBios: boolean;
   notes: string;
+  install?: EmulatorInstall;
+  /** True only when the executable name and arguments come from the project's own documentation. */
+  launchVerified?: boolean;
 }
 
 export interface Game {
