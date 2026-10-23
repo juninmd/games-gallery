@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { alternateName } from "../platform/exportFiles";
 import { buildPlaylists } from "./playlist";
 import type { Game } from "./types";
 
@@ -26,9 +27,15 @@ describe("buildPlaylists", () => {
   it("doubles backslashes in the serialized text, as the format requires", () => {
     expect(buildPlaylists([g({})])[0]?.text).toContain('"D:\\\\ROMs\\\\gba\\\\Game.gba"');
   });
-  it("keeps posix paths untouched on posix", () => {
-    const item = JSON.parse(buildPlaylists([g({ romPath: "/roms/gba/Game.gba" })], "posix")[0]!.text).items[0];
-    expect(item.path).toBe("/roms/gba/Game.gba");
+  it("keeps POSIX-looking paths untouched, whatever the host", () => {
+    const item = JSON.parse(buildPlaylists([g({ romPath: "/home/u/roms/gba/Game.gba" })])[0]!.text).items[0];
+    expect(item.path).toBe("/home/u/roms/gba/Game.gba");
+  });
+  it("counts items per playlist without re-parsing", () => {
+    expect(buildPlaylists([g({ id: "1" }), g({ id: "2", title: "B" })])[0]?.count).toBe(2);
+  });
+  it("never overwrites an existing playlist: alternate name keeps the extension", () => {
+    expect(alternateName("Sony - PlayStation.lpl")).toBe("Sony - PlayStation (gallery).lpl");
   });
   it("skips games that cannot be launched from a playlist", () => {
     const out = buildPlaylists([

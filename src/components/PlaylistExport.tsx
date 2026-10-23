@@ -1,4 +1,5 @@
 import { ListMusic } from "lucide-react";
+import { useMemo } from "react";
 import { buildPlaylists } from "../domain/playlist";
 import { saveFiles } from "../platform/exportFiles";
 import { useLibrary } from "../state/library";
@@ -7,12 +8,14 @@ import { useUi } from "../state/ui";
 export function PlaylistExport() {
   const games = useLibrary((s) => s.games);
   const toast = useUi((s) => s.toast);
-  const files = buildPlaylists(games);
-  const count = files.reduce((n, f) => n + (JSON.parse(f.text) as { items: unknown[] }).items.length, 0);
+  const files = useMemo(() => buildPlaylists(games), [games]);
+  const count = files.reduce((n, f) => n + f.count, 0);
 
   const run = async () => {
     try {
-      if (await saveFiles(files)) toast(`${files.length} playlist(s) exportada(s): ${count} jogos`);
+      const renamed = await saveFiles(files);
+      if (renamed === null) return;
+      toast(`${files.length} playlist(s) exportada(s): ${count} jogos${renamed ? `; ${renamed} já existia(m) e foi(ram) salva(s) como “(gallery)”` : ""}`);
     } catch (e) {
       toast(`Falha ao exportar: ${String(e)}`);
     }
