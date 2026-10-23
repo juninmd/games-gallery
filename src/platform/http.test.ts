@@ -11,6 +11,11 @@ describe("resolveRequestUrl", () => {
     expect(resolveRequestUrl(u, true)).toBe(u);
   });
 
+  it("also routes the Epic free-games backend and the PlayStation Blog", () => {
+    expect(resolveRequestUrl("https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=pt-BR", false)).toBe("/proxy/epic/freeGamesPromotions?locale=pt-BR");
+    expect(resolveRequestUrl("https://blog.playstation.com/feed/?paged=2", false)).toBe("/proxy/psblog/feed/?paged=2");
+  });
+
   it("rejects unknown hosts, plain http and lookalike hosts", () => {
     for (const bad of ["https://evil.example/x", "http://store.steampowered.com/x", "https://store.steampowered.com.evil.io/x", "https://api.rawg.io@evil.io/x"]) {
       expect(() => resolveRequestUrl(bad, false), bad).toThrow();

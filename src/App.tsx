@@ -6,6 +6,7 @@ import { useUi } from "./state/ui";
 import { BoardView } from "./views/BoardView";
 import { EmulatorsView } from "./views/EmulatorsView";
 import { FoldersView } from "./views/FoldersView";
+import { FreebiesView } from "./views/FreebiesView";
 import { GameBrowser } from "./views/GameBrowser";
 import { PlatformsView } from "./views/PlatformsView";
 import { ProvidersView } from "./views/ProvidersView";
@@ -19,6 +20,7 @@ function CurrentView() {
     case "board": return <BoardView />;
     case "platforms": return <PlatformsView />;
     case "folders": return <FoldersView />;
+    case "freebies": return <FreebiesView />;
     case "providers": return <ProvidersView />;
     case "emulators": return <EmulatorsView />;
     case "settings": return <SettingsView />;

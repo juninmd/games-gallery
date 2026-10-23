@@ -1,3 +1,4 @@
+import { LINK_HOSTS, safeUrl } from "../domain/freebies";
 import type { LaunchPlan } from "../domain/launch";
 
 export const isTauri = () => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -22,4 +23,17 @@ export async function launch(plan: LaunchPlan): Promise<LaunchResult> {
     }
   }
   return { ok: true, simulated: true, detail: plan.preview };
+}
+
+/** Opens an https page on an allow-listed host (store pages, announcements); anything else is refused. */
+export async function openExternal(url: string): Promise<boolean> {
+  const safe = safeUrl(url, LINK_HOSTS);
+  if (!safe) return false;
+  if (isTauri()) {
+    const { openUrl } = await import("@tauri-apps/plugin-opener");
+    await openUrl(safe);
+  } else {
+    window.open(safe, "_blank", "noopener,noreferrer");
+  }
+  return true;
 }

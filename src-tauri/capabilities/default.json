@@ -13,7 +13,9 @@
       "identifier": "http:default",
       "allow": [
         { "url": "https://store.steampowered.com/*" },
-        { "url": "https://api.rawg.io/*" }
+        { "url": "https://api.rawg.io/*" },
+        { "url": "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions*" },
+        { "url": "https://blog.playstation.com/feed/*" }
       ]
     },
     {
@@ -24,7 +26,10 @@
         { "url": "com.epicgames.launcher://*" },
         { "url": "uplay://*" },
         { "url": "battlenet://*" },
-        { "url": "itch://*" }
+        { "url": "itch://*" },
+        { "url": "https://store.epicgames.com/*" },
+        { "url": "https://blog.playstation.com/*" },
+        { "url": "https://store.playstation.com/*" }
       ]
     }
   ]

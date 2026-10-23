@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { EMPTY_FILTER, type GameFilter } from "../domain/filter";
 
-export type View = "library" | "installed" | "board" | "platforms" | "providers" | "folders" | "emulators" | "settings";
+export type View = "library" | "installed" | "board" | "platforms" | "providers" | "freebies" | "folders" | "emulators" | "settings";
 
 interface Toast {
   id: number;

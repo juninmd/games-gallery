@@ -21,12 +21,19 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 | Biblioteca / Instalados | grid de capas, busca (sem acento), filtros por provedor, plataforma, status; ordenação |
 | Quero jogar | kanban com drag & drop entre os status |
 | Pastas | escolher pasta de ROMs ou biblioteca Steam, revisar o que foi reconhecido (novo / vincular / já importado), ver o emulador de cada jogo e importar |
+| Jogos grátis | jogos gratuitos da Epic Games Store (agora e em breve) e jogos do mês do PlayStation Plus, com abrir na loja, wishlist e “já resgatei” |
 | Plataformas | 34 plataformas e se há emulador pronto, a instalar, ou nenhum viável (PS5, Xbox One, Series) |
 | Provedores | 18 lojas/serviços: método de importação, conectar, sincronizar |
 | Emuladores | 20 emuladores, plataformas, BIOS exigida, comando de launch, instalar/remover, e os jogos da biblioteca que usam cada um (quantos estão prontos para jogar) |
 | Drawer do jogo | status, nota, horas, emulador escolhido, caminho da ROM e o comando exato que seria executado |
 
 ![Emuladores](docs/emulators.png)
+
+## Jogos grátis (Epic e PlayStation Plus)
+
+- **Epic:** lê o endpoint JSON público que a própria loja usa (`freeGamesPromotions`), sem chave. Só entram ofertas 100% grátis (na resposta, `discountPercentage: 0`; um valor como 20 é só desconto). Não é uma API oficial e pode mudar.
+- **PlayStation Plus:** não existe API aberta. A API REST do PlayStation Blog está desativada e o `robots.txt` bloqueia `/tag/` e `/category/`, então o app lê o feed principal (`/feed/`), uma página por vez, esperando 5 s entre elas (o `Crawl-delay` do blog), até achar o post “Monthly Games”. Só roda quando você clica em “Buscar jogos do mês” e fica em cache por 7 dias. Os nomes vêm do título do post (podem errar se um título tiver vírgula): o link do anúncio fica no card. A lista “Game Catalog” não é lida.
+- **O app não resgata por você.** O resgate exige o seu login na Epic ou na PS Store; o card abre a página oficial e você marca “Já resgatei” depois.
 
 ## Pastas e varredura
 
