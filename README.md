@@ -21,6 +21,7 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 | Biblioteca / Instalados | grid de capas, busca (sem acento), filtros por provedor, plataforma, status; ordenação |
 | Quero jogar | kanban com drag & drop entre os status |
 | Pastas | escolher pasta de ROMs ou biblioteca Steam, revisar o que foi reconhecido (novo / vincular / já importado), ver o emulador de cada jogo e importar |
+| Estatísticas | totais, % zerados, nota média, distribuição por status/nota/plataforma/provedor, mais jogados, backlog nunca jogado |
 | Plataformas | 34 plataformas e se há emulador pronto, a instalar, ou nenhum viável (PS5, Xbox One, Series) |
 | Provedores | 18 lojas/serviços: método de importação, conectar, sincronizar |
 | Emuladores | 20 emuladores, plataformas, BIOS exigida, comando de launch, instalar/remover, e os jogos da biblioteca que usam cada um (quantos estão prontos para jogar) |
