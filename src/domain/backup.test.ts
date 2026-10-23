@@ -72,6 +72,10 @@ describe("parseBackup sanitizes games", () => {
     const r = parse([game({ status: "wishlist", owned: true, installed: true })]);
     expect(r.ok && r.data.games[0]).toMatchObject({ owned: false, installed: false });
   });
+  it("derives owned from status so stats cannot see a completed game that is not owned", () => {
+    const r = parse([game({ status: "completed", owned: false, installed: true })]);
+    expect(r.ok && r.data.games[0]).toMatchObject({ owned: true, status: "completed" });
+  });
   it("ignores unknown providers and emulators in the maps", () => {
     const r = parseBackup(wrap({ providers: { steam: { connected: true }, evil: { connected: true }, constructor: { connected: true } }, emulators: { pcsx2: true, nope: true, toString: true } }));
     expect(r.ok && Object.keys(r.data.providers)).toEqual(["steam"]);

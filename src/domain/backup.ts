@@ -57,8 +57,8 @@ function cleanGame(raw: unknown): Game | null {
   if (!id || !title || !platformId || !providerId || !status) return null;
   if (!has(PLATFORM_BY_ID, platformId) || !has(PROVIDER_BY_ID, providerId)) return null;
   if (typeof raw["owned"] !== "boolean" || typeof raw["installed"] !== "boolean") return null;
-  // Wishlist means not owned, and nothing unowned can be installed.
-  const owned = status === "wishlist" ? false : raw["owned"];
+  // App invariant: owned <=> not wishlist, and nothing unowned can be installed.
+  const owned = status !== "wishlist";
   const storeId = str(raw["storeId"], 100);
   const emulatorId = str(raw["emulatorId"]);
   const coverUrl = str(raw["coverUrl"], 1000);
