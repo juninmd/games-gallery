@@ -140,3 +140,16 @@
 .usage li button:hover, .usage li button:focus-visible { text-decoration: underline; }
 .needed li { display: flex; align-items: center; gap: 10px; }
 .needed .btn { width: auto; }
+
+/* stats */
+.bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.bars li { display: grid; grid-template-columns: 120px 1fr auto; gap: 10px; align-items: center; font-size: 13px; }
+.bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.bar-track { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.bar-track i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+.bar-value { font-variant-numeric: tabular-nums; font-weight: 600; }
+.bar-value small { color: var(--muted); font-weight: 400; }
+.ranked { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.linkish { all: unset; cursor: pointer; }
+.linkish:hover, .linkish:focus-visible { text-decoration: underline; }
+.cards .panel { align-content: start; }
