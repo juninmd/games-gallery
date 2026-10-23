@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { PlatformTag, ProgressBar } from "../components/Badges";
 import { EmulatorInstallPanel } from "../components/EmulatorInstallPanel";
 import { InstallScript } from "../components/InstallScript";
+import { PlaylistExport } from "../components/PlaylistExport";
 import { EMULATORS, NO_EMULATOR_NOTE } from "../domain/emulators";
 import { PLATFORMS } from "../domain/platforms";
 import type { EmulatorUsage } from "../domain/emulatorUsage";
@@ -55,6 +56,7 @@ function EmulatorCard({ emulator: e, usage }: { emulator: Emulator; usage?: Emul
       <div className="tags">{e.platforms.map((p) => <PlatformTag key={p} id={p} />)}</div>
       <p className={`small ${e.needsBios ? "warn-text" : "muted"}`}>{e.needsBios ? "⚠ " : ""}{e.notes}</p>
       <Usage usage={usage} />
+      {e.id === "retroarch" && <PlaylistExport />}
       <pre className="cmd small">{[e.exe, ...e.args].join(" ")}</pre>
       {!e.launchVerified && <p className="muted small">Comando de launch heurístico: confira na versão instalada.</p>}
       <EmulatorInstallPanel emulator={e} />

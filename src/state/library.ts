@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { EMULATOR_BY_ID } from "../domain/emulators";
 import { PROVIDER_BY_ID } from "../domain/providers";
+import type { BackupData } from "../domain/backup";
 import { type ImportItem, applyImport } from "../domain/scan/plan";
 import { SEED_GAMES, SEED_INSTALLED_EMULATORS } from "../domain/seed";
 import type { Game } from "../domain/types";
@@ -47,6 +48,7 @@ interface LibraryState {
   installEmulator: (id: string) => void;
   uninstallEmulator: (id: string) => void;
   setSettings: (patch: Partial<Settings>) => void;
+  restore: (data: BackupData) => void;
   reset: () => void;
 }
 
@@ -123,6 +125,14 @@ export const useLibrary = create<LibraryState>()(
       uninstallEmulator: (id) => set((s) => ({ emulators: { ...s.emulators, [id]: false } })),
 
       setSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
+      restore: (data) =>
+        set((s) => ({
+          games: data.games,
+          scans: data.scans,
+          providers: data.providers ?? s.providers,
+          emulators: data.emulators ?? s.emulators,
+          settings: { ...s.settings, ...Object.fromEntries(Object.entries(data.settings).filter(([, v]) => v)) },
+        })),
       reset: () => set(initial()),
     }),
     {

@@ -1,3 +1,4 @@
+import { BackupSettings } from "../components/BackupSettings";
 import { RatingSourcesSettings } from "../components/RatingSourcesSettings";
 import { EMULATORS } from "../domain/emulators";
 import { PLATFORMS } from "../domain/platforms";
@@ -16,6 +17,7 @@ const REAL = [
   "Capas reais (Steam CDN e libretro) com fallback gerado",
   "Notas públicas reais: Steam Reviews (sem chave) e RAWG/Metacritic (com chave), cache de 24h",
   "Varredura de pastas: ROMs por plataforma/extensão e bibliotecas Steam (appmanifest), com revisão antes de importar",
+  "Backup: exportar e importar a biblioteca em JSON validado (campos desconhecidos e valores inseguros são descartados)",
   "Montagem segura do launch: argv em array, ID de loja validado, sem shell",
   "Persistência local (localStorage no browser; fase 2: SQLite no Tauri)",
 ];
@@ -34,6 +36,7 @@ export function SettingsView() {
         <p className="muted small">Para varrer e importar, use a tela “Pastas”. Identificação por hash (No-Intro/Redump): fase 2.</p>
       </section>
       <RatingSourcesSettings />
+      <BackupSettings />
       <section className="panel narrow">
         <h3>Sobre este protótipo</h3>
         <h4>O que é real</h4>
