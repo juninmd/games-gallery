@@ -10,6 +10,7 @@ import { FreebiesView } from "./views/FreebiesView";
 import { GameBrowser } from "./views/GameBrowser";
 import { PlatformsView } from "./views/PlatformsView";
 import { ProvidersView } from "./views/ProvidersView";
+import { StatsView } from "./views/StatsView";
 import { SettingsView } from "./views/SettingsView";
 
 function CurrentView() {
@@ -23,6 +24,7 @@ function CurrentView() {
     case "freebies": return <FreebiesView />;
     case "providers": return <ProvidersView />;
     case "emulators": return <EmulatorsView />;
+    case "stats": return <StatsView />;
     case "settings": return <SettingsView />;
   }
 }

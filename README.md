@@ -22,9 +22,10 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 | Quero jogar | kanban com drag & drop entre os status |
 | Pastas | escolher pasta de ROMs ou biblioteca Steam, revisar o que foi reconhecido (novo / vincular / já importado), ver o emulador de cada jogo e importar |
 | Jogos grátis | jogos gratuitos da Epic Games Store (agora e em breve) e jogos do mês do PlayStation Plus, com abrir na loja, wishlist e “já resgatei” |
+| Estatísticas | totais, % zerados, nota média, distribuição por status/nota/plataforma/provedor, mais jogados, backlog nunca jogado |
 | Plataformas | 34 plataformas e se há emulador pronto, a instalar, ou nenhum viável (PS5, Xbox One, Series) |
 | Provedores | 18 lojas/serviços: método de importação, conectar, sincronizar |
-| Emuladores | 20 emuladores, plataformas, BIOS exigida, comando de launch, instalar/remover, e os jogos da biblioteca que usam cada um (quantos estão prontos para jogar) |
+| Emuladores | 35 emuladores, página oficial de download e comandos de instalação (winget, Scoop, Flatpak, Homebrew) com botão copiar, script único dos que faltam, plataformas, BIOS exigida, comando de launch, instalar/remover, e os jogos da biblioteca que usam cada um (quantos estão prontos para jogar) |
 | Drawer do jogo | status, nota, horas, emulador escolhido, caminho da ROM e o comando exato que seria executado |
 
 ![Emuladores](docs/emulators.png)
@@ -34,6 +35,14 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 - **Epic:** lê o endpoint JSON público que a própria loja usa (`freeGamesPromotions`), sem chave. Só entram ofertas 100% grátis (na resposta, `discountPercentage: 0`; um valor como 20 é só desconto). Não é uma API oficial e pode mudar.
 - **PlayStation Plus:** não existe API aberta. A API REST do PlayStation Blog está desativada e o `robots.txt` bloqueia `/tag/` e `/category/`, então o app lê o feed principal (`/feed/`), uma página por vez, esperando 5 s entre elas (o `Crawl-delay` do blog), até achar o post “Monthly Games”. Só roda quando você clica em “Buscar jogos do mês” e fica em cache por 7 dias. Os nomes vêm do título do post (podem errar se um título tiver vírgula): o link do anúncio fica no card. A lista “Game Catalog” não é lida.
 - **O app não resgata por você.** O resgate exige o seu login na Epic ou na PS Store; o card abre a página oficial e você marca “Já resgatei” depois.
+## Instalar emuladores
+
+Cada emulador tem a página oficial de download e, quando existe, o comando verificado de cada gerenciador (winget, Scoop, Flatpak/Flathub, Homebrew), com o do seu sistema primeiro. O botão **Copiar script dos que faltam** junta os emuladores que a sua biblioteca usa e que ainda não estão instalados.
+
+- Os dados ficam em `src/domain/emulatorSources.ts`; cada id foi conferido (`winget show --exact`, manifest do Scoop no GitHub, API do Flathub, formulae.brew.sh) em 2026-10-22. Ids que não resolveram, ou que são de outro publicador ou do upstream arquivado, ficaram de fora: o fallback é a página oficial.
+- O app **não executa** a instalação: ele mostra e copia o comando para você revisar e rodar. Instalação automática (comando Rust com escopo, argv-only e verificação de hash) é fase 2.
+- Plataformas de console sem emulador utilizável continuam sendo PS5, Xbox One e Series. Rejeitados na pesquisa: Yuzu e Suyu (retirados após ação da Nintendo), Citra e Lime3DS (redirecionam para o Azahar), Ryujinx original (descontinuado; o Ryubing já está no catálogo), simple64, DeSmuME, Nestopia UE, Kega Fusion e higan.
+- O comando de **launch** de cada emulador segue heurístico, exceto os marcados como verificados na documentação (hoje: shadPS4, Stella e Ymir).
 
 ## Pastas e varredura
 
@@ -43,6 +52,7 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 - **Jogos de PC:** lê `appmanifest_*.acf` de uma biblioteca Steam (appid, nome, tamanho em disco). GOG e Epic: fase 2.
 - Cada ROM é ligada a um jogo que você já tem (mesmo título, sem acento/caixa) ou vira um jogo novo; o emulador padrão da plataforma aparece em cada linha, com botão para instalar o que falta.
 - No Tauri o seletor é nativo e o caminho salvo é absoluto; o escopo de leitura vale só para a pasta escolhida e some ao fechar o app (reescanear = escolher de novo). No browser (`pnpm dev`) o caminho salvo é relativo à pasta escolhida.
+- **RetroArch:** na tela Emuladores, “Exportar playlists (.lpl)” gera uma playlist por plataforma (formato JSON documentado no libretro; core e CRC ficam `DETECT`, o RetroArch pergunta o core na primeira vez).
 - Pesquisa de concorrentes (Playnite, LaunchBox, Pegasus, ES-DE, RetroArch…): [docs/competitors.md](docs/competitors.md).
 
 ## Notas (sua nota + notas públicas)

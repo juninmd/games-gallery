@@ -7,8 +7,12 @@
     "core:default",
     "opener:default",
     "dialog:allow-open",
+    "dialog:allow-save",
     "fs:allow-read-dir",
+    "fs:allow-stat",
     "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-exists",
     {
       "identifier": "http:default",
       "allow": [
