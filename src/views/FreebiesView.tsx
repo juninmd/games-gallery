@@ -1,7 +1,7 @@
 import { RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FreebieCard } from "../components/FreebieCard";
-import { PS_PLUS_PLATFORMS, monthPt, psPlusFreebies } from "../domain/freebies";
+import { PS_PLUS_PLATFORMS, monthPt, psPlusFreebies, settle } from "../domain/freebies";
 import { PS_CRAWL_DELAY_MS, PS_MAX_PAGES } from "../platform/freebiesApi";
 import { useFreebies } from "../state/freebies";
 
@@ -10,8 +10,9 @@ const stamp = (t?: number) => (t ? new Date(t).toLocaleString("pt-BR") : "nunca"
 function EpicSection() {
   const { epic, loading, errors, refreshEpic } = useFreebies();
   useEffect(() => void refreshEpic(), [refreshEpic]);
-  const now = epic?.items.filter((f) => f.status === "now") ?? [];
-  const upcoming = epic?.items.filter((f) => f.status === "upcoming") ?? [];
+  const live = useMemo(() => settle(epic?.items ?? []), [epic]);
+  const now = live.filter((f) => f.status === "now");
+  const upcoming = live.filter((f) => f.status === "upcoming");
 
   return (
     <section className="group">
@@ -22,7 +23,7 @@ function EpicSection() {
         </button>
       </div>
       <p className="muted small">Atualizado em {stamp(epic?.fetchedAt)}. Fonte: endpoint público que a própria loja usa (não oficial; pode mudar).</p>
-      {errors.epic && <p className="note warn">Não foi possível ler a Epic: {errors.epic}</p>}
+      {errors.epic && <p className="note warn" role="alert">Não foi possível ler a Epic: {errors.epic}</p>}
       {!epic && !loading.epic && !errors.epic && <p className="empty">Nada carregado ainda.</p>}
       {epic && !now.length && <p className="empty">Nenhum jogo gratuito agora.</p>}
       <div className="freebie-grid">{now.map((f) => <FreebieCard key={f.id} freebie={f} />)}</div>
@@ -57,7 +58,8 @@ function PsPlusSection() {
       <p className="muted small">
         Atualizado em {stamp(ps?.fetchedAt)}. Não há API aberta: o app lê o feed do PlayStation Blog, uma página por vez, esperando {PS_CRAWL_DELAY_MS / 1000} s entre elas (pode levar cerca de {(PS_MAX_PAGES - 1) * (PS_CRAWL_DELAY_MS / 1000)} s). Os nomes vêm do título do post: confira no anúncio.
       </p>
-      {errors.ps && <p className="note warn">{errors.ps}</p>}
+      <span className="sr-only" role="status">{loading.ps ? `Buscando jogos do mês, página ${psPage} de ${PS_MAX_PAGES}` : ""}</span>
+      {errors.ps && <p className="note warn" role="alert">{errors.ps}</p>}
       {ps?.month && <p className="muted small">Jogos de {monthPt(ps.month.month)} (post de {new Date(ps.month.publishedAt || Date.now()).toLocaleDateString("pt-BR")})</p>}
       {!ps && !loading.ps && !errors.ps && <p className="empty">Clique em “Buscar jogos do mês”.</p>}
       <div className="freebie-grid">{items.map((f) => <FreebieCard key={f.id} freebie={f} platformId={platformId} />)}</div>

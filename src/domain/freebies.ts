@@ -109,14 +109,33 @@ export function parseEpicFree(json: unknown): Freebie[] {
   return out.sort((a, b) => Number(a.status === "upcoming") - Number(b.status === "upcoming") || (a.startsAt ?? "").localeCompare(b.startsAt ?? ""));
 }
 
+const time = (iso?: string) => (iso ? Date.parse(iso) : Number.NaN);
+
+/** Re-derives each Epic offer's state against `now` (cached data ages); expired offers drop out. */
+export function settle(items: Freebie[], now = Date.now()): Freebie[] {
+  return items
+    .flatMap((f): Freebie[] => {
+      if (f.store !== "epic") return [f];
+      if (time(f.endsAt) <= now) return [];
+      return [{ ...f, status: time(f.startsAt) > now ? "upcoming" : "now" }];
+    })
+    .sort((a, b) => Number(a.status === "upcoming") - Number(b.status === "upcoming") || (a.startsAt ?? "").localeCompare(b.startsAt ?? ""));
+}
+
+/** True when an offer window closed or opened since the data was fetched, whatever the cache TTL says. */
+export const windowChanged = (items: Freebie[], now = Date.now()): boolean =>
+  items.some((f) => time(f.endsAt) <= now || (f.status === "upcoming" && time(f.startsAt) <= now));
+
 const NAMED: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
 
+/** One pass, so `&amp;#38;` stays text and CDATA content is kept literally. */
 export function decodeEntities(s: string): string {
-  return s
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/&#x([0-9a-f]+);/gi, (_m, h: string) => safeCodePoint(parseInt(h, 16)))
-    .replace(/&#(\d+);/g, (_m, d: string) => safeCodePoint(Number(d)))
-    .replace(/&([a-z]+);/gi, (m, n: string) => NAMED[n.toLowerCase()] ?? m);
+  return s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>|&#x([0-9a-f]+);|&#(\d+);|&([a-z]+);/gi, (m, cdata?: string, hex?: string, dec?: string, name?: string) => {
+    if (cdata !== undefined) return cdata;
+    if (hex !== undefined) return safeCodePoint(parseInt(hex, 16));
+    if (dec !== undefined) return safeCodePoint(Number(dec));
+    return NAMED[(name ?? "").toLowerCase()] ?? m;
+  });
 }
 
 const safeCodePoint = (n: number) => (Number.isInteger(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : "");
@@ -127,11 +146,23 @@ export interface FeedItem {
   pubDate: string;
 }
 
-/** WordPress RSS 2.0: regex over `<item>` blocks (no DOMParser, so it also runs under node tests). Bounded input. */
+/** Text between two markers, or "" when either is missing. `indexOf` scanning keeps hostile input linear. */
+function between(text: string, open: string, close: string, from = 0): { value: string; end: number } | null {
+  const a = text.indexOf(open, from);
+  if (a < 0) return null;
+  const b = text.indexOf(close, a + open.length);
+  return b < 0 ? null : { value: text.slice(a + open.length, b), end: b + close.length };
+}
+
+/** WordPress RSS 2.0 without DOMParser (so it also runs under node tests). Input is capped and scanned linearly. */
 export function parseFeed(xml: string): FeedItem[] {
+  const src = xml.slice(0, 3_000_000);
   const out: FeedItem[] = [];
-  for (const block of xml.slice(0, 3_000_000).match(/<item>[\s\S]*?<\/item>/g) ?? []) {
-    const tag = (name: string) => decodeEntities(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`).exec(block)?.[1] ?? "").trim();
+  for (let pos = 0; ; ) {
+    const item = between(src, "<item>", "</item>", pos);
+    if (!item) break;
+    pos = item.end;
+    const tag = (name: string) => decodeEntities(between(item.value, `<${name}>`, `</${name}>`)?.value ?? "").trim();
     const title = tag("title");
     const link = tag("link");
     if (title && link) out.push({ title, link, pubDate: tag("pubDate") });
@@ -142,14 +173,22 @@ export function parseFeed(xml: string): FeedItem[] {
 // "PlayStation Plus Monthly Games for October: A, B, C"; the blog has used ':' and dashes.
 const MONTHLY = /^PlayStation Plus Monthly Games for ([A-Za-z]+)\s*[:–—-]\s*(.+)$/;
 
+/**
+ * "A, B and C" -> commas separate, with an optional "and" on the last one. A bare " and " only splits
+ * the two-game form "A and B" (no commas): "Dungeons and Dragons: Dark Alliance, Foo" must stay intact.
+ */
+export function splitGames(list: string): string[] {
+  if (!list.includes(",")) return list.split(/\s+and\s+/);
+  return list.split(/,\s+(?:and\s+)?/);
+}
+
 /** Newest monthly-games announcement in a feed page, or null. Game names are split from the post title. */
 export function findPsPlusMonth(items: FeedItem[]): PsPlusMonth | null {
   for (const it of items) {
     const m = MONTHLY.exec(it.title);
     const postUrl = safeUrl(it.link, LINK_HOSTS);
     if (!m || !postUrl) continue;
-    const games = (m[2] ?? "")
-      .split(/,\s+(?:and\s+)?|\s+and\s+/)
+    const games = splitGames(m[2] ?? "")
       .map((g) => g.trim())
       .filter((g) => g.length > 0 && g.length <= 80)
       .slice(0, 8);

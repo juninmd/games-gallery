@@ -30,7 +30,22 @@ export async function httpGetJson(url: string): Promise<unknown> {
   return (await httpGet(url, "application/json")).json();
 }
 
-/** Feeds (RSS/XML): the body is capped so a hostile or broken host cannot fill memory. */
+/** Reads at most `maxChars` characters and cancels the stream past that, so a hostile host cannot fill memory. */
+export async function readCapped(res: Response, maxChars: number): Promise<string> {
+  if (!res.body) return (await res.text()).slice(0, maxChars);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+  while (text.length < maxChars) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    text += decoder.decode(value, { stream: true });
+  }
+  await reader.cancel().catch(() => undefined);
+  return text.slice(0, maxChars);
+}
+
+/** Feeds (RSS/XML), capped. */
 export async function httpGetText(url: string, maxChars = 3_000_000): Promise<string> {
-  return (await (await httpGet(url, "application/rss+xml, application/xml, text/xml")).text()).slice(0, maxChars);
+  return readCapped(await httpGet(url, "application/rss+xml, application/xml, text/xml"), maxChars);
 }

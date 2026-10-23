@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Freebie, PsPlusMonth } from "../domain/freebies";
+import { type Freebie, type PsPlusMonth, windowChanged } from "../domain/freebies";
 import { fetchEpicFree, fetchPsPlusMonth } from "../platform/freebiesApi";
 
 export const EPIC_TTL_MS = 6 * 60 * 60 * 1000;
@@ -29,7 +29,8 @@ export const useFreebies = create<FreebiesState>()(
       errors: {},
       refreshEpic: async (force = false) => {
         const s = get();
-        if (s.loading.epic || (!force && isFresh(s.epic?.fetchedAt, EPIC_TTL_MS))) return;
+        const stale = !s.epic || !isFresh(s.epic.fetchedAt, EPIC_TTL_MS) || windowChanged(s.epic.items);
+        if (s.loading.epic || (!force && !stale)) return;
         set({ loading: { ...s.loading, epic: true }, errors: { ...s.errors, epic: undefined } });
         try {
           const items = await fetchEpicFree();

@@ -49,13 +49,13 @@ export function FreebieCard({ freebie: f, platformId }: { freebie: Freebie; plat
         <strong title={f.title}>{f.title}</strong>
         <span className="muted small">{when(f)}{f.originalPrice ? ` · de ${f.originalPrice}` : ""}</span>
         <div className="freebie-actions">
-          <button className="btn" onClick={open}><ExternalLink size={13} aria-hidden /> {f.store === "epic" ? "Abrir na loja" : "Ver anúncio"}</button>
+          <button className="btn" onClick={open} aria-label={`${f.store === "epic" ? "Abrir na loja" : "Ver anúncio"}: ${f.title}`}><ExternalLink size={13} aria-hidden /> {f.store === "epic" ? "Abrir na loja" : "Ver anúncio"}</button>
           {inLibrary ? (
             <span className="tag ok">Na biblioteca</span>
           ) : (
             <>
-              <button className="btn ghost" onClick={() => add("wishlist")}>Wishlist</button>
-              <button className="btn ghost" onClick={() => add("owned")}>Já resgatei</button>
+              <button className="btn ghost" onClick={() => add("wishlist")} aria-label={`Adicionar ${f.title} à wishlist`}>Wishlist</button>
+              <button className="btn ghost" onClick={() => add("owned")} aria-label={`Marcar ${f.title} como já resgatado`}>Já resgatei</button>
             </>
           )}
         </div>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeEntities, monthPt, findPsPlusMonth, freebieToGame, parseEpicFree, parseFeed, psPlusFreebies, safeUrl, LINK_HOSTS } from "./freebies";
+import { decodeEntities, monthPt, settle, splitGames, windowChanged, findPsPlusMonth, freebieToGame, parseEpicFree, parseFeed, psPlusFreebies, safeUrl, LINK_HOSTS } from "./freebies";
 import type { Game } from "./types";
 
 const images = [
@@ -58,7 +58,7 @@ describe("parseEpicFree", () => {
 describe("decodeEntities", () => {
   it("decodes numeric, hex, named entities and CDATA; ignores invalid code points", () => {
     expect(decodeEntities("Sniper Elite &#8211; Resistance &amp; more &#x2019;s")).toBe("Sniper Elite – Resistance & more ’s");
-    expect(decodeEntities("<![CDATA[A &lt; B]]>")).toBe("A < B");
+    expect(decodeEntities("<![CDATA[A &lt; B]]>")).toBe("A &lt; B");
     expect(decodeEntities("x&#99999999999;y&unknown;")).toBe("xy&unknown;");
   });
 });
@@ -78,8 +78,8 @@ describe("PS Plus monthly games from the blog feed", () => {
     const month = findPsPlusMonth(items);
     expect(month).toMatchObject({ month: "October", games: ["F1 25", "Hunt: Showdown 1896", "Earth Defense Force: World Brothers 2"], publishedAt: "2026-09-30T15:00:00.000Z" });
   });
-  it("accepts a dash separator and an 'and' before the last game", () => {
-    const m = findPsPlusMonth(parseFeed(feed([post("PlayStation Plus Monthly Games for September &#8211; Sniper Elite: Resistance, MLB The Show 26 and Wobbly Life")])));
+  it("accepts a dash separator and a comma-and before the last game", () => {
+    const m = findPsPlusMonth(parseFeed(feed([post("PlayStation Plus Monthly Games for September &#8211; Sniper Elite: Resistance, MLB The Show 26, and Wobbly Life")])));
     expect(m?.games).toEqual(["Sniper Elite: Resistance", "MLB The Show 26", "Wobbly Life"]);
   });
   it("ignores Game Catalog posts and non-allow-listed links", () => {
@@ -127,5 +127,57 @@ describe("freebieToGame", () => {
     expect(freebieToGame(f, "owned", existing)).toBeNull();
     const other = { ...existing[0]!, providerId: "steam" };
     expect(freebieToGame(f, "owned", [other])?.id).toBe("free-epic-sker-ritual-2");
+  });
+});
+
+describe("splitGames", () => {
+  it("never splits a game name that contains 'and'", () => {
+    expect(splitGames("Dungeons and Dragons: Dark Alliance, Foo")).toEqual(["Dungeons and Dragons: Dark Alliance", "Foo"]);
+  });
+  it("splits the two-game form 'A and B' and the Oxford form", () => {
+    expect(splitGames("Alpha and Beta")).toEqual(["Alpha", "Beta"]);
+    expect(splitGames("A, B, and C")).toEqual(["A", "B", "C"]);
+  });
+});
+
+describe("decodeEntities edge cases", () => {
+  it("decodes once: an escaped entity stays text, CDATA is literal", () => {
+    expect(decodeEntities("&amp;#38;lt;")).toBe("&#38;lt;");
+    expect(decodeEntities("<![CDATA[A &amp; B]]>")).toBe("A &amp; B");
+  });
+});
+
+describe("parseFeed on hostile input", () => {
+  it("stays fast and returns nothing when items never close", () => {
+    const t0 = Date.now();
+    expect(parseFeed("<item>".repeat(300_000))).toEqual([]);
+    expect(Date.now() - t0).toBeLessThan(1500);
+  });
+  it("skips an unterminated tag inside an item without throwing", () => {
+    expect(parseFeed("<item><title>Broken<link>https://blog.playstation.com/x</link></item>")).toEqual([]);
+  });
+});
+
+describe("settle and windowChanged (cached data ages)", () => {
+  const epic = (id: string, startsAt: string, endsAt: string, status: "now" | "upcoming") =>
+    ({ id, store: "epic" as const, title: id, url: "https://store.epicgames.com/pt-BR/free-games", startsAt, endsAt, status });
+  const now = Date.parse("2026-10-29T16:00:00Z");
+
+  it("drops expired offers and promotes upcoming ones whose window opened", () => {
+    const out = settle([
+      epic("old", "2026-10-22T15:00:00Z", "2026-10-29T15:00:00Z", "now"),
+      epic("fresh", "2026-10-29T15:00:00Z", "2026-11-05T15:00:00Z", "upcoming"),
+      epic("later", "2026-11-05T15:00:00Z", "2026-11-12T15:00:00Z", "upcoming"),
+    ], now);
+    expect(out.map((f) => `${f.id}:${f.status}`)).toEqual(["fresh:now", "later:upcoming"]);
+  });
+  it("flags the cache for refresh as soon as a window closes or opens", () => {
+    expect(windowChanged([epic("a", "2026-10-22T15:00:00Z", "2026-10-29T15:00:00Z", "now")], now)).toBe(true);
+    expect(windowChanged([epic("b", "2026-10-29T15:00:00Z", "2026-11-05T15:00:00Z", "upcoming")], now)).toBe(true);
+    expect(windowChanged([epic("c", "2026-10-22T15:00:00Z", "2026-11-05T15:00:00Z", "now")], now)).toBe(false);
+  });
+  it("leaves PS Plus items alone", () => {
+    const ps = { id: "psplus:o:x", store: "psplus" as const, title: "X", url: "https://blog.playstation.com/x", status: "monthly" as const };
+    expect(settle([ps], now)).toEqual([ps]);
   });
 });
