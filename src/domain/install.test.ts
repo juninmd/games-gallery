@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EMULATORS, defaultEmulator } from "./emulators";
 import { PLATFORM_BY_ID } from "./platforms";
-import { commandsFor, hostOs, installCommands, installScript, isHttps } from "./install";
+import { commandsFor, hostOs, installCommands, installScript, installable, isHttps } from "./install";
 import type { Emulator, EmulatorInstall } from "./types";
 
 const full: EmulatorInstall = {
@@ -33,6 +33,7 @@ describe("installCommands", () => {
     ["winget", { winget: "$(whoami)" }],
     ["scoop", { scoop: "extras/app && del *" }],
     ["scoop", { scoop: "no-bucket" }],
+    ["scoop", { scoop: "mybucket/app" }],
     ["flatpak", { flatpak: "org.x y" }],
     ["brew", { brew: { kind: "cask" as const, name: "a`b`" } }],
     ["brew", { brew: { kind: "formula" as const, name: "-flag" } }],
@@ -58,6 +59,25 @@ describe("installScript", () => {
     expect(text).toContain("# A\nwinget install --id Vendor.App --exact --source winget");
     expect(text).toContain("# No winget package verified for: B");
     expect(text.startsWith("# Games Gallery: winget install script")).toBe(true);
+  });
+});
+
+describe("installScript buckets and counts", () => {
+  const scoopEmu = (id: string, ref: string): Emulator => ({
+    id, name: id, platforms: ["gba"], os: ["windows"], status: "active", exe: "x.exe", args: ["{rom}"], needsBios: false, notes: "",
+    install: { downloadUrl: "https://example.org", scoop: ref },
+  });
+  it("adds each scoop bucket once at the top", () => {
+    const text = installScript([scoopEmu("a", "games/a"), scoopEmu("b", "games/b"), scoopEmu("c", "extras/c")], "scoop");
+    expect(text.match(/scoop bucket add games/g)).toHaveLength(1);
+    expect(text.match(/scoop bucket add extras/g)).toHaveLength(1);
+    expect(text.indexOf("scoop bucket add games")).toBeLessThan(text.indexOf("# a"));
+    expect(text).toContain("# a\nscoop install games/a");
+  });
+  it("counts only emulators that have a package for the chosen manager", () => {
+    const list = [scoopEmu("a", "games/a"), { ...scoopEmu("b", "games/b"), install: { downloadUrl: "https://example.org", flatpak: "org.b.B" } }];
+    expect(installable(list, "scoop").map((e) => e.id)).toEqual(["a"]);
+    expect(installable(list, "winget")).toEqual([]);
   });
 });
 
@@ -91,8 +111,12 @@ describe("catalog install data", () => {
     expect(new Set(EMULATORS.map((e) => e.id)).size).toBe(EMULATORS.length);
     for (const e of EMULATORS) for (const p of e.platforms) expect(PLATFORM_BY_ID[p], `${e.id}:${p}`).toBeDefined();
   });
-  it("defaults prefer an active dedicated emulator; the archived Mesen upstream no longer wins", () => {
-    const expected: Record<string, string> = { ps1: "duckstation", ps2: "pcsx2", snes: "snes9x", nes: "fceux", gba: "mgba", dos: "scummvm", dc: "flycast", n64: "project64" };
+  it("pinned defaults hold: adding emulators never changes what a game resolves to", () => {
+    const expected: Record<string, string> = {
+      ps1: "duckstation", ps2: "pcsx2", gba: "mgba", gb: "mgba", dos: "scummvm", dc: "flycast",
+      nes: "mesen", snes: "mesen", pce: "mesen", sms: "mesen", gg: "mesen",
+      n64: "retroarch", genesis: "retroarch", saturn: "retroarch", atari2600: "retroarch",
+    };
     for (const [platform, id] of Object.entries(expected)) expect(defaultEmulator(platform)?.id, platform).toBe(id);
   });
   it("every catalog emulator has a download page", () => {

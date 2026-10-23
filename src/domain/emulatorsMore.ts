@@ -2,7 +2,7 @@ import type { Emulator } from "./types";
 
 const ALL_OS: Emulator["os"] = ["windows", "linux", "macos"];
 
-// Added after the first 20 so the platform defaults chosen by `defaultEmulator` stay stable.
+// Defaults are pinned in emulators.ts (PINNED_DEFAULT), so entries here never change what a game resolves to.
 // Names and platforms come from each project's official site; `exe`/`args` are heuristics unless
 // `launchVerified` is set (documented command line). Validate before enabling real execution.
 export const MORE_EMULATORS: Emulator[] = [

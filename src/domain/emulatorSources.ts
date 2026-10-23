@@ -1,7 +1,7 @@
 import type { EmulatorInstall } from "./types";
 
 /**
- * Official download page plus package-manager ids, checked on 2026-10-23: the page against the
+ * Official download page plus package-manager ids, checked on 2026-10-22: the page against the
  * project's own site/repo, ids with `winget show --exact`, Scoop manifests on GitHub, the Flathub
  * appstream API and formulae.brew.sh. Ids that could not be resolved, or that point to a third-party
  * publisher or an archived upstream, are left out on purpose: the official page is the fallback.

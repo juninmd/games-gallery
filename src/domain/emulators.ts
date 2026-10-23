@@ -62,9 +62,20 @@ export function emulatorsFor(platformId: string): Emulator[] {
   );
 }
 
+/**
+ * Pinned defaults: a game without an explicit emulator resolves through here, and scans persist the
+ * result, so growing the catalog must never silently change it. Other platforms use the first
+ * active dedicated emulator.
+ */
+const PINNED_DEFAULT: Record<string, string> = {
+  nes: "mesen", snes: "mesen", pce: "mesen", sms: "mesen", gg: "mesen",
+  n64: "retroarch", genesis: "retroarch", saturn: "retroarch", atari2600: "retroarch",
+};
+
 export function defaultEmulator(platformId: string): Emulator | undefined {
   const list = emulatorsFor(platformId);
-  return list.find((e) => e.status === "active") ?? list[0];
+  const pinned = list.find((e) => e.id === PINNED_DEFAULT[platformId]);
+  return pinned ?? list.find((e) => e.status === "active") ?? list[0];
 }
 
 /** Current-gen platforms with no usable emulator, shown as a coverage gap. */
