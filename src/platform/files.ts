@@ -1,6 +1,7 @@
 import { MAX_BACKUP_BYTES } from "../domain/backup";
 import { isTauri } from "./runtime";
 
+const TOO_BIG = "Arquivo grande demais para ser um backup.";
 const FILTERS = [{ name: "Backup JSON", extensions: ["json"] }];
 
 /** Returns false when the user cancels. */
@@ -38,11 +39,13 @@ function pickInBrowser(): Promise<string | null> {
     input.addEventListener("change", async () => {
       const file = input.files?.[0];
       // Size is checked before reading so a huge file never reaches memory as a string.
-      if (file && file.size > MAX_BACKUP_BYTES) {
+      try {
+        if (file && file.size > MAX_BACKUP_BYTES) throw new Error(TOO_BIG);
+        done(file ? await file.text() : null);
+      } catch (e) {
         input.remove();
-        return reject(new Error("Arquivo grande demais para ser um backup."));
+        reject(e);
       }
-      done(file ? await file.text() : null);
     });
     input.click();
   });
@@ -52,7 +55,10 @@ function pickInBrowser(): Promise<string | null> {
 export async function pickTextFile(): Promise<string | null> {
   if (!isTauri()) return pickInBrowser();
   const { open } = await import("@tauri-apps/plugin-dialog");
-  const { readTextFile } = await import("@tauri-apps/plugin-fs");
+  const { readTextFile, stat } = await import("@tauri-apps/plugin-fs");
   const path = await open({ multiple: false, directory: false, filters: FILTERS });
-  return typeof path === "string" ? readTextFile(path) : null;
+  if (typeof path !== "string") return null;
+  // Check the size before reading: readTextFile loads the whole file into memory.
+  if ((await stat(path)).size > MAX_BACKUP_BYTES) throw new Error(TOO_BIG);
+  return readTextFile(path);
 }

@@ -13,7 +13,7 @@ const data = (games: Game[] = [game()]): BackupData => ({
   settings: { romsDir: "D:/ROMs", emulatorsDir: "D:/Emu" },
 });
 
-const wrap = (over: Record<string, unknown>) => JSON.stringify({ app: "games-gallery", version: BACKUP_VERSION, games: [], ...over });
+const wrap = (over: Record<string, unknown>) => JSON.stringify({ app: "games-gallery", version: BACKUP_VERSION, games: [game()], ...over });
 
 describe("backup round trip", () => {
   it("restores exactly what was exported", () => {
@@ -76,9 +76,23 @@ describe("parseBackup sanitizes games", () => {
     const r = parse([game({ status: "completed", owned: false, installed: true })]);
     expect(r.ok && r.data.games[0]).toMatchObject({ owned: true, status: "completed" });
   });
+  it("keeps current providers/emulators when the file does not carry them", () => {
+    const r = parseBackup(wrap({}));
+    expect(r.ok && r.data.providers).toBeUndefined();
+    expect(r.ok && r.data.emulators).toBeUndefined();
+  });
+  it("rejects a backup whose games are all invalid or empty", () => {
+    expect(parseBackup(wrap({ games: [] })).ok).toBe(false);
+    expect(parseBackup(wrap({ games: [{ id: "x" }] })).ok).toBe(false);
+  });
+  it("deduplicates scan ids", () => {
+    const scan = { id: "s1", kind: "roms", name: "n", at: "2026-01-01T00:00:00Z", added: 1, linked: 0 };
+    const r = parseBackup(wrap({ scans: [scan, scan] }));
+    expect(r.ok && r.data.scans).toHaveLength(1);
+  });
   it("ignores unknown providers and emulators in the maps", () => {
     const r = parseBackup(wrap({ providers: { steam: { connected: true }, evil: { connected: true }, constructor: { connected: true } }, emulators: { pcsx2: true, nope: true, toString: true } }));
-    expect(r.ok && Object.keys(r.data.providers)).toEqual(["steam"]);
-    expect(r.ok && Object.keys(r.data.emulators)).toEqual(["pcsx2"]);
+    expect(r.ok && Object.keys(r.data.providers ?? {})).toEqual(["steam"]);
+    expect(r.ok && Object.keys(r.data.emulators ?? {})).toEqual(["pcsx2"]);
   });
 });

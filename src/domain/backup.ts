@@ -23,8 +23,9 @@ export interface BackupScan {
 export interface BackupData {
   games: Game[];
   scans: BackupScan[];
-  providers: Record<string, { connected: boolean; lastSync?: string }>;
-  emulators: Record<string, boolean>;
+  /** Absent in the file = keep the current value on restore (never wipe what the backup does not describe). */
+  providers?: Record<string, { connected: boolean; lastSync?: string }>;
+  emulators?: Record<string, boolean>;
   settings: { romsDir: string; emulatorsDir: string };
 }
 
@@ -82,11 +83,13 @@ function cleanGame(raw: unknown): Game | null {
 
 function cleanScans(raw: unknown): BackupScan[] {
   if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
   return raw.slice(0, MAX_SCANS).flatMap((s): BackupScan[] => {
     if (!isObj(s)) return [];
     const kind = s["kind"] === "roms" || s["kind"] === "games" ? s["kind"] : undefined;
     const id = str(s["id"], 60), name = str(s["name"], 300), at = str(s["at"], 60);
-    if (!kind || !id || !name || !at) return [];
+    if (!kind || !id || !name || !at || seen.has(id)) return [];
+    seen.add(id);
     return [{ id, kind, name, at, path: str(s["path"], 2000), added: num(s["added"], 0, MAX_GAMES) ?? 0, linked: num(s["linked"], 0, MAX_GAMES) ?? 0 }];
   });
 }
@@ -116,16 +119,21 @@ export function parseBackup(text: string): ParseResult {
     games.push(g);
   }
   dropped += Math.max(0, json["games"].length - MAX_GAMES);
+  // Restore replaces the whole library with no undo: an empty result is never what the user meant.
+  if (!games.length) return { ok: false, error: "O backup não contém nenhum jogo válido." };
 
-  const providers: BackupData["providers"] = {};
+  let providers: BackupData["providers"];
   if (isObj(json["providers"])) {
+    providers = {};
     for (const [id, v] of Object.entries(json["providers"])) {
       if (has(PROVIDER_BY_ID, id) && isObj(v) && typeof v["connected"] === "boolean") providers[id] = { connected: v["connected"], lastSync: str(v["lastSync"], 60) };
     }
   }
-  const emulators: BackupData["emulators"] = {};
+  let emulators: BackupData["emulators"];
   if (isObj(json["emulators"])) {
-    for (const [id, v] of Object.entries(json["emulators"])) if (has(EMULATOR_BY_ID, id) && typeof v === "boolean") emulators[id] = v;
+    const known: Record<string, boolean> = {};
+    for (const [id, v] of Object.entries(json["emulators"])) if (has(EMULATOR_BY_ID, id) && typeof v === "boolean") known[id] = v;
+    emulators = known;
   }
   const s = isObj(json["settings"]) ? json["settings"] : {};
   const settings = { romsDir: str(s["romsDir"], 1000) ?? "", emulatorsDir: str(s["emulatorsDir"], 1000) ?? "" };

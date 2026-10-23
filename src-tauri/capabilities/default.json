@@ -9,6 +9,7 @@
     "dialog:allow-open",
     "dialog:allow-save",
     "fs:allow-read-dir",
+    "fs:allow-stat",
     "fs:allow-read-text-file",
     "fs:allow-write-text-file",
     {

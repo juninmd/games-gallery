@@ -125,7 +125,14 @@ export const useLibrary = create<LibraryState>()(
       uninstallEmulator: (id) => set((s) => ({ emulators: { ...s.emulators, [id]: false } })),
 
       setSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
-      restore: (data) => set({ games: data.games, scans: data.scans, providers: data.providers, emulators: data.emulators, settings: { ...get().settings, ...Object.fromEntries(Object.entries(data.settings).filter(([, v]) => v)) } }),
+      restore: (data) =>
+        set((s) => ({
+          games: data.games,
+          scans: data.scans,
+          providers: data.providers ?? s.providers,
+          emulators: data.emulators ?? s.emulators,
+          settings: { ...s.settings, ...Object.fromEntries(Object.entries(data.settings).filter(([, v]) => v)) },
+        })),
       reset: () => set(initial()),
     }),
     {
