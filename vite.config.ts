@@ -19,6 +19,8 @@ export default defineConfig({
     proxy: {
       "/proxy/steam": proxy("https://store.steampowered.com", "/proxy/steam"),
       "/proxy/rawg": proxy("https://api.rawg.io", "/proxy/rawg"),
+      "/proxy/epic": proxy("https://store-site-backend-static.ak.epicgames.com", "/proxy/epic"),
+      "/proxy/psblog": proxy("https://blog.playstation.com", "/proxy/psblog"),
     },
   },
   test: { environment: "node", include: ["src/**/*.test.ts"] },

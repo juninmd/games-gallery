@@ -1,4 +1,4 @@
-import { BarChart3, CircleCheck, Cpu, FolderSearch, Gamepad2, HardDriveDownload, Kanban, Library, Plus, Settings, Store } from "lucide-react";
+import { BarChart3, CircleCheck, Cpu, FolderSearch, Gamepad2, Gift, HardDriveDownload, Kanban, Library, Plus, Settings, Store } from "lucide-react";
 import type { ReactNode } from "react";
 import { useLibrary } from "../state/library";
 import { useUi, type View } from "../state/ui";
@@ -8,6 +8,7 @@ const NAV: { view: View; label: string; icon: ReactNode }[] = [
   { view: "installed", label: "Instalados", icon: <HardDriveDownload size={18} /> },
   { view: "board", label: "Quero jogar", icon: <Kanban size={18} /> },
   { view: "platforms", label: "Plataformas", icon: <Gamepad2 size={18} /> },
+  { view: "freebies", label: "Jogos grátis", icon: <Gift size={18} /> },
   { view: "providers", label: "Provedores", icon: <Store size={18} /> },
   { view: "folders", label: "Pastas", icon: <FolderSearch size={18} /> },
   { view: "emulators", label: "Emuladores", icon: <Cpu size={18} /> },

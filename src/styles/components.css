@@ -141,6 +141,18 @@
 .needed li { display: flex; align-items: center; gap: 10px; }
 .needed .btn { width: auto; }
 
+/* free games */
+.section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.section-head h2 { margin: 0; }
+.sub { margin: 16px 0 8px; color: var(--muted); font-size: 13px; }
+.freebie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; }
+.freebie { display: grid; grid-template-columns: 84px 1fr; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; }
+.freebie-art { aspect-ratio: 2 / 3; border-radius: 8px; overflow: hidden; background: linear-gradient(160deg, var(--accent), #151826); display: grid; place-items: center; }
+.freebie-art img { width: 100%; height: 100%; object-fit: cover; }
+.freebie-fallback { color: #fff; opacity: 0.85; }
+.freebie-body { display: grid; gap: 4px; align-content: start; min-width: 0; }
+.freebie-body strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.freebie-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 /* emulator install commands */
 .install { margin-top: 6px; }
 .install summary { cursor: pointer; font-size: 12px; color: var(--muted); }
