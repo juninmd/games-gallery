@@ -30,13 +30,13 @@ export function Sidebar() {
   return (
     <nav className="sidebar" aria-label="Navegação principal">
       <div className="brand"><CircleCheck size={20} aria-hidden /> Games Gallery</div>
-      <button className="btn primary block" onClick={() => setAddOpen(true)}>
-        <Plus size={16} aria-hidden /> Adicionar jogo
+      <button className="btn primary block" aria-label="Adicionar jogo" title="Adicionar jogo" onClick={() => setAddOpen(true)}>
+        <Plus size={16} aria-hidden /> <span className="sidebar-add-label">Adicionar jogo</span>
       </button>
       <ul>
         {NAV.map((n) => (
           <li key={n.view}>
-            <button className={`nav ${view === n.view ? "active" : ""}`} aria-current={view === n.view ? "page" : undefined} onClick={() => go(n.view)}>
+            <button className={`nav ${view === n.view ? "active" : ""}`} aria-label={n.label} title={n.label} aria-current={view === n.view ? "page" : undefined} onClick={() => go(n.view)}>
               {n.icon}
               <span>{n.label}</span>
               {counts[n.view] !== undefined && <small>{counts[n.view]}</small>}
