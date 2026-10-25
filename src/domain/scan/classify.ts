@@ -39,6 +39,10 @@ export type Classified = { rom: FoundRom } | { skip: Skip["reason"] } | null;
 
 /** `siblings` = other file names in the same folder, used to drop .bin tracks of a .cue sheet. */
 export function classifyRom(path: string, siblings: string[] = []): Classified {
+  return classifyRomKnownCuePresence(path, siblings);
+}
+
+function classifyRomKnownCuePresence(path: string, siblings: string[], cueOrGdiPresent?: boolean): Classified {
   const parts = split(path);
   const file = parts[parts.length - 1] ?? "";
   const ext = extOf(file);
@@ -47,7 +51,7 @@ export function classifyRom(path: string, siblings: string[] = []): Classified {
   const unique = UNIQUE_EXT[ext];
   if (!unique && !AMBIGUOUS_EXT.has(ext)) return null;
 
-  if (ext === "bin" && siblings.some((s) => extOf(s) === "cue" || extOf(s) === "gdi")) return { skip: "companion" };
+  if (ext === "bin" && (cueOrGdiPresent ?? siblings.some((s) => extOf(s) === "cue" || extOf(s) === "gdi"))) return { skip: "companion" };
 
   // .md is a Mega Drive ROM extension but far more often documentation.
   if (ext === "md" && DOC_NAMES.test(baseName)) return null;
@@ -61,17 +65,24 @@ export function classifyRom(path: string, siblings: string[] = []): Classified {
 /** Multi-disc dumps collapse into one entry: "(Disc 2)" and friends are stripped by cleanTitle. */
 export function scanRoms(files: string[]): { roms: FoundRom[]; skipped: Skip[] } {
   const byDir = new Map<string, string[]>();
+  const dirsWithCueOrGdi = new Set<string>();
   for (const f of files) {
     const i = f.lastIndexOf("/");
     const dir = f.slice(0, i);
-    byDir.set(dir, [...(byDir.get(dir) ?? []), f.slice(i + 1)]);
+    const filename = f.slice(i + 1);
+    const siblings = byDir.get(dir);
+    if (siblings) siblings.push(filename);
+    else byDir.set(dir, [filename]);
+    const ext = extOf(filename);
+    if (ext === "cue" || ext === "gdi") dirsWithCueOrGdi.add(dir);
   }
   const seen = new Set<string>();
   const roms: FoundRom[] = [];
   const skipped: Skip[] = [];
   for (const path of [...files].sort()) {
-    const siblings = byDir.get(path.slice(0, path.lastIndexOf("/"))) ?? [];
-    const r = classifyRom(path, siblings);
+    const dir = path.slice(0, path.lastIndexOf("/"));
+    const siblings = byDir.get(dir) ?? [];
+    const r = classifyRomKnownCuePresence(path, siblings, dirsWithCueOrGdi.has(dir));
     if (!r) continue;
     if ("skip" in r) {
       skipped.push({ path, reason: r.skip });
