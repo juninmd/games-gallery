@@ -69,6 +69,8 @@ Suas estrelas (1–5) viram 0–100 e são comparadas com a média pública no d
 
 Nenhuma dessas APIs envia CORS: em `pnpm dev` as chamadas passam por proxy do Vite (`/proxy/*`); no Tauri usam o plugin HTTP com escopo restrito a `store.steampowered.com` e `api.rawg.io`. O cache é de 24h e a chave RAWG fica só em memória.
 
+As leituras de rede têm prazo total de 30 s, inclusive durante o consumo do corpo. Respostas JSON são limitadas a 4 MiB; RSS mantém o limite de caracteres por chamada.
+
 ![Notas](docs/ratings.png)
 
 ## O que é real e o que é simulado
