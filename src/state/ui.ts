@@ -31,8 +31,8 @@ export const useUi = create<UiState>((set) => ({
   toasts: [],
   go: (view, filter) => set({ view, filter: { ...EMPTY_FILTER, ...filter }, selectedId: null }),
   setFilter: (patch) => set((s) => ({ filter: { ...s.filter, ...patch } })),
-  select: (selectedId) => set({ selectedId }),
-  setAddOpen: (addOpen) => set({ addOpen }),
+  select: (selectedId) => set({ selectedId, ...(selectedId ? { addOpen: false } : {}) }),
+  setAddOpen: (addOpen) => set({ addOpen, ...(addOpen ? { selectedId: null } : {}) }),
   toast: (msg) => {
     const id = ++toastSeq;
     set((s) => ({ toasts: [...s.toasts, { id, msg }] }));
