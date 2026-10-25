@@ -16,7 +16,8 @@ const SORTS: [SortKey, string][] = [
 ];
 
 export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }) {
-  const { filter, setFilter } = useUi();
+  const filter = useUi((s) => s.filter);
+  const setFilter = useUi((s) => s.setFilter);
   const games = useLibrary((s) => s.games);
 
   const providerCounts = useMemo(() => {

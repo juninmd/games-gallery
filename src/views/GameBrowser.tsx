@@ -9,7 +9,7 @@ import { useUi } from "../state/ui";
 export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const games = useLibrary((s) => s.games);
   const filter = useUi((s) => s.filter);
-  const effective = scope === "installed" ? { ...filter, installedOnly: true } : filter;
+  const effective = useMemo(() => scope === "installed" ? { ...filter, installedOnly: true } : filter, [scope, filter]);
   const shown = useMemo(() => filterGames(games, effective), [games, effective]);
   const stats = useMemo(() => libraryStats(games), [games]);
   const platform = filter.platformId ? PLATFORM_BY_ID[filter.platformId] : null;
