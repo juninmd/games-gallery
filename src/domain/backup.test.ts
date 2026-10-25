@@ -22,6 +22,17 @@ describe("backup round trip", () => {
     if (r.ok) expect(r.data.games[0]).toMatchObject({ title: "Okami", rating: 5, romPath: "D:/ROMs/ps2/Okami.iso", emulatorId: "pcsx2" });
     if (r.ok) expect(r.data.emulators).toEqual({ pcsx2: true });
   });
+  it("round-trips an intentionally empty library", () => {
+    const r = parseBackup(exportBackup(data([])));
+    expect(r).toMatchObject({ ok: true, dropped: 0 });
+    if (r.ok) expect(r.data.games).toEqual([]);
+  });
+  it("keeps backup import length and range limits separate from local storage", () => {
+    const longPath = parseBackup(wrap({ games: [game({ romPath: "R".repeat(2001), playtimeH: 1_000_001 })], settings: { romsDir: "A".repeat(1001) } }));
+    expect(longPath.ok && longPath.data.games[0]).toMatchObject({ romPath: undefined, playtimeH: 0 });
+    expect(longPath.ok && longPath.data.settings).toEqual({});
+    expect(parseBackup(wrap({ games: [game({ title: "T".repeat(301) })] })).ok).toBe(false);
+  });
   it("never writes API keys or ratings cache", () => {
     const text = exportBackup({ ...data(), rawgKey: "SECRET", entries: {} } as BackupData);
     // Callers pass only library fields; extra ones would still be dropped on import.
@@ -81,8 +92,11 @@ describe("parseBackup sanitizes games", () => {
     expect(r.ok && r.data.providers).toBeUndefined();
     expect(r.ok && r.data.emulators).toBeUndefined();
   });
-  it("rejects a backup whose games are all invalid or empty", () => {
-    expect(parseBackup(wrap({ games: [] })).ok).toBe(false);
+  it("preserves absent or invalid settings and keeps an explicit empty string", () => {
+    const r = parseBackup(wrap({ settings: { romsDir: "", emulatorsDir: 7, unknown: "ignored" } }));
+    expect(r.ok && r.data.settings).toEqual({ romsDir: "" });
+  });
+  it("rejects a nonempty backup whose games are all invalid", () => {
     expect(parseBackup(wrap({ games: [{ id: "x" }] })).ok).toBe(false);
   });
   it("deduplicates scan ids", () => {
