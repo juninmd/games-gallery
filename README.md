@@ -18,7 +18,7 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 
 | Tela | O que mostra |
 |---|---|
-| Biblioteca / Instalados | grid de capas, busca (sem acento), filtros por provedor, plataforma, status; ordenação |
+| Biblioteca / Instalados | grid paginado de até 60 capas, busca (sem acento), filtros por provedor, plataforma e status; ordenação, contagem do intervalo e ação para limpar filtros |
 | Quero jogar | kanban com drag & drop entre os status |
 | Pastas | escolher pasta de ROMs ou biblioteca Steam, revisar o que foi reconhecido (novo / vincular / já importado), ver o emulador de cada jogo e importar |
 | Jogos grátis | jogos gratuitos da Epic Games Store (agora e em breve) e jogos do mês do PlayStation Plus, com abrir na loja, wishlist e “já resgatei” |
