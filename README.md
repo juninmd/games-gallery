@@ -76,6 +76,8 @@ Nenhuma dessas APIs envia CORS: em `pnpm dev` as chamadas passam por proxy do Vi
 
 **Simulado:** conectar/sincronizar lojas, instalar jogos e emuladores (barra de progresso), execução de emulador (o app mostra `exe + argv`, não executa).
 
+Jobs simulados são cancelados quando a ação é desfeita (desinstalação ou desconexão) e ao restaurar/resetar a biblioteca; a tarefa cancelada não aplica alterações atrasadas.
+
 ## Estrutura
 
 ```
