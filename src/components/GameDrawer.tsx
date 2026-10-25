@@ -1,5 +1,4 @@
 import { Star, Trash2, X } from "lucide-react";
-import { useEffect } from "react";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from "../domain/status";
 import type { PlayStatus } from "../domain/types";
@@ -9,32 +8,27 @@ import { PlatformTag, ProviderTag } from "./Badges";
 import { Cover } from "./Cover";
 import { LaunchPanel } from "./LaunchPanel";
 import { RatingsPanel } from "./RatingsPanel";
+import { useNativeDialog } from "./useNativeDialog";
 
 export function GameDrawer() {
   const { selectedId, select } = useUi();
   const game = useLibrary((s) => s.games.find((g) => g.id === selectedId));
   const { patchGame, removeGame } = useLibrary();
+  const dialog = useNativeDialog(Boolean(game), () => select(null));
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && select(null);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [select]);
-
-  if (!game) return null;
-
-  const setStatus = (status: PlayStatus) =>
+  const setStatus = (status: PlayStatus) => {
+    if (!game) return;
     patchGame(game.id, status === "wishlist" ? { status, owned: false, installed: false } : { status, owned: true });
+  };
 
   return (
-    <>
-      <div className="scrim" onClick={() => select(null)} />
-      <aside className="drawer" role="dialog" aria-modal="true" aria-label={game.title}>
+    <dialog ref={dialog.ref} className="native-dialog drawer" aria-labelledby="game-drawer-title" onCancel={dialog.onCancel} onPointerDown={dialog.onPointerDown} onPointerUp={dialog.onPointerUp}>
+      {game && <>
         <button className="icon-btn close" onClick={() => select(null)} aria-label="Fechar"><X size={18} /></button>
         <div className="drawer-hero">
           <div className="drawer-cover"><Cover game={game} /></div>
           <div>
-            <h2>{game.title}</h2>
+            <h2 id="game-drawer-title">{game.title}</h2>
             <p className="muted">{[game.year || null, game.genres.join(" · ") || null].filter(Boolean).join(" · ") || "Sem metadados"}</p>
             <div className="tags"><PlatformTag id={game.platformId} /><ProviderTag id={game.providerId} /></div>
             <p className="muted small">{PLATFORM_BY_ID[game.platformId]?.name}{game.sizeGb ? ` · ${game.sizeGb} GB` : ""}</p>
@@ -72,7 +66,7 @@ export function GameDrawer() {
         <button className="btn ghost danger" onClick={() => { removeGame(game.id); select(null); }}>
           <Trash2 size={15} aria-hidden /> Remover da biblioteca
         </button>
-      </aside>
-    </>
+      </>}
+    </dialog>
   );
 }

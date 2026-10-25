@@ -28,6 +28,8 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 | Emuladores | 35 emuladores, página oficial de download e comandos de instalação (winget, Scoop, Flatpak, Homebrew) com botão copiar, script único dos que faltam, plataformas, BIOS exigida, comando de launch, instalar/remover, e os jogos da biblioteca que usam cada um (quantos estão prontos para jogar) |
 | Drawer do jogo | status, nota, horas, emulador escolhido, caminho da ROM e o comando exato que seria executado |
 
+Os diálogos de adicionar jogo e detalhes do jogo usam `<dialog>` nativo: Escape fecha, o fundo fica inerte, o foco retorna ao acionador e apenas um overlay abre por vez. O formulário rola em telas baixas e empilha campos em telas estreitas.
+
 ![Emuladores](docs/emulators.png)
 
 ## Jogos grátis (Epic e PlayStation Plus)

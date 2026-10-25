@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { FAMILY_LABEL, PLATFORMS } from "../domain/platforms";
 import { PROVIDERS } from "../domain/providers";
 import { STATUS_LABEL, STATUS_ORDER } from "../domain/status";
@@ -6,6 +6,7 @@ import type { PlayStatus } from "../domain/types";
 import { game as makeGame } from "../domain/seed/build";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
+import { useNativeDialog } from "./useNativeDialog";
 
 export function AddGameModal() {
   const { addOpen, setAddOpen, toast, select } = useUi();
@@ -16,21 +17,12 @@ export function AddGameModal() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [status, setStatus] = useState<PlayStatus>("backlog");
   const [storeId, setStoreId] = useState("");
-
   const close = () => {
     setAddOpen(false);
     setTitle("");
     setStoreId("");
   };
-
-  useEffect(() => {
-    if (!addOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  });
-
-  if (!addOpen) return null;
+  const dialog = useNativeDialog(addOpen, close);
 
   // PC accepts any store/aggregator; consoles accept their own service plus local sources.
   const providers = PROVIDERS.filter((p) =>
@@ -56,10 +48,9 @@ export function AddGameModal() {
   };
 
   return (
-    <>
-      <div className="scrim" onClick={close} />
-      <form className="modal" role="dialog" aria-modal="true" aria-label="Adicionar jogo" onSubmit={submit}>
-        <h2>Adicionar jogo</h2>
+    <dialog ref={dialog.ref} className="native-dialog modal" aria-labelledby="add-game-title" onCancel={dialog.onCancel} onPointerDown={dialog.onPointerDown} onPointerUp={dialog.onPointerUp}>
+      <form className="dialog-content" onSubmit={submit}>
+        <h2 id="add-game-title">Adicionar jogo</h2>
         <label>Título<input autoFocus required value={title} onChange={(e) => setTitle(e.target.value)} /></label>
         <div className="two">
           <label>Plataforma
@@ -95,6 +86,6 @@ export function AddGameModal() {
           <button type="submit" className="btn primary" disabled={!title.trim()}>Adicionar</button>
         </div>
       </form>
-    </>
+    </dialog>
   );
 }
