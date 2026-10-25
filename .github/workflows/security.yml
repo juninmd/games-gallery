@@ -10,3 +10,5 @@ on:
 jobs:
   scan:
     uses: juninmd/base-actions/.github/workflows/reusable-security-scan.yml@main
+    permissions:
+      contents: read
