@@ -102,6 +102,7 @@ export function ScanResults({ title, items, notes, onImport, onCancel }: Props) 
             <span className="scan-title" title={i.romPath}>{i.title}</span>
             <PlatformTag id={i.platformId} />
             <span className={`tag ${KIND_TAG[i.kind]}`}>{KIND_LABEL[i.kind]}</span>
+            {i.warning && <span className="tag warn scan-warning" title={i.warning} aria-label={i.warning}>Verificação</span>}
             <span className="muted small scan-emu">{i.emulatorId ? EMULATOR_BY_ID[i.emulatorId]?.name.split(" (")[0] : ""}</span>
           </label>
         ))}

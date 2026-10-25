@@ -2,12 +2,14 @@ import { FolderSearch } from "lucide-react";
 import { useState } from "react";
 import { ScanResults } from "../components/ScanResults";
 import { scanRoms } from "../domain/scan/classify";
-import { type ImportItem, planRomImport, planSteamImport } from "../domain/scan/plan";
+import { scanEpicMetadata } from "../domain/scan/epic";
+import { type ImportItem, planEpicImport, planRomImport, planSteamImport } from "../domain/scan/plan";
 import { isManifestPath, parseAppManifest } from "../domain/scan/steam";
 import type { Game } from "../domain/types";
 import { type FolderKind, type FolderListing, pickFolder, storedPath } from "../platform/folders";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
+import "../styles/epic-import.css";
 
 const MAX_MANIFESTS = 500;
 
@@ -27,6 +29,11 @@ async function scanGames(listing: FolderListing, games: Game[]) {
   if (!paths.length) notes.push("Nenhum appmanifest_*.acf encontrado. Escolha a pasta da biblioteca Steam (a que contém “steamapps”).");
   if (paths.length > MAX_MANIFESTS) notes.push(`Só os primeiros ${MAX_MANIFESTS} manifests foram lidos.`);
   return { items: planSteamImport(read.filter((m) => m !== null), games), notes };
+}
+
+async function scanEpic(listing: FolderListing, games: Game[]) {
+  const scan = await scanEpicMetadata(listing);
+  return { items: planEpicImport(scan.entries, games), notes: scan.notes };
 }
 
 function scanRomFiles(listing: FolderListing, games: Game[]) {
@@ -53,12 +60,12 @@ export function FoldersView() {
       if (!listing) return;
       // Read after the dialog/walk: the library may have changed while they were open.
       const games = useLibrary.getState().games;
-      const r = kind === "roms" ? scanRomFiles(listing, games) : await scanGames(listing, games);
+      const r = kind === "roms" ? scanRomFiles(listing, games) : kind === "epic" ? await scanEpic(listing, games) : await scanGames(listing, games);
       if (listing.unreadable) r.notes.push(`${listing.unreadable} pasta(s) sem permissão de leitura foram puladas.`);
       if (listing.truncated) r.notes.push("Pasta muito grande: a leitura parou no limite de arquivos.");
       setPending({ id: Date.now(), kind, listing, ...r });
-    } catch (e) {
-      toast(`Falha ao varrer a pasta: ${String(e)}`);
+    } catch {
+      toast("Não foi possível ler a pasta selecionada.");
     } finally {
       setBusy(false);
     }
@@ -67,7 +74,7 @@ export function FoldersView() {
   const confirm = (selected: ImportItem[]) => {
     if (!pending) return;
     const { kind, listing } = pending;
-    importItems(selected, { kind, name: listing.rootName, path: listing.rootPath });
+    importItems(selected, { kind: kind === "roms" ? "roms" : "games", name: kind === "epic" ? `Epic/Legendary · ${listing.rootName}` : listing.rootName, path: listing.rootPath });
     toast(`Importação concluída: ${selected.filter((i) => i.kind !== "same").length} itens`);
     setPending(null);
   };
@@ -77,7 +84,7 @@ export function FoldersView() {
       <header className="page-head">
         <div>
           <h1>Pastas</h1>
-          <p className="muted">Escolha uma pasta, revise o que foi reconhecido e importe. Nada é copiado, movido ou enviado: o app só lê nomes de arquivos (e os manifests da Steam).</p>
+          <p className="muted">Escolha uma pasta, revise o que foi reconhecido e importe. Nada é copiado, movido ou enviado: o app só lê nomes de arquivos e manifests locais.</p>
         </div>
       </header>
       <div className="cards wide">
@@ -88,14 +95,19 @@ export function FoldersView() {
         </article>
         <article className="vcard">
           <h3>Pasta de jogos de PC</h3>
-          <p className="small muted">Escolha a biblioteca Steam (a pasta que contém <code>steamapps</code>). Lê os <code>appmanifest_*.acf</code> e marca os jogos como instalados, com o tamanho em disco. GOG e Epic: fase 2.</p>
+          <p className="small muted">Escolha a biblioteca Steam (a pasta que contém <code>steamapps</code>). Lê os <code>appmanifest_*.acf</code> e marca os jogos como instalados, com o tamanho em disco.</p>
           <button className="btn primary" disabled={busy} onClick={() => scan("games")}><FolderSearch size={15} aria-hidden /> Escolher pasta e varrer</button>
+        </article>
+        <article className="vcard epic-import-card">
+          <h3>Manifestos Epic / Legendary</h3>
+          <p className="small muted">Escolha a pasta que contém os arquivos <code>.item</code> do Epic Games Launcher (geralmente em <code>ProgramData/Epic/EpicGamesLauncher/Data/Manifests</code>) ou a pasta de configuração do Legendary/Heroic que contém <code>installed.json</code>. O registro local declara a instalação; os arquivos do jogo não são verificados.</p>
+          <button className="btn primary" disabled={busy} onClick={() => scan("epic")}><FolderSearch size={15} aria-hidden /> Escolher pasta e varrer</button>
         </article>
       </div>
       {pending && (
         <ScanResults
           key={pending.id}
-          title={`${pending.kind === "roms" ? "ROMs" : "Jogos"} em “${pending.listing.rootName}”`}
+          title={`${pending.kind === "roms" ? "ROMs" : pending.kind === "epic" ? "Epic/Legendary" : "Jogos"} em “${pending.listing.rootName}”`}
           items={pending.items}
           notes={pending.notes}
           onImport={confirm}

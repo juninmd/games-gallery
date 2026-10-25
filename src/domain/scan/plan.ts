@@ -2,6 +2,7 @@ import { defaultEmulator } from "../emulators";
 import { resolveEmulator } from "../launch";
 import type { Game } from "../types";
 import type { FoundRom } from "./classify";
+import type { EpicInstallRecord } from "./epic";
 import { fold, slug } from "./fold";
 import { LIBRETRO_SYSTEM } from "./platformMap";
 import { type SteamManifest, isSteamTool } from "./steam";
@@ -20,6 +21,8 @@ export interface ImportItem {
   romPath?: string;
   /** Emulator that will run it (existing choice or the platform default). */
   emulatorId?: string;
+  /** Visible review warning for a source-declared installation needing verification. */
+  warning?: string;
 }
 
 /** Evidence on disk proves ownership: a wishlist entry becomes a backlog game. */
@@ -92,6 +95,49 @@ export function planSteamImport(manifests: SteamManifest[], games: Game[]): Impo
     };
     return { key, kind: "new", title: m.name, platformId: "pc", game } satisfies ImportItem;
   });
+}
+
+/** Matches Epic installs only within Epic PC games; store IDs are the primary identity. */
+export function planEpicImport(records: EpicInstallRecord[], games: Game[]): ImportItem[] {
+  const taken = new Set(games.map((g) => g.id));
+  const byStoreId = new Map<string, Game>();
+  const byEpicTitleWithoutStoreId = new Map<string, Game>();
+  for (const game of games) {
+    if (game.platformId !== "pc" || game.providerId !== "epic") continue;
+    if (game.storeId) {
+      if (!byStoreId.has(game.storeId)) byStoreId.set(game.storeId, game);
+    } else {
+      const titleKey = fold(game.title);
+      if (!byEpicTitleWithoutStoreId.has(titleKey)) byEpicTitleWithoutStoreId.set(titleKey, game);
+    }
+  }
+  const seenAppNames = new Set<string>();
+  const warning = "Legendary indica que esta instalação precisa de verificação.";
+  const out: ImportItem[] = [];
+  for (const record of records) {
+    if (seenAppNames.has(record.appName)) continue;
+    seenAppNames.add(record.appName);
+    const hit = byStoreId.get(record.appName) ?? byEpicTitleWithoutStoreId.get(fold(record.title));
+    const itemWarning = record.needsVerification ? warning : undefined;
+    const key = `epic:${record.appName}`;
+    if (hit) {
+      const storeIdPatch = hit.storeId ? {} : { storeId: record.appName };
+      const sizePatch = record.sizeGb === undefined ? {} : { sizeGb: record.sizeGb };
+      const same = !!hit.storeId && hit.owned && hit.installed && (record.sizeGb === undefined || hit.sizeGb === record.sizeGb);
+      out.push({
+        key, kind: same ? "same" : "link", title: hit.title, platformId: "pc", gameId: hit.id,
+        patch: { ...ownedPatch(hit), ...storeIdPatch, ...sizePatch }, warning: itemWarning,
+      });
+      continue;
+    }
+    const game: Game = {
+      id: uniqueId(`epic-pc-${slug(record.title)}`, taken),
+      title: record.title, platformId: "pc", providerId: "epic", storeId: record.appName,
+      year: 0, genres: [], status: "backlog", owned: true, installed: true, sizeGb: record.sizeGb, playtimeH: 0,
+    };
+    out.push({ key, kind: "new", title: record.title, platformId: "pc", game, warning: itemWarning });
+  }
+  return out;
 }
 
 /** Pure reducer used by the store: adds `new` games (skipping duplicate ids) and patches `link`s. */
