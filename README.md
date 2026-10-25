@@ -18,7 +18,7 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 
 | Tela | O que mostra |
 |---|---|
-| Biblioteca / Instalados | grid de capas, busca (sem acento), filtros por provedor, plataforma, status; ordenação |
+| Biblioteca / Instalados | grid paginado de até 60 capas, busca (sem acento), filtros por provedor, plataforma e status; ordenação, contagem do intervalo e ação para limpar filtros |
 | Quero jogar | kanban com drag & drop, busca por nome/gênero e seletor de status acessível por teclado |
 | Pastas | escolher pasta de ROMs ou biblioteca Steam, revisar o que foi reconhecido (novo / vincular / já importado), ver o emulador de cada jogo e importar |
 | Jogos grátis | jogos gratuitos da Epic Games Store (agora e em breve) e jogos do mês do PlayStation Plus, com abrir na loja, wishlist e “já resgatei” |
@@ -27,6 +27,8 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 | Provedores | 18 lojas/serviços: método de importação, conectar, sincronizar |
 | Emuladores | 35 emuladores, página oficial de download e comandos de instalação (winget, Scoop, Flatpak, Homebrew) com botão copiar, script único dos que faltam, plataformas, BIOS exigida, comando de launch, instalar/remover, e os jogos da biblioteca que usam cada um (quantos estão prontos para jogar) |
 | Drawer do jogo | status, nota, horas, emulador escolhido, caminho da ROM e o comando exato que seria executado |
+
+As telas secundárias carregam quando abertas. A interface mostra o estado de carregamento e permite tentar novamente se um chunk falhar.
 
 ![Emuladores](docs/emulators.png)
 

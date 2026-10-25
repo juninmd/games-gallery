@@ -11,7 +11,10 @@ import { useUi } from "../state/ui";
 import { ProgressBar } from "./Badges";
 
 function EmulationFields({ game }: { game: Game }) {
-  const { emulators, settings, patchGame, installEmulator } = useLibrary();
+  const emulators = useLibrary((s) => s.emulators);
+  const settings = useLibrary((s) => s.settings);
+  const patchGame = useLibrary((s) => s.patchGame);
+  const installEmulator = useLibrary((s) => s.installEmulator);
   const toast = useUi((s) => s.toast);
   const options = emulatorsFor(game.platformId);
   const chosen = resolveEmulator(game);
@@ -59,7 +62,10 @@ function EmulationFields({ game }: { game: Game }) {
 }
 
 export function LaunchPanel({ game }: { game: Game }) {
-  const { emulators, patchGame, installGame, uninstallGame } = useLibrary();
+  const emulators = useLibrary((s) => s.emulators);
+  const patchGame = useLibrary((s) => s.patchGame);
+  const installGame = useLibrary((s) => s.installGame);
+  const uninstallGame = useLibrary((s) => s.uninstallGame);
   const toast = useUi((s) => s.toast);
   const task = useTasks((s) => s.tasks[`game:${game.id}`]);
   const [last, setLast] = useState<string | null>(null);

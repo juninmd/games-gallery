@@ -1,32 +1,58 @@
+import { Component, lazy, Suspense, useMemo, useState, type ErrorInfo, type ReactNode } from "react";
 import { AddGameModal } from "./components/AddGameModal";
 import { GameDrawer } from "./components/GameDrawer";
 import { TaskTray, Toasts } from "./components/Overlays";
 import { Sidebar } from "./components/Sidebar";
-import { useUi } from "./state/ui";
-import { BoardView } from "./views/BoardView";
-import { EmulatorsView } from "./views/EmulatorsView";
-import { FoldersView } from "./views/FoldersView";
-import { FreebiesView } from "./views/FreebiesView";
+import { useUi, type View } from "./state/ui";
 import { GameBrowser } from "./views/GameBrowser";
-import { PlatformsView } from "./views/PlatformsView";
-import { ProvidersView } from "./views/ProvidersView";
-import { StatsView } from "./views/StatsView";
-import { SettingsView } from "./views/SettingsView";
+
+type Loader = () => Promise<{ default: React.ComponentType }>;
+const loaders: Partial<Record<View, Loader>> = {
+  board: () => import("./views/BoardView").then((m) => ({ default: m.BoardView })),
+  platforms: () => import("./views/PlatformsView").then((m) => ({ default: m.PlatformsView })),
+  folders: () => import("./views/FoldersView").then((m) => ({ default: m.FoldersView })),
+  freebies: () => import("./views/FreebiesView").then((m) => ({ default: m.FreebiesView })),
+  providers: () => import("./views/ProvidersView").then((m) => ({ default: m.ProvidersView })),
+  emulators: () => import("./views/EmulatorsView").then((m) => ({ default: m.EmulatorsView })),
+  stats: () => import("./views/StatsView").then((m) => ({ default: m.StatsView })),
+  settings: () => import("./views/SettingsView").then((m) => ({ default: m.SettingsView })),
+};
+
+class ViewLoadBoundary extends Component<{ onRetry: () => void; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: Error, _info: ErrorInfo) {
+    console.error("Falha ao carregar esta tela", error);
+  }
+
+  render() {
+    if (this.state.failed) return <section className="empty" role="alert">
+      <p>Não foi possível carregar esta tela.</p>
+      <button className="btn" onClick={this.props.onRetry}>Tentar novamente</button>
+    </section>;
+    return this.props.children;
+  }
+}
 
 function CurrentView() {
   const view = useUi((s) => s.view);
-  switch (view) {
-    case "library": return <GameBrowser scope="all" />;
-    case "installed": return <GameBrowser scope="installed" />;
-    case "board": return <BoardView />;
-    case "platforms": return <PlatformsView />;
-    case "folders": return <FoldersView />;
-    case "freebies": return <FreebiesView />;
-    case "providers": return <ProvidersView />;
-    case "emulators": return <EmulatorsView />;
-    case "stats": return <StatsView />;
-    case "settings": return <SettingsView />;
-  }
+  const [attempt, setAttempt] = useState(0);
+  const loader = loaders[view];
+  const LazyView = useMemo(() => loader ? lazy(loader) : null, [loader, attempt]);
+
+  if (view === "library") return <GameBrowser scope="all" />;
+  if (view === "installed") return <GameBrowser scope="installed" />;
+  if (!LazyView) return null;
+
+  return <ViewLoadBoundary key={`${view}:${attempt}`} onRetry={() => setAttempt((n) => n + 1)}>
+    <Suspense fallback={<p className="empty" role="status">Carregando tela…</p>}>
+      <LazyView />
+    </Suspense>
+  </ViewLoadBoundary>;
 }
 
 export function App() {
