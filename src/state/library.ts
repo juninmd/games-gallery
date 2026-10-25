@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { EMULATOR_BY_ID } from "../domain/emulators";
 import { PROVIDER_BY_ID } from "../domain/providers";
-import type { BackupData } from "../domain/backup";
+import { sanitizeGame, sanitizeScans, type BackupData } from "../domain/backup";
 import { type ImportItem, applyImport } from "../domain/scan/plan";
 import { SEED_GAMES, SEED_INSTALLED_EMULATORS } from "../domain/seed";
 import type { Game } from "../domain/types";
@@ -66,6 +66,50 @@ const initial = () => ({
   emulators: Object.fromEntries(SEED_INSTALLED_EMULATORS.map((id) => [id, true])),
   settings: { romsDir: "D:/ROMs", emulatorsDir: "D:/Emulators" },
 });
+
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+const has = (rec: object, key: string) => Object.prototype.hasOwnProperty.call(rec, key);
+
+/** Invalid roots and nonempty all-invalid arrays fall back; an explicit [] remains an intentional empty library. */
+function persistedGames(raw: unknown): Game[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const seen = new Set<string>();
+  const games = raw.flatMap((item): Game[] => {
+    const game = sanitizeGame(item, "storage");
+    if (!game || seen.has(game.id)) return [];
+    seen.add(game.id);
+    return [game];
+  });
+  return raw.length > 0 && games.length === 0 ? undefined : games;
+}
+
+function persistedProviders(raw: Record<string, unknown>): Record<string, ProviderState> {
+  const providers: Record<string, ProviderState> = {};
+  for (const [id, value] of Object.entries(raw)) {
+    if (!has(PROVIDER_BY_ID, id) || !isObj(value) || typeof value["connected"] !== "boolean") continue;
+    const lastSync = typeof value["lastSync"] === "string" && value["lastSync"].length <= 60 ? value["lastSync"] : undefined;
+    providers[id] = { connected: value["connected"], lastSync };
+  }
+  return providers;
+}
+
+function persistedEmulators(raw: Record<string, unknown>): Record<string, boolean> {
+  const emulators: Record<string, boolean> = {};
+  for (const [id, installed] of Object.entries(raw)) {
+    if (has(EMULATOR_BY_ID, id) && typeof installed === "boolean") emulators[id] = installed;
+  }
+  return emulators;
+}
+
+function persistedSettings(raw: unknown): Partial<Settings> {
+  if (!isObj(raw)) return {};
+  const settings: Partial<Settings> = {};
+  for (const key of ["romsDir", "emulatorsDir"] as const) {
+    const value = raw[key];
+    if (typeof value === "string") settings[key] = value;
+  }
+  return settings;
+}
 
 export const useLibrary = create<LibraryState>()(
   persist(
@@ -144,7 +188,7 @@ export const useLibrary = create<LibraryState>()(
           scans: data.scans,
           providers: data.providers ?? s.providers,
           emulators: data.emulators ?? s.emulators,
-          settings: { ...s.settings, ...Object.fromEntries(Object.entries(data.settings).filter(([, v]) => v)) },
+          settings: { ...s.settings, ...data.settings },
         }));
       },
       reset: () => {
@@ -157,14 +201,34 @@ export const useLibrary = create<LibraryState>()(
       version: 3,
       // v1 -> v2 backfilled `steamAppId` from the seed; v2 -> v3 added `scans`.
       migrate: (persisted, version) => {
-        const state = persisted as Partial<LibraryState>;
-        if (version < 2 && state.games) {
+        const state = isObj(persisted) ? persisted : {};
+        const defaults = initial();
+        let games = persistedGames(state["games"]) ?? defaults.games;
+        if (version < 2) {
           const seed = new Map(SEED_GAMES.map((g) => [g.id, g]));
-          state.games = state.games.map((g) => ({ ...g, steamAppId: g.steamAppId ?? seed.get(g.id)?.steamAppId }));
+          games = games.map((g) => ({ ...g, steamAppId: g.steamAppId ?? seed.get(g.id)?.steamAppId }));
         }
-        return { ...state, scans: state.scans ?? [] } as LibraryState;
+        return {
+          games,
+          scans: Array.isArray(state["scans"]) ? sanitizeScans(state["scans"], "storage") : [],
+          providers: isObj(state["providers"]) ? persistedProviders(state["providers"]) : defaults.providers,
+          emulators: isObj(state["emulators"]) ? persistedEmulators(state["emulators"]) : defaults.emulators,
+          settings: { ...defaults.settings, ...persistedSettings(state["settings"]) },
+        };
       },
       partialize: ({ games, scans, providers, emulators, settings }) => ({ games, scans, providers, emulators, settings }),
+      merge: (persisted, current) => {
+        const state = isObj(persisted) ? persisted : {};
+        const games = persistedGames(state["games"]);
+        return {
+          ...current,
+          ...(games !== undefined ? { games } : {}),
+          ...(Array.isArray(state["scans"]) ? { scans: sanitizeScans(state["scans"], "storage") } : {}),
+          ...(isObj(state["providers"]) ? { providers: persistedProviders(state["providers"]) } : {}),
+          ...(isObj(state["emulators"]) ? { emulators: persistedEmulators(state["emulators"]) } : {}),
+          settings: { ...current.settings, ...persistedSettings(state["settings"]) },
+        };
+      },
     },
   ),
 );
