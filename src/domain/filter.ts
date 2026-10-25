@@ -24,6 +24,12 @@ export const EMPTY_FILTER: GameFilter = {
 
 const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
+/** Compile a shared title and genre matcher once per query. */
+export function createGameQueryMatcher(query: string): (game: Game) => boolean {
+  const q = fold(query.trim());
+  return (game) => !q || fold(game.title).includes(q) || game.genres.some((genre) => fold(genre).includes(q));
+}
+
 const SORTERS: Record<SortKey, (a: Game, b: Game) => number> = {
   title: (a, b) => a.title.localeCompare(b.title, "pt-BR", { sensitivity: "base" }),
   year: (a, b) => b.year - a.year,
@@ -32,10 +38,10 @@ const SORTERS: Record<SortKey, (a: Game, b: Game) => number> = {
 };
 
 export function filterGames(games: Game[], f: GameFilter): Game[] {
-  const q = fold(f.query.trim());
+  const matchesQuery = createGameQueryMatcher(f.query);
   return games
     .filter((g) => {
-      if (q && !fold(g.title).includes(q) && !g.genres.some((x) => fold(x).includes(q))) return false;
+      if (!matchesQuery(g)) return false;
       if (f.providerIds.length && !f.providerIds.includes(g.providerId)) return false;
       if (f.platformId && g.platformId !== f.platformId) return false;
       if (f.status && g.status !== f.status) return false;
