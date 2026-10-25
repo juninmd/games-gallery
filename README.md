@@ -91,6 +91,7 @@ src-tauri/      shell Tauri 2 (plugins opener, http, dialog, fs)
 
 - O launch de emulador é um **array de argumentos** (`args: ["-batch", "--", "{rom}"]`), nunca uma string de shell: um caminho como `a & calc.exe` vira um único argv (teste em `launch.test.ts`).
 - `storeId` é validado (`/^[\w.-]+$/`) antes de entrar em URI de loja; o Tauri só abre os esquemas da allow-list.
+- A permissão de abertura do Tauri usa somente a lista explícita de URLs e esquemas; `opener:default` não é concedido, pois também permite URLs HTTP/HTTPS fora dessa lista.
 - CSP restringe imagens a `self`, Steam CDN e libretro.
 - O app **não baixa nem distribui BIOS, firmware, chaves ou ROMs**; o usuário fornece os dele.
 
