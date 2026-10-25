@@ -45,10 +45,15 @@ const uniqueId = (base: string, taken: Set<string>) => {
 /** `pathOf` turns a scan-relative path into the path stored on the game (absolute in Tauri). */
 export function planRomImport(roms: FoundRom[], games: Game[], pathOf: (rel: string) => string): ImportItem[] {
   const taken = new Set(games.map((g) => g.id));
+  const firstGameByTitle = new Map<string, Game>();
+  for (const game of games) {
+    const key = `${game.platformId}\u0000${fold(game.title)}`;
+    if (!firstGameByTitle.has(key)) firstGameByTitle.set(key, game);
+  }
   return roms.map((rom) => {
     const romPath = pathOf(rom.path);
     const key = `rom:${rom.platformId}:${fold(rom.title)}`;
-    const hit = games.find((g) => g.platformId === rom.platformId && fold(g.title) === fold(rom.title));
+    const hit = firstGameByTitle.get(`${rom.platformId}\u0000${fold(rom.title)}`);
     if (hit) {
       const same = hit.romPath === romPath && hit.owned && hit.installed;
       return {
