@@ -5,6 +5,7 @@
 .search:focus-within { border-color: var(--accent); }
 .search-lite { width: 240px; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-actions { display: flex; justify-content: flex-end; }
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 12px; }
 .chip small { color: var(--muted); }
 .chip.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, transparent); }
@@ -12,6 +13,15 @@
 .dot.big { width: 14px; height: 14px; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; }
+.result-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+.result-toolbar p { font-variant-numeric: tabular-nums; }
+.pagination { display: flex; align-items: center; gap: 10px; }
+.pagination > span { min-width: 105px; text-align: center; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.updating { color: var(--accent-2); }
+.discovery-empty { display: grid; justify-items: center; gap: 10px; padding: 56px 20px; border: 1px dashed var(--line); border-radius: var(--radius); background: color-mix(in srgb, var(--panel) 65%, transparent); text-align: center; }
+.discovery-empty h2 { font-size: 18px; }
+.discovery-empty p { max-width: 460px; color: var(--muted); }
+.discovery-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .card { position: relative; display: grid; gap: 8px; background: transparent; border: 0; padding: 0; text-align: left; content-visibility: auto; contain-intrinsic-size: 150px 260px; }
 .card:hover .cover { transform: translateY(-4px); box-shadow: 0 12px 28px rgb(0 0 0 / 55%); border-color: var(--accent); }
 .card-meta { display: grid; gap: 1px; min-width: 0; }

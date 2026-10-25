@@ -33,6 +33,20 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
         : [...filter.providerIds, id],
     });
 
+  const hasActiveFilters = Boolean(
+    filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status ||
+    filter.installedOnly || filter.ownedOnly,
+  );
+
+  const clearFilters = () => setFilter({
+    query: "",
+    providerIds: [],
+    platformId: null,
+    status: null,
+    installedOnly: false,
+    ownedOnly: false,
+  });
+
   return (
     <div className="filters">
       <div className="filter-row">
@@ -85,6 +99,11 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
             </button>
           );
         })}
+      </div>
+      <div className="filter-actions">
+        <button className="btn ghost" type="button" onClick={clearFilters} disabled={!hasActiveFilters}>
+          Limpar filtros
+        </button>
       </div>
     </div>
   );
