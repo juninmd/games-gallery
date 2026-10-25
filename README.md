@@ -30,6 +30,8 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 
 As telas secundárias carregam quando abertas. A interface mostra o estado de carregamento e permite tentar novamente se um chunk falhar.
 
+Em telas de até 860 px, a navegação lateral compacta para ícones com nomes acessíveis e dicas ao passar o ponteiro; os indicadores da biblioteca se reorganizam sem cortar conteúdo.
+
 ![Emuladores](docs/emulators.png)
 
 ## Jogos grátis (Epic e PlayStation Plus)

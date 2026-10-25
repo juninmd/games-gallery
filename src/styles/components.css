@@ -180,6 +180,11 @@
 .bar-value { font-variant-numeric: tabular-nums; font-weight: 600; }
 .bar-value small { color: var(--muted); font-weight: 400; }
 .ranked { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+
+@media (max-width: 520px) {
+  .pagination { width: 100%; justify-content: space-between; gap: 6px; }
+  .pagination .btn { padding-inline: 10px; }
+}
 .linkish { all: unset; cursor: pointer; }
 .linkish:hover, .linkish:focus-visible { text-decoration: underline; }
 .cards .panel { align-content: start; }
