@@ -20,6 +20,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Lint GitHub Actions workflows
+        shell: bash
+        run: |
+          shopt -s nullglob
+          workflows=(.github/workflows/*.yml .github/workflows/*.yaml)
+          if ((${#workflows[@]} == 0)); then
+            echo "No GitHub Actions workflow files found" >&2
+            exit 1
+          fi
+          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 "${workflows[@]}"
       - uses: pnpm/action-setup@v4
         with:
           version: 10.34.5
