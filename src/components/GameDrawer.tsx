@@ -54,9 +54,26 @@ export function GameDrawer() {
             </div>
             <label className="hours">
               Horas jogadas
-              <input type="number" min={0} value={game.playtimeH} onChange={(e) => patchGame(game.id, { playtimeH: Math.max(0, Number(e.target.value) || 0) })} />
+              <input type="number" min={0} max={1_000_000} value={game.playtimeH} onChange={(e) => {
+                const value = e.currentTarget.valueAsNumber;
+                patchGame(game.id, { playtimeH: Number.isFinite(value) ? Math.min(1_000_000, Math.max(0, value)) : 0 });
+              }} />
             </label>
           </div>
+        </section>
+
+        <section className="panel game-notes">
+          <label htmlFor="game-personal-notes">Notas pessoais</label>
+          <textarea
+            id="game-personal-notes"
+            maxLength={5000}
+            rows={4}
+            value={game.notes ?? ""}
+            aria-describedby="game-note-count"
+            onChange={(e) => patchGame(game.id, { notes: e.currentTarget.value.slice(0, 5000) || undefined })}
+            placeholder="Anotações sobre sua experiência, progresso ou configuração…"
+          />
+          <span id="game-note-count" className="muted small">{(game.notes ?? "").length}/5000</span>
         </section>
 
         <RatingsPanel game={game} />

@@ -34,7 +34,7 @@ export function AddGameModal() {
     const name = title.trim();
     if (!name) return;
     const g = makeGame(platformId, providerId, name, year, "Sem gênero", { s: status, store: storeId.trim() || undefined });
-    g.id = `custom-${Date.now()}`;
+    g.id = `custom-${crypto.randomUUID()}`;
     addGame(g);
     close();
     toast(`${name} adicionado`);
@@ -51,7 +51,7 @@ export function AddGameModal() {
     <dialog ref={dialog.ref} className="native-dialog modal" aria-labelledby="add-game-title" onCancel={dialog.onCancel} onPointerDown={dialog.onPointerDown} onPointerUp={dialog.onPointerUp}>
       <form className="dialog-content" onSubmit={submit}>
         <h2 id="add-game-title">Adicionar jogo</h2>
-        <label>Título<input autoFocus required value={title} onChange={(e) => setTitle(e.target.value)} /></label>
+        <label>Título<input autoFocus required maxLength={300} value={title} onChange={(e) => setTitle(e.target.value)} /></label>
         <div className="two">
           <label>Plataforma
             <select value={platformId} onChange={(e) => onPlatform(e.target.value)}>
@@ -78,7 +78,7 @@ export function AddGameModal() {
         </div>
         {platformId === "pc" && (
           <label>ID na loja (opcional, necessário para o botão Jogar)
-            <input value={storeId} placeholder="ex.: 1245620" onChange={(e) => setStoreId(e.target.value)} />
+            <input maxLength={100} value={storeId} placeholder="ex.: 1245620" onChange={(e) => setStoreId(e.target.value)} />
           </label>
         )}
         <div className="actions">
