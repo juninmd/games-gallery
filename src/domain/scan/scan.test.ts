@@ -59,6 +59,23 @@ describe("scanRoms", () => {
     expect(roms.map((r) => `${r.platformId}:${r.title}`).sort()).toEqual(["gba:Metroid Fusion", "ps1:FF7"]);
     expect(skipped).toEqual([{ path: "r/psx/FF7 (Disc 1).bin", reason: "companion" }, { path: "r/unknown/mystery.iso", reason: "ambiguous" }]);
   });
+
+  it("keeps cue/bin companion detection and disc deduplication in a flat folder", () => {
+    const { roms, skipped } = scanRoms([
+      "r/psx/FF7 (Disc 2).bin", "r/psx/FF7 (Disc 2).cue",
+      "r/psx/FF7 (Disc 1).bin", "r/psx/FF7 (Disc 1).cue",
+      "r/psx/Other.bin", "r/psx/Other.cue",
+    ]);
+    expect(roms.map((r) => r.title)).toEqual(["FF7", "Other"]);
+    expect(skipped.map((s) => s.reason)).toEqual(["companion", "companion", "companion"]);
+  });
+
+  it("preindexes cue presence per folder without treating unrelated bin files as companions", () => {
+    const looseBins = Array.from({ length: 500 }, (_, i) => `r/psx/no-sheet/Track (Disc ${i + 1}).bin`);
+    const { roms, skipped } = scanRoms([...looseBins, "r/psx/with-sheet/Game.bin", "r/psx/with-sheet/Game.cue"]);
+    expect(roms.map((rom) => rom.title)).toEqual(["Track", "Game"]);
+    expect(skipped).toEqual([{ path: "r/psx/with-sheet/Game.bin", reason: "companion" }]);
+  });
 });
 
 describe("planRomImport", () => {
@@ -75,6 +92,12 @@ describe("planRomImport", () => {
   it("reports already-imported games as same", () => {
     const g = game({ id: "okami", title: "Okami", romPath: "D:/r/ps2/Okami.iso", installed: true });
     expect(planRomImport([roms[0]!], [g], abs)[0]?.kind).toBe("same");
+  });
+  it("preserves first matching library game when duplicate normalized titles exist", () => {
+    const first = game({ id: "first-hit", title: "Ókami", platformId: "ps2", installed: false });
+    const second = game({ id: "second-hit", title: "Okami", platformId: "ps2", romPath: "D:/r/ps2/Okami.iso", installed: true });
+    const [item] = planRomImport([roms[0]!], [first, second], abs);
+    expect(item).toMatchObject({ kind: "link", gameId: "first-hit", title: "Ókami" });
   });
   it("creates a new owned+installed game with the platform default emulator", () => {
     const item = planRomImport([roms[1]!], [], abs)[0]!;

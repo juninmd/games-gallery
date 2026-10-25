@@ -82,7 +82,10 @@ export const useLibrary = create<LibraryState>()(
             ...s.scans,
           ].slice(0, 10),
         })),
-      removeGame: (id) => set((s) => ({ games: s.games.filter((g) => g.id !== id) })),
+      removeGame: (id) => {
+        useTasks.getState().cancel(`game:${id}`);
+        set((s) => ({ games: s.games.filter((g) => g.id !== id) }));
+      },
 
       installGame: (id) => {
         const g = get().games.find((x) => x.id === id);
@@ -95,7 +98,10 @@ export const useLibrary = create<LibraryState>()(
           toast(`${g.title} instalado`);
         });
       },
-      uninstallGame: (id) => get().patchGame(id, { installed: false }),
+      uninstallGame: (id) => {
+        useTasks.getState().cancel(`game:${id}`);
+        get().patchGame(id, { installed: false });
+      },
 
       connectProvider: (id) => {
         const p = PROVIDER_BY_ID[id];
@@ -104,8 +110,11 @@ export const useLibrary = create<LibraryState>()(
           toast(`${p?.name ?? id} conectado`);
         });
       },
-      disconnectProvider: (id) =>
-        set((s) => ({ providers: { ...s.providers, [id]: { connected: false } } })),
+      disconnectProvider: (id) => {
+        useTasks.getState().cancel(`conn:${id}`);
+        useTasks.getState().cancel(`sync:${id}`);
+        set((s) => ({ providers: { ...s.providers, [id]: { connected: false } } }));
+      },
       syncProvider: (id) => {
         const p = PROVIDER_BY_ID[id];
         useTasks.getState().run(`sync:${id}`, `Sincronizando ${p?.name ?? id}`, 2500, () => {
@@ -122,18 +131,26 @@ export const useLibrary = create<LibraryState>()(
           toast(`${e.name} instalado`);
         });
       },
-      uninstallEmulator: (id) => set((s) => ({ emulators: { ...s.emulators, [id]: false } })),
+      uninstallEmulator: (id) => {
+        useTasks.getState().cancel(`emu:${id}`);
+        set((s) => ({ emulators: { ...s.emulators, [id]: false } }));
+      },
 
       setSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
-      restore: (data) =>
+      restore: (data) => {
+        useTasks.getState().cancelAll();
         set((s) => ({
           games: data.games,
           scans: data.scans,
           providers: data.providers ?? s.providers,
           emulators: data.emulators ?? s.emulators,
           settings: { ...s.settings, ...Object.fromEntries(Object.entries(data.settings).filter(([, v]) => v)) },
-        })),
-      reset: () => set(initial()),
+        }));
+      },
+      reset: () => {
+        useTasks.getState().cancelAll();
+        set(initial());
+      },
     }),
     {
       name: "games-gallery:v1",
