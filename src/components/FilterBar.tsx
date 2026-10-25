@@ -16,7 +16,8 @@ const SORTS: [SortKey, string][] = [
 ];
 
 export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }) {
-  const { filter, setFilter } = useUi();
+  const filter = useUi((s) => s.filter);
+  const setFilter = useUi((s) => s.setFilter);
   const games = useLibrary((s) => s.games);
 
   const providerCounts = useMemo(() => {
@@ -31,6 +32,20 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
         ? filter.providerIds.filter((x) => x !== id)
         : [...filter.providerIds, id],
     });
+
+  const hasActiveFilters = Boolean(
+    filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status ||
+    filter.installedOnly || filter.ownedOnly,
+  );
+
+  const clearFilters = () => setFilter({
+    query: "",
+    providerIds: [],
+    platformId: null,
+    status: null,
+    installedOnly: false,
+    ownedOnly: false,
+  });
 
   return (
     <div className="filters">
@@ -84,6 +99,11 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
             </button>
           );
         })}
+      </div>
+      <div className="filter-actions">
+        <button className="btn ghost" type="button" onClick={clearFilters} disabled={!hasActiveFilters}>
+          Limpar filtros
+        </button>
       </div>
     </div>
   );

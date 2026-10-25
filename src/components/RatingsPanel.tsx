@@ -19,6 +19,7 @@ function Row({ label, score, count, detail, mine = false }: { label: string; sco
 export function RatingsPanel({ game }: { game: Game }) {
   const entry = useRatings((s) => s.entries[game.id]);
   const loading = useRatings((s) => !!s.loading[game.id]);
+  const error = useRatings((s) => s.errors[game.id]);
   const refresh = useRatings((s) => s.refresh);
   const rawgKey = useSecrets((s) => s.rawgKey);
   const go = useUi((s) => s.go);
@@ -59,6 +60,7 @@ export function RatingsPanel({ game }: { game: Game }) {
       )}
       {hasSource && entry && scores.length === 0 && entry.errors.length === 0 && !loading && <p className="note">Nenhuma fonte retornou nota para este jogo.</p>}
       {entry?.errors.map((e) => <p key={e} className="note warn">{e}</p>)}
+      {error && <p className="note warn" role="alert">{error}</p>}
       {entry && <p className="muted small">Atualizado em {new Date(entry.fetchedAt).toLocaleString("pt-BR")}</p>}
     </section>
   );

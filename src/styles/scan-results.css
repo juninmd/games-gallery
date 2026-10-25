@@ -1,0 +1,5 @@
+.scan-results .scan-selection-note { margin: 0; }
+.scan-results .scan-review-controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.scan-results .scan-select-page { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
+.scan-results .scan-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.scan-results .scan-pagination span { min-width: 100px; text-align: center; color: var(--muted); font-size: 12px; }

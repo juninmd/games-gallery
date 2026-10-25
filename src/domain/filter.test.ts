@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_FILTER, filterGames, libraryStats } from "./filter";
+import { createGameQueryMatcher, EMPTY_FILTER, filterGames, libraryStats } from "./filter";
 import { game } from "./seed/build";
 
 const games = [
@@ -16,6 +16,14 @@ describe("filterGames", () => {
 
   it("matches genres too", () => {
     expect(filterGames(games, { ...EMPTY_FILTER, query: "jrpg" }).map((g) => g.title)).toEqual(["Final Fantasy VII"]);
+  });
+
+  it("compiles an accent-insensitive title and genre matcher once per query", () => {
+    expect(games.filter(createGameQueryMatcher(" pokemon ")).map((g) => g.title)).toEqual(["Pokémon Showdown"]);
+    expect(games.filter(createGameQueryMatcher("JRPG")).map((g) => g.title)).toEqual(["Final Fantasy VII"]);
+    expect(games.filter(createGameQueryMatcher("disco")).map((g) => g.title)).toEqual(["Disco Elysium"]);
+    expect(games.filter(createGameQueryMatcher("missing"))).toEqual([]);
+    expect(games.filter(createGameQueryMatcher(" "))).toHaveLength(games.length);
   });
 
   it("combines provider, platform and installed filters with AND", () => {
