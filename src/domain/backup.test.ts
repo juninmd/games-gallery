@@ -27,6 +27,12 @@ describe("backup round trip", () => {
     expect(r).toMatchObject({ ok: true, dropped: 0 });
     if (r.ok) expect(r.data.games).toEqual([]);
   });
+  it("keeps backup import length and range limits separate from local storage", () => {
+    const longPath = parseBackup(wrap({ games: [game({ romPath: "R".repeat(2001), playtimeH: 1_000_001 })], settings: { romsDir: "A".repeat(1001) } }));
+    expect(longPath.ok && longPath.data.games[0]).toMatchObject({ romPath: undefined, playtimeH: 0 });
+    expect(longPath.ok && longPath.data.settings).toEqual({});
+    expect(parseBackup(wrap({ games: [game({ title: "T".repeat(301) })] })).ok).toBe(false);
+  });
   it("never writes API keys or ratings cache", () => {
     const text = exportBackup({ ...data(), rawgKey: "SECRET", entries: {} } as BackupData);
     // Callers pass only library fields; extra ones would still be dropped on import.

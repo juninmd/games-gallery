@@ -49,49 +49,55 @@ const num = (v: unknown, min: number, max: number): number | undefined =>
 const SAFE_STORE_ID = /^[\w.-]+$/;
 
 /** Rebuilds a game from known fields only; returns null when a required field is invalid. */
-function cleanGame(raw: unknown): Game | null {
+export function sanitizeGame(raw: unknown, profile: "backup" | "storage" = "backup"): Game | null {
   if (!isObj(raw)) return null;
-  const id = str(raw["id"], 200);
-  const title = str(raw["title"], 300)?.trim();
-  const platformId = str(raw["platformId"]);
-  const providerId = str(raw["providerId"]);
+  const text = (v: unknown, max: number) => str(v, profile === "backup" ? max : Number.POSITIVE_INFINITY);
+  const number = (v: unknown, min: number, max: number) => num(v, min, profile === "backup" ? max : Number.POSITIVE_INFINITY);
+  const id = text(raw["id"], 200);
+  const title = text(raw["title"], 300)?.trim();
+  const platformId = text(raw["platformId"], 500);
+  const providerId = text(raw["providerId"], 500);
   const status = STATUS_ORDER.find((s) => s === raw["status"]);
   if (!id || !title || !platformId || !providerId || !status) return null;
   if (!has(PLATFORM_BY_ID, platformId) || !has(PROVIDER_BY_ID, providerId)) return null;
   if (typeof raw["owned"] !== "boolean" || typeof raw["installed"] !== "boolean") return null;
   // App invariant: owned <=> not wishlist, and nothing unowned can be installed.
   const owned = status !== "wishlist";
-  const storeId = str(raw["storeId"], 100);
-  const emulatorId = str(raw["emulatorId"]);
-  const coverUrl = str(raw["coverUrl"], 1000);
-  const genres = Array.isArray(raw["genres"]) ? raw["genres"].flatMap((g) => (str(g, 60) ? [g as string] : [])).slice(0, 12) : [];
+  const storeId = text(raw["storeId"], 100);
+  const emulatorId = text(raw["emulatorId"], 500);
+  const coverUrl = text(raw["coverUrl"], 1000);
+  const rawGenres = Array.isArray(raw["genres"]) ? raw["genres"].flatMap((g) => (text(g, 60) ? [g as string] : [])) : [];
+  const genres = profile === "backup" ? rawGenres.slice(0, 12) : rawGenres;
   return {
     id, title, platformId, providerId, status, owned,
     installed: owned && raw["installed"],
     storeId: storeId && SAFE_STORE_ID.test(storeId) ? storeId : undefined,
-    steamAppId: num(raw["steamAppId"], 1, 2 ** 31),
-    year: num(raw["year"], 0, 3000) ?? 0,
+    steamAppId: number(raw["steamAppId"], 1, 2 ** 31),
+    year: number(raw["year"], 0, 3000) ?? 0,
     genres,
     coverUrl: coverUrl?.startsWith("https://") ? coverUrl : undefined,
-    sizeGb: num(raw["sizeGb"], 0, 100_000),
-    playtimeH: num(raw["playtimeH"], 0, 1_000_000) ?? 0,
-    rating: num(raw["rating"], 1, 5),
-    romPath: str(raw["romPath"], 2000),
+    sizeGb: number(raw["sizeGb"], 0, 100_000),
+    playtimeH: number(raw["playtimeH"], 0, 1_000_000) ?? 0,
+    rating: number(raw["rating"], 1, 5),
+    romPath: text(raw["romPath"], 2000),
     emulatorId: emulatorId && has(EMULATOR_BY_ID, emulatorId) ? emulatorId : undefined,
-    notes: str(raw["notes"], 5000),
+    notes: text(raw["notes"], 5000),
   };
 }
 
-function cleanScans(raw: unknown): BackupScan[] {
+export function sanitizeScans(raw: unknown, profile: "backup" | "storage" = "backup"): BackupScan[] {
   if (!Array.isArray(raw)) return [];
+  const text = (v: unknown, max: number) => str(v, profile === "backup" ? max : Number.POSITIVE_INFINITY);
   const seen = new Set<string>();
-  return raw.slice(0, MAX_SCANS).flatMap((s): BackupScan[] => {
+  return (profile === "backup" ? raw.slice(0, MAX_SCANS) : raw).flatMap((s): BackupScan[] => {
     if (!isObj(s)) return [];
     const kind = s["kind"] === "roms" || s["kind"] === "games" ? s["kind"] : undefined;
-    const id = str(s["id"], 60), name = str(s["name"], 300), at = str(s["at"], 60);
+    const id = text(s["id"], 60), name = text(s["name"], 300), at = text(s["at"], 60);
     if (!kind || !id || !name || !at || seen.has(id)) return [];
     seen.add(id);
-    return [{ id, kind, name, at, path: str(s["path"], 2000), added: num(s["added"], 0, MAX_GAMES) ?? 0, linked: num(s["linked"], 0, MAX_GAMES) ?? 0 }];
+    const added = num(s["added"], 0, profile === "backup" ? MAX_GAMES : Number.POSITIVE_INFINITY) ?? 0;
+    const linked = num(s["linked"], 0, profile === "backup" ? MAX_GAMES : Number.POSITIVE_INFINITY) ?? 0;
+    return [{ id, kind, name, at, path: text(s["path"], 2000), added, linked }];
   });
 }
 
@@ -114,7 +120,7 @@ export function parseBackup(text: string): ParseResult {
   const games: Game[] = [];
   let dropped = 0;
   for (const raw of json["games"].slice(0, MAX_GAMES)) {
-    const g = cleanGame(raw);
+    const g = sanitizeGame(raw);
     if (!g || seen.has(g.id)) { dropped++; continue; }
     seen.add(g.id);
     games.push(g);
@@ -142,5 +148,5 @@ export function parseBackup(text: string): ParseResult {
   const emulatorsDir = str(s["emulatorsDir"], 1000);
   if (romsDir !== undefined) settings.romsDir = romsDir;
   if (emulatorsDir !== undefined) settings.emulatorsDir = emulatorsDir;
-  return { ok: true, data: { games, scans: cleanScans(json["scans"]), providers, emulators, settings }, dropped };
+  return { ok: true, data: { games, scans: sanitizeScans(json["scans"]), providers, emulators, settings }, dropped };
 }
