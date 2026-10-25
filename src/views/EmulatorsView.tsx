@@ -40,7 +40,8 @@ function Usage({ usage }: { usage?: EmulatorUsage }) {
 
 function EmulatorCard({ emulator: e, usage }: { emulator: Emulator; usage?: EmulatorUsage }) {
   const installed = useLibrary((s) => !!s.emulators[e.id]);
-  const { installEmulator, uninstallEmulator } = useLibrary();
+  const installEmulator = useLibrary((s) => s.installEmulator);
+  const uninstallEmulator = useLibrary((s) => s.uninstallEmulator);
   const task = useTasks((s) => s.tasks[`emu:${e.id}`]);
   const st = STATUS[e.status];
 

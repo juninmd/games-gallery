@@ -18,6 +18,7 @@ export const useSecrets = create<SecretsState>((set) => ({
 interface RatingsState {
   entries: Record<string, RatingsEntry>;
   loading: Record<string, boolean>;
+  errors: Record<string, string | undefined>;
   refresh: (game: Game, force?: boolean) => Promise<void>;
 }
 
@@ -76,6 +77,7 @@ export const useRatings = create<RatingsState>()(
     (set, get) => ({
       entries: record<RatingsEntry>(),
       loading: record<boolean>(),
+      errors: record<string | undefined>(),
       refresh: async (game, force = false) => {
         if (ratingIsLoading(get().loading, game.id)) return;
         const key = useSecrets.getState().rawgKey || null;
@@ -84,8 +86,14 @@ export const useRatings = create<RatingsState>()(
         const hasRawg = cached?.scores.some((s) => s.source !== "steam");
         if (!force && !isStale(cached) && (hasRawg || !key)) return;
         set((s) => ({ loading: withKey(s.loading, game.id, true) }));
-        const entry = await fetchPublicRatings(game, key);
-        set((s) => ({ entries: withKey(s.entries, game.id, entry), loading: withKey(s.loading, game.id, false) }));
+        try {
+          const entry = await fetchPublicRatings(game, key);
+          set((s) => ({ entries: withKey(s.entries, game.id, entry), errors: withKey(s.errors, game.id, undefined) }));
+        } catch {
+          set((s) => ({ errors: withKey(s.errors, game.id, "Não foi possível atualizar as notas. Tente novamente.") }));
+        } finally {
+          set((s) => ({ loading: withKey(s.loading, game.id, false) }));
+        }
       },
     }),
     {

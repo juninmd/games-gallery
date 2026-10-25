@@ -15,3 +15,6 @@ permissions:
 jobs:
   check:
     uses: juninmd/base-actions/.github/workflows/reusable-validate.yml@main
+    with:
+      strict-install: true
+      pnpm-version: 10.34.5

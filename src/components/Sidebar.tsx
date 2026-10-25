@@ -17,7 +17,9 @@ const NAV: { view: View; label: string; icon: ReactNode }[] = [
 ];
 
 export function Sidebar() {
-  const { view, go, setAddOpen } = useUi();
+  const view = useUi((s) => s.view);
+  const go = useUi((s) => s.go);
+  const setAddOpen = useUi((s) => s.setAddOpen);
   const games = useLibrary((s) => s.games);
   const counts: Partial<Record<View, number>> = {
     library: games.length,

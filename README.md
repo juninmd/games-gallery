@@ -6,6 +6,10 @@ Protótipo navegável (Tauri 2 + React 19 + TypeScript + Vite) para catalogar jo
 
 ## Rodar
 
+Requisitos: Node.js 22.12+, 24.x ou 26+; pnpm 10.34.5.
+
+O CI valida todos os workflows do GitHub Actions com actionlint antes de instalar as dependências.
+
 ```bash
 pnpm install
 pnpm dev            # só a UI, em http://localhost:1420
@@ -18,15 +22,19 @@ VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa resp
 
 | Tela | O que mostra |
 |---|---|
-| Biblioteca / Instalados | grid de capas, busca (sem acento), filtros por provedor, plataforma, status; ordenação |
-| Quero jogar | kanban com drag & drop entre os status |
+| Biblioteca / Instalados | grid paginado de até 60 capas, busca (sem acento), filtros por provedor, plataforma e status; ordenação, contagem do intervalo e ação para limpar filtros |
+| Quero jogar | kanban com drag & drop, busca por nome/gênero e seletor de status acessível por teclado |
 | Pastas | escolher pasta de ROMs ou biblioteca Steam, revisar o que foi reconhecido (novo / vincular / já importado), ver o emulador de cada jogo e importar |
 | Jogos grátis | jogos gratuitos da Epic Games Store (agora e em breve) e jogos do mês do PlayStation Plus, com abrir na loja, wishlist e “já resgatei” |
 | Estatísticas | totais, % zerados, nota média, distribuição por status/nota/plataforma/provedor, mais jogados, backlog nunca jogado |
 | Plataformas | 34 plataformas e se há emulador pronto, a instalar, ou nenhum viável (PS5, Xbox One, Series) |
 | Provedores | 18 lojas/serviços: método de importação, conectar, sincronizar |
 | Emuladores | 35 emuladores, página oficial de download e comandos de instalação (winget, Scoop, Flatpak, Homebrew) com botão copiar, script único dos que faltam, plataformas, BIOS exigida, comando de launch, instalar/remover, e os jogos da biblioteca que usam cada um (quantos estão prontos para jogar) |
-| Drawer do jogo | status, nota, horas, emulador escolhido, caminho da ROM e o comando exato que seria executado |
+| Drawer do jogo | status, nota, horas, notas pessoais, emulador escolhido, caminho da ROM e o comando exato que seria executado |
+
+Os diálogos de adicionar jogo e detalhes do jogo usam `<dialog>` nativo: Escape fecha, o fundo fica inerte, o foco retorna ao acionador e apenas um overlay abre por vez. O formulário rola em telas baixas e empilha campos em telas estreitas.
+
+As telas secundárias carregam quando abertas. A interface mostra o estado de carregamento e permite tentar novamente se um chunk falhar.
 
 ![Emuladores](docs/emulators.png)
 
@@ -51,6 +59,7 @@ Cada emulador tem a página oficial de download e, quando existe, o comando veri
 - **ROMs:** uma subpasta por plataforma, com os mesmos nomes do ES-DE/RetroArch (`ps2`, `psx`, `snes`, `gc`, “Sony - PlayStation 2”…). Extensões que identificam uma plataforma sozinhas (`.gba`, `.sfc`, `.nsp`…) dispensam a pasta; `.iso/.bin/.chd/.zip/.cso/.gcz/.md…` são compartilhadas entre sistemas e só entram com a pasta. Discos múltiplos e `.cue`+`.bin` viram um jogo só.
 - **Jogos de PC:** lê `appmanifest_*.acf` de uma biblioteca Steam (appid, nome, tamanho em disco). GOG e Epic: fase 2.
 - Cada ROM é ligada a um jogo que você já tem (mesmo título, sem acento/caixa) ou vira um jogo novo; o emulador padrão da plataforma aparece em cada linha, com botão para instalar o que falta.
+- A revisão dos resultados mostra 100 itens por página; é possível revisar e desmarcar qualquer resultado. A seleção e o total para importar persistem entre páginas.
 - No Tauri o seletor é nativo e o caminho salvo é absoluto; o escopo de leitura vale só para a pasta escolhida e some ao fechar o app (reescanear = escolher de novo). No browser (`pnpm dev`) o caminho salvo é relativo à pasta escolhida.
 - **RetroArch:** na tela Emuladores, “Exportar playlists (.lpl)” gera uma playlist por plataforma (formato JSON documentado no libretro; core e CRC ficam `DETECT`, o RetroArch pergunta o core na primeira vez).
 - Pesquisa de concorrentes (Playnite, LaunchBox, Pegasus, ES-DE, RetroArch…): [docs/competitors.md](docs/competitors.md).
@@ -71,6 +80,8 @@ Suas estrelas (1–5) viram 0–100 e são comparadas com a média pública no d
 | Metacritic direto | não há API pública | só via campo do RAWG |
 
 Nenhuma dessas APIs envia CORS: em `pnpm dev` as chamadas passam por proxy do Vite (`/proxy/*`); no Tauri usam o plugin HTTP com escopo restrito a `store.steampowered.com` e `api.rawg.io`. O cache é de 24h e a chave RAWG fica só em memória.
+
+As leituras de rede têm prazo total de 30 s, inclusive durante o consumo do corpo. Respostas JSON são limitadas a 4 MiB; RSS mantém o limite de caracteres por chamada.
 
 ![Notas](docs/ratings.png)
 
@@ -99,6 +110,7 @@ src-tauri/      shell Tauri 2 (plugins opener, http, dialog, fs)
 
 - O launch de emulador é um **array de argumentos** (`args: ["-batch", "--", "{rom}"]`), nunca uma string de shell: um caminho como `a & calc.exe` vira um único argv (teste em `launch.test.ts`).
 - `storeId` é validado (`/^[\w.-]+$/`) antes de entrar em URI de loja; o Tauri só abre os esquemas da allow-list.
+- A permissão de abertura do Tauri usa somente a lista explícita de URLs e esquemas; `opener:default` não é concedido, pois também permite URLs HTTP/HTTPS fora dessa lista.
 - CSP restringe imagens a `self`, Steam CDN e libretro.
 - O app **não baixa nem distribui BIOS, firmware, chaves ou ROMs**; o usuário fornece os dele.
 
