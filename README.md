@@ -49,7 +49,8 @@ Cada emulador tem a página oficial de download e, quando existe, o comando veri
 ![Pastas](docs/folders.png)
 
 - **ROMs:** uma subpasta por plataforma, com os mesmos nomes do ES-DE/RetroArch (`ps2`, `psx`, `snes`, `gc`, “Sony - PlayStation 2”…). Extensões que identificam uma plataforma sozinhas (`.gba`, `.sfc`, `.nsp`…) dispensam a pasta; `.iso/.bin/.chd/.zip/.cso/.gcz/.md…` são compartilhadas entre sistemas e só entram com a pasta. Discos múltiplos e `.cue`+`.bin` viram um jogo só.
-- **Jogos de PC:** lê `appmanifest_*.acf` de uma biblioteca Steam (appid, nome, tamanho em disco). GOG e Epic: fase 2.
+- **Jogos de PC:** lê `appmanifest_*.acf` da biblioteca Steam e manifestos locais `.item` do Epic Games Launcher ou `installed.json` do Legendary/Heroic. Não acessa APIs, login, tokens ou arquivos de credenciais; também não executa launcher nem verifica os arquivos instalados. O registro local é tratado como declaração de instalação, e entradas Legendary com verificação pendente mostram um aviso.
+- O importador Epic só abre arquivos `.item` e o arquivo chamado exatamente `installed.json` dentro da pasta escolhida; aplica limites de 1 MiB por `.item`, 8 MiB por `installed.json`, 5.000 arquivos e 64 MiB no total, informando itens omitidos. Caminhos de instalação são usados apenas para confirmar que o registro tem um valor; não são consultados no disco.
 - Cada ROM é ligada a um jogo que você já tem (mesmo título, sem acento/caixa) ou vira um jogo novo; o emulador padrão da plataforma aparece em cada linha, com botão para instalar o que falta.
 - A revisão dos resultados mostra 100 itens por página; é possível revisar e desmarcar qualquer resultado. A seleção e o total para importar persistem entre páginas.
 - No Tauri o seletor é nativo e o caminho salvo é absoluto; o escopo de leitura vale só para a pasta escolhida e some ao fechar o app (reescanear = escolher de novo). No browser (`pnpm dev`) o caminho salvo é relativo à pasta escolhida.

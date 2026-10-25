@@ -1,8 +1,9 @@
 import { AMBIGUOUS_EXT, UNIQUE_EXT } from "../domain/scan/platformMap";
+import { isEpicItemPath, isLegendaryInstalledPath } from "../domain/scan/epic";
 import { isManifestPath } from "../domain/scan/steam";
 import { isTauri } from "./runtime";
 
-export type FolderKind = "roms" | "games";
+export type FolderKind = "roms" | "games" | "epic";
 
 export interface FolderListing {
   rootName: string;
@@ -14,6 +15,8 @@ export interface FolderListing {
   /** Folders that could not be read (permissions); the scan continues without them. */
   unreadable: number;
   readText: (path: string) => Promise<string>;
+  /** Size lookup for selected metadata files only; never used on install locations. */
+  fileSize?: (path: string) => Promise<number | undefined>;
 }
 
 export const MAX_FILES = 50_000;
@@ -27,6 +30,7 @@ const baseName = (p: string) => norm(p).split("/").pop() ?? p;
 /** Keeps listings small: scraped media and saves in a ROM tree must not eat the file budget. */
 function relevant(kind: FolderKind, path: string): boolean {
   if (kind === "games") return isManifestPath(path);
+  if (kind === "epic") return isEpicItemPath(path) || isLegendaryInstalledPath(path);
   const name = path.slice(path.lastIndexOf("/") + 1);
   const ext = name.includes(".") ? name.slice(name.lastIndexOf(".") + 1).toLowerCase() : "";
   return ext in UNIQUE_EXT || AMBIGUOUS_EXT.has(ext);
@@ -60,6 +64,7 @@ function pickInBrowser(kind: FolderKind): Promise<FolderListing | null> {
         truncated: files.length > MAX_FILES,
         unreadable: 0,
         readText: async (p) => (await byPath.get(p)?.text()) ?? "",
+        fileSize: async (p) => byPath.get(p)?.size,
       });
     });
     input.click();
@@ -68,9 +73,10 @@ function pickInBrowser(kind: FolderKind): Promise<FolderListing | null> {
 
 async function pickInTauri(kind: FolderKind): Promise<FolderListing | null> {
   const { open } = await import("@tauri-apps/plugin-dialog");
-  const { readDir, readTextFile } = await import("@tauri-apps/plugin-fs");
+  const { readDir, readTextFile, stat } = await import("@tauri-apps/plugin-fs");
   // The dialog grants fs scope to the chosen folder only; there is no static fs scope.
-  const chosen = await open({ directory: true, multiple: false, recursive: true, title: kind === "roms" ? "Pasta de ROMs" : "Pasta de jogos" });
+  const pickerTitle = kind === "roms" ? "Pasta de ROMs" : kind === "epic" ? "Manifests Epic/Legendary" : "Pasta de jogos";
+  const chosen = await open({ directory: true, multiple: false, recursive: true, title: pickerTitle });
   if (typeof chosen !== "string") return null;
   const rootPath = norm(chosen);
   const rootName = baseName(rootPath);
@@ -90,7 +96,7 @@ async function pickInTauri(kind: FolderKind): Promise<FolderListing | null> {
       if (files.length >= MAX_FILES) { truncated = true; return; }
       if (e.isSymlink) continue;
       if (e.isDirectory) {
-        if (depth < MAX_DEPTH && !(kind === "games" && SKIP_DIRS.has(e.name.toLowerCase()))) {
+        if (depth < MAX_DEPTH && !(kind !== "roms" && SKIP_DIRS.has(e.name.toLowerCase()))) {
           await walk(`${abs}/${e.name}`, `${rel}/${e.name}`, depth + 1);
         }
       } else if (e.isFile && relevant(kind, `${rel}/${e.name}`)) {
@@ -99,7 +105,11 @@ async function pickInTauri(kind: FolderKind): Promise<FolderListing | null> {
     }
   };
   await walk(rootPath, rootName, 0);
-  return { rootName, rootPath, files, truncated, unreadable, readText: (p) => readTextFile(`${rootPath}/${p.slice(rootName.length + 1)}`) };
+  return {
+    rootName, rootPath, files, truncated, unreadable,
+    readText: (p) => readTextFile(`${rootPath}/${p.slice(rootName.length + 1)}`),
+    fileSize: async (p) => (await stat(`${rootPath}/${p.slice(rootName.length + 1)}`)).size,
+  };
 }
 
 /** Must be called straight from a click handler: browsers block the picker otherwise. */
