@@ -78,6 +78,8 @@ Nenhuma dessas APIs envia CORS: em `pnpm dev` as chamadas passam por proxy do Vi
 
 **Real:** navegação, filtros, kanban, persistência (`localStorage`), notas públicas da Steam, catálogos de plataformas/provedores/emuladores, capas (Steam CDN e [libretro-thumbnails](https://thumbnails.libretro.com), com capa gerada quando não existe), montagem do comando de launch, abertura de URIs de loja no Tauri (`steam://rungameid/…`, allow-list em `src-tauri/capabilities/default.json`).
 
+Ao carregar os dados locais, campos inválidos e caches corrompidos são descartados; uma biblioteca vazia salva intencionalmente continua vazia.
+
 **Simulado:** conectar/sincronizar lojas, instalar jogos e emuladores (barra de progresso), execução de emulador (o app mostra `exe + argv`, não executa).
 
 Jobs simulados são cancelados quando a ação é desfeita (desinstalação ou desconexão) e ao restaurar/resetar a biblioteca; a tarefa cancelada não aplica alterações atrasadas.

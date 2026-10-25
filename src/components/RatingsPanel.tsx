@@ -2,7 +2,7 @@ import { RefreshCw } from "lucide-react";
 import { useEffect } from "react";
 import { averageScore, scoreTone, steamAppIdOf, userScore100 } from "../domain/ratings";
 import type { Game } from "../domain/types";
-import { useRatings, useSecrets } from "../state/ratings";
+import { ratingEntry, ratingIsLoading, useRatings, useSecrets } from "../state/ratings";
 import { useUi } from "../state/ui";
 
 function Row({ label, score, count, detail, mine = false }: { label: string; score: number; count?: number; detail?: string; mine?: boolean }) {
@@ -17,8 +17,8 @@ function Row({ label, score, count, detail, mine = false }: { label: string; sco
 }
 
 export function RatingsPanel({ game }: { game: Game }) {
-  const entry = useRatings((s) => s.entries[game.id]);
-  const loading = useRatings((s) => !!s.loading[game.id]);
+  const entry = useRatings((s) => ratingEntry(s.entries, game.id));
+  const loading = useRatings((s) => ratingIsLoading(s.loading, game.id));
   const refresh = useRatings((s) => s.refresh);
   const rawgKey = useSecrets((s) => s.rawgKey);
   const go = useUi((s) => s.go);
