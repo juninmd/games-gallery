@@ -55,6 +55,10 @@ Cada emulador tem a página oficial de download e, quando existe, o comando veri
 - **RetroArch:** na tela Emuladores, “Exportar playlists (.lpl)” gera uma playlist por plataforma (formato JSON documentado no libretro; core e CRC ficam `DETECT`, o RetroArch pergunta o core na primeira vez).
 - Pesquisa de concorrentes (Playnite, LaunchBox, Pegasus, ES-DE, RetroArch…): [docs/competitors.md](docs/competitors.md).
 
+## Backup e restauração
+
+Backups podem representar uma biblioteca intencionalmente vazia. Ao importar, a confirmação mostra a substituição por 0 jogos; caminhos de configuração ausentes ou inválidos são mantidos, e um caminho vazio explícito limpa essa configuração.
+
 ## Notas (sua nota + notas públicas)
 
 Suas estrelas (1–5) viram 0–100 e são comparadas com a média pública no drawer do jogo.

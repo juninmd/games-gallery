@@ -23,6 +23,12 @@ afterEach(() => {
 });
 
 describe("library task cancellation", () => {
+  it("restores an explicitly empty setting while preserving missing setting keys", () => {
+    const before = { ...useLibrary.getState().settings };
+    useLibrary.getState().restore({ games: [], scans: [], settings: { romsDir: "" } });
+    expect(useLibrary.getState().settings).toEqual({ ...before, romsDir: "" });
+  });
+
   it("uninstalling during install prevents the game from being reinstalled", () => {
     vi.useFakeTimers();
     const game = useLibrary.getState().games.find((g) => g.owned && !g.installed)!;

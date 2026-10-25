@@ -144,7 +144,7 @@ export const useLibrary = create<LibraryState>()(
           scans: data.scans,
           providers: data.providers ?? s.providers,
           emulators: data.emulators ?? s.emulators,
-          settings: { ...s.settings, ...Object.fromEntries(Object.entries(data.settings).filter(([, v]) => v)) },
+          settings: { ...s.settings, ...data.settings },
         }));
       },
       reset: () => {

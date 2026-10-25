@@ -26,7 +26,8 @@ export interface BackupData {
   /** Absent in the file = keep the current value on restore (never wipe what the backup does not describe). */
   providers?: Record<string, { connected: boolean; lastSync?: string }>;
   emulators?: Record<string, boolean>;
-  settings: { romsDir: string; emulatorsDir: string };
+  /** Missing or invalid fields preserve the current setting; an empty string explicitly clears it. */
+  settings: Partial<{ romsDir: string; emulatorsDir: string }>;
 }
 
 export type ParseResult =
@@ -119,8 +120,8 @@ export function parseBackup(text: string): ParseResult {
     games.push(g);
   }
   dropped += Math.max(0, json["games"].length - MAX_GAMES);
-  // Restore replaces the whole library with no undo: an empty result is never what the user meant.
-  if (!games.length) return { ok: false, error: "O backup não contém nenhum jogo válido." };
+  // An explicitly empty exported library is valid; a nonempty file that sanitizes to nothing is not.
+  if (json["games"].length > 0 && !games.length) return { ok: false, error: "O backup não contém nenhum jogo válido." };
 
   let providers: BackupData["providers"];
   if (isObj(json["providers"])) {
@@ -136,6 +137,10 @@ export function parseBackup(text: string): ParseResult {
     emulators = known;
   }
   const s = isObj(json["settings"]) ? json["settings"] : {};
-  const settings = { romsDir: str(s["romsDir"], 1000) ?? "", emulatorsDir: str(s["emulatorsDir"], 1000) ?? "" };
+  const settings: BackupData["settings"] = {};
+  const romsDir = str(s["romsDir"], 1000);
+  const emulatorsDir = str(s["emulatorsDir"], 1000);
+  if (romsDir !== undefined) settings.romsDir = romsDir;
+  if (emulatorsDir !== undefined) settings.emulatorsDir = emulatorsDir;
   return { ok: true, data: { games, scans: cleanScans(json["scans"]), providers, emulators, settings }, dropped };
 }
