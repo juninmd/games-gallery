@@ -6,6 +6,8 @@ Protótipo navegável (Tauri 2 + React 19 + TypeScript + Vite) para catalogar jo
 
 ## Rodar
 
+Requisitos: Node.js 22.12+, 24.x ou 26+; pnpm 10.34.5.
+
 ```bash
 pnpm install
 pnpm dev            # só a UI, em http://localhost:1420
