@@ -17,7 +17,9 @@
         "width": 1360,
         "height": 860,
         "minWidth": 900,
-        "minHeight": 600
+        "minHeight": 600,
+        "center": true,
+        "backgroundColor": "#0b0d12"
       }
     ],
     "security": {
@@ -28,6 +30,28 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Game",
+    "shortDescription": "Catalog and launcher for PC and console game libraries",
+    "longDescription": "Catalog and launcher for PC and console game libraries, with emulator management.",
+    "publisher": "juninmd",
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": [
+          "PortugueseBR",
+          "English"
+        ]
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    }
   }
 }

@@ -12,12 +12,13 @@ export function Cover({ game }: { game: Pick<Game, "title" | "platformId" | "cov
     <div className="cover" style={{ "--c": platform?.color ?? "#555" } as React.CSSProperties}>
       {src ? (
         <>
-          <img className="cover-bg" src={src} alt="" aria-hidden loading="lazy" />
+          <img className="cover-bg" src={src} alt="" aria-hidden loading="lazy" decoding="async" />
           <img
             className="cover-img"
             src={src}
             alt={`Capa de ${game.title}`}
             loading="lazy"
+            decoding="async"
             onError={() => setFailedUrl(src)}
           />
         </>

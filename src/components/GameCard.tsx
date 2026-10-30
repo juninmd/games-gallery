@@ -1,3 +1,4 @@
+import { memo, type CSSProperties } from "react";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
 import type { Game } from "../domain/types";
@@ -7,12 +8,12 @@ import { ProgressBar } from "./Badges";
 import { Cover } from "./Cover";
 import { EmulatorChip } from "./EmulatorChip";
 
-export function GameCard({ game }: { game: Game }) {
+export const GameCard = memo(function GameCard({ game, index = 0 }: { game: Game; index?: number }) {
   const select = useUi((s) => s.select);
   const task = useTasks((s) => s.tasks[`game:${game.id}`]);
 
   return (
-    <button className="card" onClick={() => select(game.id)} aria-label={`Abrir ${game.title}`}>
+    <button className="card" style={{ "--i": index } as CSSProperties} onClick={() => select(game.id)} aria-label={`Abrir ${game.title}`}>
       <Cover game={game} />
       {game.installed && <span className="flag flag-installed">Instalado</span>}
       {!game.owned && <span className="flag flag-wish">Wishlist</span>}
@@ -26,4 +27,4 @@ export function GameCard({ game }: { game: Game }) {
       </div>
     </button>
   );
-}
+});

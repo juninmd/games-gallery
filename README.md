@@ -18,6 +18,15 @@ pnpm test           # lógica de domínio
 VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa respondem
 ```
 
+## Executáveis (Tauri 2)
+
+O workflow `release` (`.github/workflows/release.yml`) gera os instaladores em Windows (NSIS `.exe` e `.msi`), macOS (`.dmg`, Apple Silicon e Intel) e Linux (`.deb`, `.rpm`, `.AppImage`). Em PRs que mexem no empacotamento e em execuções manuais os bundles saem como artifacts; ao publicar uma tag `v*` o workflow cria um release em rascunho com todos os instaladores.
+
+```bash
+pnpm tauri build               # bundles do seu sistema em src-tauri/target/release/bundle
+pnpm tauri build --bundles deb # exemplo: só um formato
+```
+
 ## Telas
 
 | Tela | O que mostra |
