@@ -113,7 +113,7 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
             </nav>
           </div>
           <div className="grid" aria-busy={isUpdating}>
-            {pageGames.map((g) => <GameCard key={g.id} game={g} />)}
+            {pageGames.map((g, i) => <GameCard key={g.id} game={g} index={i} />)}
           </div>
         </>
       )}

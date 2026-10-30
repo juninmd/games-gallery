@@ -1,5 +1,5 @@
-import { BarChart3, CircleCheck, Cpu, FolderSearch, Gamepad2, Gift, HardDriveDownload, Kanban, Library, Plus, Settings, Store } from "lucide-react";
-import type { ReactNode } from "react";
+import { BarChart3, Cpu, FolderSearch, Gamepad2, Gift, HardDriveDownload, Kanban, Library, Plus, Settings, Store } from "lucide-react";
+import { useMemo, type ReactNode } from "react";
 import { useLibrary } from "../state/library";
 import { useUi, type View } from "../state/ui";
 
@@ -21,15 +21,15 @@ export function Sidebar() {
   const go = useUi((s) => s.go);
   const setAddOpen = useUi((s) => s.setAddOpen);
   const games = useLibrary((s) => s.games);
-  const counts: Partial<Record<View, number>> = {
+  const counts = useMemo<Partial<Record<View, number>>>(() => ({
     library: games.length,
     installed: games.filter((g) => g.installed).length,
     board: games.filter((g) => g.status === "backlog" || g.status === "wishlist").length,
-  };
+  }), [games]);
 
   return (
     <nav className="sidebar" aria-label="Navegação principal">
-      <div className="brand"><CircleCheck size={20} aria-hidden /> Games Gallery</div>
+      <div className="brand"><span className="brand-mark"><Gamepad2 size={17} aria-hidden /></span> Games Gallery</div>
       <button className="btn primary block" aria-label="Adicionar jogo" title="Adicionar jogo" onClick={() => setAddOpen(true)}>
         <Plus size={16} aria-hidden /> <span className="sidebar-add-label">Adicionar jogo</span>
       </button>

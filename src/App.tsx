@@ -56,10 +56,11 @@ function CurrentView() {
 }
 
 export function App() {
+  const view = useUi((s) => s.view);
   return (
     <div className="app">
       <Sidebar />
-      <main className="main"><CurrentView /></main>
+      <main className="main"><div className="view-enter" key={view}><CurrentView /></div></main>
       <GameDrawer />
       <AddGameModal />
       <TaskTray />

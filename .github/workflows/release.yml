@@ -1,0 +1,99 @@
+name: release
+
+# Builds the Tauri 2 installers (Windows, macOS, Linux). Pushing a tag `v*` publishes a
+# draft GitHub release with every bundle attached; manual runs and PRs touching the
+# packaging only upload the bundles as workflow artifacts.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src-tauri/**"
+      - ".github/workflows/release.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bundle:
+    name: bundle (${{ matrix.label }})
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: windows-x64
+            os: windows-2022
+            args: ""
+          - label: macos-arm64
+            os: macos-14
+            args: --target aarch64-apple-darwin
+            rust-target: aarch64-apple-darwin
+          - label: macos-x64
+            os: macos-14
+            args: --target x86_64-apple-darwin
+            rust-target: x86_64-apple-darwin
+          - label: linux-x64
+            os: ubuntu-22.04
+            args: ""
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.label }}
+      - run: pnpm install --frozen-lockfile
+      - name: Build bundles
+        if: startsWith(github.ref, 'refs/tags/v') != true
+        run: pnpm tauri build ${{ matrix.args }}
+      - name: Build and publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Games Gallery ${{ github.ref_name }}
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+      - uses: actions/upload-artifact@v4
+        if: startsWith(github.ref, 'refs/tags/v') != true
+        with:
+          name: games-gallery-${{ matrix.label }}
+          path: |
+            src-tauri/target/release/bundle/**/*.exe
+            src-tauri/target/release/bundle/**/*.msi
+            src-tauri/target/*/release/bundle/**/*.dmg
+            src-tauri/target/release/bundle/**/*.deb
+            src-tauri/target/release/bundle/**/*.rpm
+            src-tauri/target/release/bundle/**/*.AppImage
+          if-no-files-found: error
+          retention-days: 7
