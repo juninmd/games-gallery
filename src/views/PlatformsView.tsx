@@ -17,7 +17,7 @@ export function PlatformsView() {
         </div>
       </header>
       {(Object.keys(FAMILY_LABEL) as (keyof typeof FAMILY_LABEL)[]).map((fam) => (
-        <section key={fam} className="group">
+        <section key={fam} className="section-group">
           <h2>{FAMILY_LABEL[fam]}</h2>
           <div className="cards">
             {PLATFORMS.filter((p) => p.family === fam).map((p) => {

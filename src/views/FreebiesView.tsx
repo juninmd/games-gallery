@@ -15,7 +15,7 @@ function EpicSection() {
   const upcoming = live.filter((f) => f.status === "upcoming");
 
   return (
-    <section className="group">
+    <section className="section-group">
       <div className="section-head">
         <h2>Epic Games Store</h2>
         <button className="btn ghost" disabled={loading.epic} onClick={() => refreshEpic(true)}>
@@ -43,7 +43,7 @@ function PsPlusSection() {
   const items = ps?.month ? psPlusFreebies(ps.month) : [];
 
   return (
-    <section className="group">
+    <section className="section-group">
       <div className="section-head">
         <h2>PlayStation Plus: jogos do mês</h2>
         <div className="inline">

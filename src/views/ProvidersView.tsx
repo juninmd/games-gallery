@@ -67,7 +67,7 @@ export function ProvidersView() {
         </div>
       </header>
       {(Object.keys(KIND_LABEL) as ProviderKind[]).map((kind) => (
-        <section key={kind} className="group">
+        <section key={kind} className="section-group">
           <h2>{KIND_LABEL[kind]}</h2>
           <div className="cards wide">
             {PROVIDERS.filter((p) => p.kind === kind).map((p) => <ProviderCard key={p.id} provider={p} />)}

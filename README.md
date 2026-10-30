@@ -18,6 +18,17 @@ pnpm test           # lógica de domínio
 VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa respondem
 ```
 
+## Identidade visual ("Aurora on ink")
+
+Superfícies quase pretas com um degradê ember → rose → orchid como assinatura e verde-aurora só para estados positivos (instalado, ok). Tipografia: Bricolage Grotesque (títulos) + Inter (texto), ambas empacotadas via `@fontsource`, sem rede em runtime.
+
+- **Tailwind CSS v4** (`@tailwindcss/vite`, sem preflight) com tokens em `src/styles/theme.css`; os estilos antigos ficam em `@layer legacy`, abaixo das utilities, e `identity.css` remapeia as variáveis para a nova paleta, então todas as telas herdam a identidade.
+- **motion** (`LazyMotion`, carregado depois do primeiro paint): indicador de navegação que desliza entre itens e entrada do destaque. Cards têm tilt 3D e brilho que segue o ponteiro (variáveis CSS, sem re-render) e contadores animados nas estatísticas; tudo respeita `prefers-reduced-motion`.
+- Destaque na Biblioteca (o que você está jogando ou o mais jogado), busca com atalho `/`, logo e ícones do app regenerados (`pnpm tauri icon`).
+
+![Biblioteca](docs/ui/library.png)
+![Grade](docs/ui/grid.png)
+
 ## Executáveis (Tauri 2)
 
 O workflow `release` (`.github/workflows/release.yml`) gera os instaladores em Windows (NSIS `.exe` e `.msi`), macOS (`.dmg`, Apple Silicon e Intel) e Linux (`.deb`, `.rpm`, `.AppImage`). Em PRs que mexem no empacotamento e em execuções manuais os bundles saem como artifacts; ao publicar uma tag `v*` o workflow cria um release em rascunho com todos os instaladores.
