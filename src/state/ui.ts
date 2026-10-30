@@ -8,8 +8,17 @@ interface Toast {
   msg: string;
 }
 
+const COLLAPSE_KEY = "games-gallery:sidebar-collapsed";
+const readCollapsed = () => {
+  try { return localStorage.getItem(COLLAPSE_KEY) === "1"; } catch { return false; }
+};
+
 interface UiState {
   view: View;
+  paletteOpen: boolean;
+  sidebarCollapsed: boolean;
+  setPaletteOpen: (open: boolean) => void;
+  toggleSidebar: () => void;
   filter: GameFilter;
   selectedId: string | null;
   addOpen: boolean;
@@ -25,6 +34,14 @@ let toastSeq = 0;
 
 export const useUi = create<UiState>((set) => ({
   view: "library",
+  paletteOpen: false,
+  sidebarCollapsed: readCollapsed(),
+  setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
+  toggleSidebar: () => set((s) => {
+    const sidebarCollapsed = !s.sidebarCollapsed;
+    try { localStorage.setItem(COLLAPSE_KEY, sidebarCollapsed ? "1" : "0"); } catch { /* storage unavailable: keep in memory */ }
+    return { sidebarCollapsed };
+  }),
   filter: EMPTY_FILTER,
   selectedId: null,
   addOpen: false,

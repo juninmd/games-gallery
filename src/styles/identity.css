@@ -39,8 +39,7 @@ body::after {
 ::-webkit-scrollbar-thumb:hover { background: #3b4262; background-clip: padding-box; border: 2px solid transparent; }
 :focus-visible { outline: 2px solid #ff6a8e; outline-offset: 2px; }
 
-.app { grid-template-columns: 252px minmax(0, 1fr); }
-@media (max-width: 860px) { .app { grid-template-columns: 76px minmax(0, 1fr); } }
+.app { transition: grid-template-columns 0.5s var(--ease); }
 .main { padding: 32px 40px 72px; }
 @media (max-width: 860px) { .main { padding: 20px 16px 56px; } }
 .view-enter { animation: rise 0.55s var(--ease) both; }

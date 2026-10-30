@@ -29,6 +29,17 @@ Superfícies quase pretas com um degradê ember → rose → orchid como assinat
 ![Biblioteca](docs/ui/library.png)
 ![Grade](docs/ui/grid.png)
 
+### Sidebar
+
+- **Perfil e nível:** anel de XP em volta do nível (1 h jogada = 1 XP, jogo zerado = 20, nota dada = 2; ver `src/domain/profile.ts`), título por faixa de nível, barra de status da coleção, % zerados e GB em disco.
+- **Paleta de comandos (`Ctrl`/`⌘` + `K`):** vai para qualquer tela, adiciona jogo e abre qualquer título, tudo pelo teclado (setas, Enter, Esc).
+- **Jogando agora:** o jogo em andamento com atalho para abrir e "Sortear do backlog".
+- **Navegação:** pílula ativa que desliza, brilho que segue o ponteiro e contadores; tarefas em andamento aparecem no rodapé.
+- **Recolher:** botão no rodapé (a escolha fica salva); em janelas estreitas (≤ 860 px) vira trilho de ícones automaticamente.
+
+![Sidebar](docs/ui/sidebar.png)
+![Paleta de comandos](docs/ui/palette.png)
+
 ## Executáveis (Tauri 2)
 
 O workflow `release` (`.github/workflows/release.yml`) gera os instaladores em Windows (NSIS `.exe` e `.msi`), macOS (`.dmg`, Apple Silicon e Intel) e Linux (`.deb`, `.rpm`, `.AppImage`). Em PRs que mexem no empacotamento e em execuções manuais os bundles saem como artifacts; ao publicar uma tag `v*` o workflow cria um release em rascunho com todos os instaladores.
