@@ -1,10 +1,16 @@
+import { LazyMotion } from "motion/react";
 import { Component, lazy, Suspense, useMemo, useState, type ErrorInfo, type ReactNode } from "react";
 import { AddGameModal } from "./components/AddGameModal";
+import { CommandPalette } from "./components/CommandPalette";
 import { GameDrawer } from "./components/GameDrawer";
-import { TaskTray, Toasts } from "./components/Overlays";
+import { Toasts } from "./components/Overlays";
 import { Sidebar } from "./components/Sidebar";
+import { useCompactSidebar } from "./components/useCompactSidebar";
 import { useUi, type View } from "./state/ui";
 import { GameBrowser } from "./views/GameBrowser";
+
+// Animation features load after first paint so they stay out of the entry chunk.
+const loadMotionFeatures = () => import("./motionFeatures").then((m) => m.default);
 
 type Loader = () => Promise<{ default: React.ComponentType }>;
 const loaders: Partial<Record<View, Loader>> = {
@@ -57,14 +63,17 @@ function CurrentView() {
 
 export function App() {
   const view = useUi((s) => s.view);
+  const { compact } = useCompactSidebar();
   return (
-    <div className="app">
+    <LazyMotion features={loadMotionFeatures} strict>
+    <div className="app" style={{ gridTemplateColumns: `${compact ? 76 : 280}px minmax(0, 1fr)` }}>
       <Sidebar />
       <main className="main"><div className="view-enter" key={view}><CurrentView /></div></main>
       <GameDrawer />
       <AddGameModal />
-      <TaskTray />
+      <CommandPalette />
       <Toasts />
     </div>
+    </LazyMotion>
   );
 }

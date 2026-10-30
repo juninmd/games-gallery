@@ -105,7 +105,7 @@ export function EmulatorsView() {
       </header>
       <div className="cards wide">{list.map((e) => <EmulatorCard key={e.id} emulator={e} usage={usage[e.id]} />)}</div>
       {!list.length && <p className="empty">Nenhum emulador com esses filtros.</p>}
-      <section className="group gap">
+      <section className="section-group gap">
         <h2>Lacunas conhecidas</h2>
         <ul className="gaps">
           {Object.entries(NO_EMULATOR_NOTE).map(([id, note]) => (

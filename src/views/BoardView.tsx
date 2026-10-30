@@ -6,7 +6,6 @@ import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from "../domain/status";
 import type { Game, PlayStatus } from "../domain/types";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
-import "../styles/board.css";
 
 function BoardCard({ game, onMove, registerStatusSelect }: {
   game: Game;

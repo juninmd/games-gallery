@@ -5,7 +5,6 @@ import type { ImportItem } from "../domain/scan/plan";
 import { useLibrary } from "../state/library";
 import { useTasks } from "../state/tasks";
 import { PlatformTag } from "./Badges";
-import "../styles/scan-results.css";
 
 const KIND_LABEL = { new: "Novo", link: "Vincular", same: "Já importado" } as const;
 const KIND_TAG = { new: "ok", link: "warn", same: "" } as const;

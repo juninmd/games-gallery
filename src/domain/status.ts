@@ -11,9 +11,9 @@ export const STATUS_LABEL: Record<PlayStatus, string> = {
 };
 
 export const STATUS_COLOR: Record<PlayStatus, string> = {
-  playing: "#22d3a6",
-  backlog: "#7c5cff",
-  completed: "#4c8dff",
-  dropped: "#8a92a6",
-  wishlist: "#f5a524",
+  playing: "#46f0c1",
+  backlog: "#a56bff",
+  completed: "#5cc8ff",
+  dropped: "#8e93a8",
+  wishlist: "#ffc15e",
 };

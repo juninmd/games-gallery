@@ -18,6 +18,35 @@ pnpm test           # lógica de domínio
 VITE_CHECK_COVERS=1 pnpm test   # também confere que todas as URLs de capa respondem
 ```
 
+## Identidade visual ("Aurora on ink")
+
+Superfícies quase pretas com um degradê ember → rose → orchid como assinatura e verde-aurora só para estados positivos (instalado, ok). Tipografia: Bricolage Grotesque (títulos) + Inter (texto), ambas empacotadas via `@fontsource`, sem rede em runtime.
+
+- **Tailwind CSS v4** (`@tailwindcss/vite`, sem preflight) com tokens em `src/styles/theme.css`; os estilos antigos ficam em `@layer legacy`, abaixo das utilities, e `identity.css` remapeia as variáveis para a nova paleta, então todas as telas herdam a identidade.
+- **motion** (`LazyMotion`, carregado depois do primeiro paint): indicador de navegação que desliza entre itens e entrada do destaque. Cards têm tilt 3D e brilho que segue o ponteiro (variáveis CSS, sem re-render) e contadores animados nas estatísticas; tudo respeita `prefers-reduced-motion`.
+- Destaque na Biblioteca (o que você está jogando ou o mais jogado), busca com atalho `/`, logo e ícones do app regenerados (`pnpm tauri icon`).
+
+![Biblioteca](docs/ui/library.png)
+![Grade](docs/ui/grid.png)
+
+### Sidebar
+
+- **Perfil e nível:** anel de XP em volta do nível (1 h jogada = 1 XP, jogo zerado = 20, nota dada = 2; ver `src/domain/profile.ts`), título por faixa de nível, barra de status da coleção, % zerados e GB em disco.
+- **Paleta de comandos (`Ctrl`/`⌘` + `K`):** vai para qualquer tela, adiciona jogo e abre qualquer título, tudo pelo teclado (setas, Enter, Esc).
+- **Jogando agora:** o jogo em andamento com atalho para abrir e "Sortear do backlog".
+- **Navegação:** pílula ativa que desliza, brilho que segue o ponteiro e contadores; tarefas em andamento aparecem no rodapé.
+- **Recolher:** botão no rodapé (a escolha fica salva); em janelas estreitas (≤ 860 px) vira trilho de ícones automaticamente.
+
+![Sidebar](docs/ui/sidebar.png)
+![Paleta de comandos](docs/ui/palette.png)
+
+### Detalhes do jogo
+
+Painel lateral com hero cinematográfico (arte desfocada, capa flutuante, status, horas, minha nota e média pública), três abas (**Visão geral**, **Notas**, **Jogar**; navegáveis com ← →) e barra de ação fixa no rodapé com a ação certa para o estado do jogo (comprar, instalar/preparar, jogar), desinstalar e remover com confirmação em dois cliques. Status em pílulas coloridas, estrelas com prévia ao passar o mouse e contador de horas com `−` / `+` e atalhos `+2 h`, `+5 h`, `+10 h`.
+
+![Detalhes do jogo](docs/ui/drawer.png)
+![Aba Jogar](docs/ui/drawer-play.png)
+
 ## Executáveis (Tauri 2)
 
 O workflow `release` (`.github/workflows/release.yml`) gera os instaladores em Windows (NSIS `.exe` e `.msi`), macOS (`.dmg`, Apple Silicon e Intel) e Linux (`.deb`, `.rpm`, `.AppImage`). Em PRs que mexem no empacotamento e em execuções manuais os bundles saem como artifacts; ao publicar uma tag `v*` o workflow cria um release em rascunho com todos os instaladores.

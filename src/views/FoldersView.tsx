@@ -9,7 +9,6 @@ import type { Game } from "../domain/types";
 import { type FolderKind, type FolderListing, pickFolder, storedPath } from "../platform/folders";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
-import "../styles/epic-import.css";
 
 const MAX_MANIFESTS = 500;
 
@@ -115,7 +114,7 @@ export function FoldersView() {
         />
       )}
       {!!scans.length && (
-        <section className="group gap">
+        <section className="section-group gap">
           <h2>Últimas varreduras</h2>
           <ul className="gaps">
             {scans.map((s) => (

@@ -36,7 +36,7 @@ export function RatingsPanel({ game }: { game: Game }) {
   const diff = mine !== undefined && avg !== undefined ? mine - avg : undefined;
 
   return (
-    <section className="panel">
+    <section className="glass grid gap-3.5 rounded-2xl p-4" aria-label="Notas">
       <div className="row">
         <h3>Notas</h3>
         <button className="btn ghost" disabled={loading || !hasSource} onClick={() => void refresh(game, true)}>

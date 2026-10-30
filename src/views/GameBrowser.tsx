@@ -1,4 +1,7 @@
-import { useDeferredValue, useMemo, useState } from "react";
+import { BadgeCheck, Hourglass, Library, Timer } from "lucide-react";
+import { useDeferredValue, useMemo, useState, type ReactNode } from "react";
+import { CountUp } from "../components/CountUp";
+import { FeaturedHero, pickFeatured } from "../components/FeaturedHero";
 import { FilterBar } from "../components/FilterBar";
 import { GameCard } from "../components/GameCard";
 import { filterGames, libraryStats } from "../domain/filter";
@@ -7,6 +10,16 @@ import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
 
 const PAGE_SIZE = 60;
+
+function StatTile({ icon, label, value, accent }: { icon: ReactNode; label: string; value: number; accent: string }) {
+  return (
+    <div className="glass group relative min-w-[118px] overflow-hidden rounded-2xl px-4 py-3 transition-all duration-300 ease-expo hover:-translate-y-1 hover:border-white/20">
+      <span aria-hidden className={`absolute -right-5 -top-5 size-16 rounded-full opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-60 ${accent}`} />
+      <dt className="relative flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">{icon}{label}</dt>
+      <dd className="relative m-0 mt-1 font-display text-[28px] font-bold leading-none tracking-tight text-mist tabular-nums"><CountUp value={value} /></dd>
+    </div>
+  );
+}
 
 interface PageState {
   scope: "all" | "installed";
@@ -46,6 +59,12 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const rangeStart = shown.length ? (page - 1) * PAGE_SIZE + 1 : 0;
   const rangeEnd = Math.min(page * PAGE_SIZE, shown.length);
 
+  const filtering = Boolean(
+    filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status || filter.installedOnly || filter.ownedOnly,
+  );
+  const featured = useMemo(() => (scope === "all" ? pickFeatured(games) : undefined), [scope, games]);
+  const showHero = scope === "all" && !filtering && page === 1;
+
   const clearFilters = () => setFilter({
     query: "",
     providerIds: [],
@@ -57,21 +76,23 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
 
   return (
     <>
-      <header className="page-head">
-        <div>
-          <h1>{scope === "installed" ? "Instalados" : platform ? platform.name : "Biblioteca"}</h1>
-          <p className="muted" aria-live="polite">
+      <header className="mb-7 flex flex-wrap items-end justify-between gap-6">
+        <div className="grid gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-fog">Sua coleção</span>
+          <h1 className="text-gradient w-fit pb-1">{scope === "installed" ? "Instalados" : platform ? platform.name : "Biblioteca"}</h1>
+          <p className="text-sm text-fog" aria-live="polite">
             {shown.length} de {scopedCount} jogos
-            {isUpdating && <span className="updating"> · Atualizando resultados…</span>}
+            {isUpdating && <span className="updating text-aurora"> · Atualizando resultados…</span>}
           </p>
         </div>
-        <dl className="stats">
-          <div><dt>Comprados</dt><dd>{stats.owned}</dd></div>
-          <div><dt>Instalados</dt><dd>{stats.installed}</dd></div>
-          <div><dt>Backlog</dt><dd>{stats.backlog}</dd></div>
-          <div><dt>Horas</dt><dd>{stats.hours}</dd></div>
+        <dl className="m-0 flex flex-wrap gap-3">
+          <StatTile icon={<Library size={12} aria-hidden />} label="Comprados" value={stats.owned} accent="bg-rose" />
+          <StatTile icon={<BadgeCheck size={12} aria-hidden />} label="Instalados" value={stats.installed} accent="bg-aurora" />
+          <StatTile icon={<Hourglass size={12} aria-hidden />} label="Backlog" value={stats.backlog} accent="bg-ember" />
+          <StatTile icon={<Timer size={12} aria-hidden />} label="Horas" value={stats.hours} accent="bg-orchid" />
         </dl>
       </header>
+      {showHero && featured && <FeaturedHero game={featured} />}
       <FilterBar lockInstalled={scope === "installed"} />
 
       {games.length === 0 ? (
@@ -112,7 +133,7 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
               </button>
             </nav>
           </div>
-          <div className="grid" aria-busy={isUpdating}>
+          <div className="game-grid" aria-busy={isUpdating}>
             {pageGames.map((g, i) => <GameCard key={g.id} game={g} index={i} />)}
           </div>
         </>

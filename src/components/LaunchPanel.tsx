@@ -1,14 +1,13 @@
-import { Download, Play, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Download } from "lucide-react";
 import { NO_EMULATOR_NOTE, emulatorsFor } from "../domain/emulators";
-import { planLaunch, resolveEmulator } from "../domain/launch";
+import { resolveEmulator } from "../domain/launch";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import type { Game } from "../domain/types";
-import { launch } from "../platform/runtime";
 import { useLibrary } from "../state/library";
 import { useTasks } from "../state/tasks";
 import { useUi } from "../state/ui";
 import { ProgressBar } from "./Badges";
+import type { LaunchState } from "./useLaunch";
 
 function EmulationFields({ game }: { game: Game }) {
   const emulators = useLibrary((s) => s.emulators);
@@ -61,48 +60,14 @@ function EmulationFields({ game }: { game: Game }) {
   );
 }
 
-export function LaunchPanel({ game }: { game: Game }) {
-  const emulators = useLibrary((s) => s.emulators);
-  const patchGame = useLibrary((s) => s.patchGame);
-  const installGame = useLibrary((s) => s.installGame);
-  const uninstallGame = useLibrary((s) => s.uninstallGame);
-  const toast = useUi((s) => s.toast);
-  const task = useTasks((s) => s.tasks[`game:${game.id}`]);
-  const [last, setLast] = useState<string | null>(null);
-  const plan = planLaunch(game, { installed: emulators });
+export function LaunchPanel({ game, launch }: { game: Game; launch: LaunchState }) {
+  const { plan, last } = launch;
   const isPc = game.platformId === "pc";
 
-  const play = async () => {
-    const r = await launch(plan);
-    if (!r.ok) return toast(r.error);
-    setLast(r.detail);
-    toast(r.simulated ? "Simulado (protótipo): nada foi executado" : "Aberto no launcher");
-  };
-
   return (
-    <section className="panel">
-      <h3>{isPc ? "Jogar" : "Jogar via emulação"}</h3>
+    <section className="glass grid gap-3 rounded-2xl p-4" aria-label={isPc ? "Jogar" : "Jogar via emulação"}>
+      <h3>{isPc ? "Como jogar" : "Jogar via emulação"}</h3>
       {!isPc && game.owned && <EmulationFields game={game} />}
-
-      <div className="actions">
-        {!game.owned ? (
-          <button className="btn primary" onClick={() => patchGame(game.id, { owned: true, status: "backlog" })}>Marcar como comprado</button>
-        ) : game.installed ? (
-          <>
-            <button className="btn primary" onClick={play} disabled={plan.kind === "blocked"}>
-              <Play size={16} aria-hidden /> Jogar
-            </button>
-            <button className="btn ghost" onClick={() => uninstallGame(game.id)}>
-              <Trash2 size={15} aria-hidden /> Desinstalar
-            </button>
-          </>
-        ) : (
-          <button className="btn primary" disabled={!!task} onClick={() => installGame(game.id)}>
-            <Download size={16} aria-hidden /> {isPc ? "Instalar" : "Preparar jogo"}
-          </button>
-        )}
-      </div>
-      {task && <ProgressBar value={task.progress} label={task.label} />}
       {plan.kind === "blocked" && game.installed && <p className="note warn">{plan.reason}</p>}
       {plan.kind !== "blocked" && (
         <>
