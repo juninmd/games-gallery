@@ -40,6 +40,13 @@ Superfícies quase pretas com um degradê ember → rose → orchid como assinat
 ![Sidebar](docs/ui/sidebar.png)
 ![Paleta de comandos](docs/ui/palette.png)
 
+### Detalhes do jogo
+
+Painel lateral com hero cinematográfico (arte desfocada, capa flutuante, status, horas, minha nota e média pública), três abas (**Visão geral**, **Notas**, **Jogar**; navegáveis com ← →) e barra de ação fixa no rodapé com a ação certa para o estado do jogo (comprar, instalar/preparar, jogar), desinstalar e remover com confirmação em dois cliques. Status em pílulas coloridas, estrelas com prévia ao passar o mouse e contador de horas com `−` / `+` e atalhos `+2 h`, `+5 h`, `+10 h`.
+
+![Detalhes do jogo](docs/ui/drawer.png)
+![Aba Jogar](docs/ui/drawer-play.png)
+
 ## Executáveis (Tauri 2)
 
 O workflow `release` (`.github/workflows/release.yml`) gera os instaladores em Windows (NSIS `.exe` e `.msi`), macOS (`.dmg`, Apple Silicon e Intel) e Linux (`.deb`, `.rpm`, `.AppImage`). Em PRs que mexem no empacotamento e em execuções manuais os bundles saem como artifacts; ao publicar uma tag `v*` o workflow cria um release em rascunho com todos os instaladores.

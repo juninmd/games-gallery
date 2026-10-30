@@ -108,8 +108,7 @@ select option, select optgroup { background: #11141e; color: var(--text); }
 
 /* overlays */
 .native-dialog::backdrop { background: rgb(4 5 9 / 66%); backdrop-filter: blur(10px) saturate(120%); }
-.drawer { background: linear-gradient(180deg, rgb(18 20 32 / 94%), rgb(8 9 14 / 96%)); backdrop-filter: blur(28px); border-left: 1px solid rgb(255 255 255 / 9%); box-shadow: -30px 0 80px -20px rgb(0 0 0 / 80%); padding: 26px; }
-.drawer::before { content: ""; position: absolute; inset: 0 0 auto; height: 220px; background: radial-gradient(60% 100% at 80% 0, rgb(255 77 141 / 18%), transparent); pointer-events: none; }
+.drawer { background: linear-gradient(180deg, rgb(18 20 32 / 94%), rgb(8 9 14 / 96%)); backdrop-filter: blur(28px); border-left: 1px solid rgb(255 255 255 / 9%); box-shadow: -30px 0 80px -20px rgb(0 0 0 / 80%); width: min(540px, 100vw); }
 .drawer[open] { animation: drawer-in 0.5s var(--ease) both; }
 @keyframes drawer-in { from { transform: translateX(48px); opacity: 0; } to { transform: none; opacity: 1; } }
 .modal { background: linear-gradient(180deg, #151826, #0d1019); border-color: rgb(255 255 255 / 10%); border-radius: 24px; box-shadow: var(--shadow-lift, 0 40px 90px -30px #000); }
