@@ -33,7 +33,7 @@ const SLUG = /^[a-z0-9][a-z0-9-]{0,120}$/;
 
 /** Hosts whose images and pages the app will show or open. */
 const IMAGE_HOSTS = new Set(["cdn1.epicgames.com"]);
-export const LINK_HOSTS = new Set(["store.epicgames.com", "blog.playstation.com", "store.playstation.com"]);
+export const LINK_HOSTS = new Set(["store.epicgames.com", "blog.playstation.com", "store.playstation.com", "store.steampowered.com", "www.gog.com", "www.epicgames.com", "amazon.com"]);
 
 export function safeUrl(url: string | undefined, hosts: Set<string>): string | undefined {
   if (!url) return undefined;

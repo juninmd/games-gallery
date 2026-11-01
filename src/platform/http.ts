@@ -1,11 +1,13 @@
 import { isTauri } from "./runtime";
 
 /** Hosts the app may call; also mirrored in `src-tauri/capabilities/default.json` and vite.config.ts. */
-const DEV_PROXY: Record<string, string> = {
-  "https://store.steampowered.com": "/proxy/steam",
+export const DEV_PROXY: Record<string, string> = {
+  "https://store.steampowered.com": "/proxy/steamstore",
+  "https://api.steampowered.com": "/proxy/steamapi",
   "https://api.rawg.io": "/proxy/rawg",
   "https://store-site-backend-static.ak.epicgames.com": "/proxy/epic",
   "https://blog.playstation.com": "/proxy/psblog",
+  "https://catalog.gog.com": "/proxy/gogcatalog",
 };
 const REQUEST_DEADLINE_MS = 30_000;
 const JSON_MAX_BYTES = 4 * 1024 * 1024;

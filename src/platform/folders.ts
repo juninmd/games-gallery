@@ -114,3 +114,11 @@ async function pickInTauri(kind: FolderKind): Promise<FolderListing | null> {
 
 /** Must be called straight from a click handler: browsers block the picker otherwise. */
 export const pickFolder = (kind: FolderKind) => (isTauri() ? pickInTauri(kind) : pickInBrowser(kind));
+
+/** Bare directory pick (no walk), used for the emulators folder in Settings. */
+export async function pickDirectory(title: string): Promise<string | undefined> {
+  if (!isTauri()) return undefined;
+  const { open } = await import("@tauri-apps/plugin-dialog");
+  const chosen = await open({ directory: true, multiple: false, title });
+  return typeof chosen === "string" ? norm(chosen) : undefined;
+}

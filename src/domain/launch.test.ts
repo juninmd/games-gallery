@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultEmulator, emulatorsFor } from "./emulators";
 import { planLaunch } from "./launch";
-import { game } from "./seed/build";
+import { game } from "./gameFactory";
 
 const ctx = { installed: { duckstation: true, retroarch: true } };
 

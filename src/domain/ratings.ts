@@ -53,6 +53,20 @@ export function parseSteamReviews(json: unknown): PublicScore | null {
   };
 }
 
+/** `IStoreBrowseService/GetItems` with `include_reviews` -> the same score as `appreviews`, from the API host. */
+export function parseSteamBrowseReviews(json: unknown, appId: number): PublicScore | null {
+  const items = isObj(json) && isObj(json["response"]) && Array.isArray(json["response"]["store_items"]) ? json["response"]["store_items"] : [];
+  const item = items.find((i) => isObj(i) && i["appid"] === appId && i["success"] === 1);
+  const reviews = isObj(item) && isObj(item["reviews"]) ? item["reviews"] : undefined;
+  const summary = reviews && (isObj(reviews["summary_filtered"]) ? reviews["summary_filtered"] : isObj(reviews["summary_unfiltered"]) ? reviews["summary_unfiltered"] : undefined);
+  if (!summary) return null;
+  const count = num(summary["review_count"]);
+  const pct = num(summary["percent_positive"]);
+  if (count === undefined || pct === undefined || count <= 0 || pct < 0 || pct > 100) return null;
+  const label = typeof summary["review_score_label"] === "string" ? summary["review_score_label"] : undefined;
+  return { source: "steam", label: "Steam (versão PC)", score: Math.round(pct), count, detail: label };
+}
+
 const fold = (s: string) =>
   s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 

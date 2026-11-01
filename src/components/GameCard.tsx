@@ -2,9 +2,7 @@ import { memo, useRef, type CSSProperties, type PointerEvent } from "react";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
 import type { Game } from "../domain/types";
-import { useTasks } from "../state/tasks";
 import { useUi } from "../state/ui";
-import { ProgressBar } from "./Badges";
 import { Cover } from "./Cover";
 import { EmulatorChip } from "./EmulatorChip";
 
@@ -14,7 +12,6 @@ const canTilt = () =>
 
 export const GameCard = memo(function GameCard({ game, index = 0 }: { game: Game; index?: number }) {
   const select = useUi((s) => s.select);
-  const task = useTasks((s) => s.tasks[`game:${game.id}`]);
   const tilt = useRef<HTMLDivElement>(null);
 
   // Writes CSS variables straight to the node: no React re-render per pointer move.
@@ -66,7 +63,6 @@ export const GameCard = memo(function GameCard({ game, index = 0 }: { game: Game
             <span className="rounded-full bg-ember/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-950 shadow-lg backdrop-blur">Wishlist</span>
           )}
         </div>
-        {task && <div className="absolute inset-x-2.5 bottom-2.5"><ProgressBar value={task.progress} label={task.label} /></div>}
       </div>
       <div className="grid min-w-0 gap-0.5 px-0.5">
         <strong className="truncate font-display text-[14px] font-semibold tracking-tight text-mist" title={game.title}>{game.title}</strong>

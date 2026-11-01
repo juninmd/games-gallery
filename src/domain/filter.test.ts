@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createGameQueryMatcher, EMPTY_FILTER, filterGames, libraryStats } from "./filter";
-import { game } from "./seed/build";
+import { game } from "./gameFactory";
 
 const games = [
   game("pc", "steam", "Pokémon Showdown", 2012, "Estratégia", { s: "playing", i: true, h: 10 }),

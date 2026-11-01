@@ -46,6 +46,8 @@ function scanRomFiles(listing: FolderListing, games: Game[]) {
 export function FoldersView() {
   const scans = useLibrary((s) => s.scans);
   const importItems = useLibrary((s) => s.importItems);
+  const detect = useLibrary((s) => s.detect);
+  const syncSteamApi = useLibrary((s) => s.syncSteamApi);
   const toast = useUi((s) => s.toast);
   const [pending, setPending] = useState<Pending | null>(null);
   const [busy, setBusy] = useState(false);
@@ -83,10 +85,22 @@ export function FoldersView() {
       <header className="page-head">
         <div>
           <h1>Pastas</h1>
-          <p className="muted">Escolha uma pasta, revise o que foi reconhecido e importe. Nada é copiado, movido ou enviado: o app só lê nomes de arquivos e manifests locais.</p>
+          <p className="muted">Escolha uma pasta, revise o que foi reconhecido e importe. Ou use a detecção automática, que já lê os launchers instalados. Nada é copiado, movido ou enviado.</p>
         </div>
       </header>
       <div className="cards wide">
+        <article className="vcard">
+          <h3>Detecção automática</h3>
+          <p className="small muted">
+            Lê as bibliotecas dos launchers instalados sem pedir pasta: Steam (todas as bibliotecas),
+            Epic/Legendary, GOG Galaxy, itch.io, Amazon Games, Ubisoft Connect e Rockstar.
+            Só os jogos instalados no disco entram como instalados.
+          </p>
+          <div className="actions">
+            <button className="btn primary" onClick={() => void detect()}><FolderSearch size={15} aria-hidden /> Detectar tudo</button>
+            <button className="btn ghost" onClick={() => void syncSteamApi()} title="Precisa de SteamID64 e chave em Ajustes">Sincronizar conta Steam</button>
+          </div>
+        </article>
         <article className="vcard">
           <h3>Pasta de ROMs / ISOs</h3>
           <p className="small muted">Uma subpasta por plataforma (<code>ps2</code>, <code>snes</code>, <code>gc</code>…, os mesmos nomes do ES-DE e do RetroArch). Extensões únicas (.gba, .sfc, .nsp…) dispensam a subpasta. Cada jogo recebe o emulador padrão da plataforma.</p>

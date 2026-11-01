@@ -1,4 +1,7 @@
-import { useSecrets } from "../state/ratings";
+import { Save } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSecrets } from "../state/secrets";
+import { useUi } from "../state/ui";
 
 interface Source {
   name: string;
@@ -17,7 +20,18 @@ const SOURCES: Source[] = [
 const STATE_LABEL = { ready: "Ativo", key: "Precisa de chave", phase2: "Fase 2" } as const;
 
 export function RatingSourcesSettings() {
-  const { rawgKey, setRawgKey } = useSecrets();
+  const rawgKey = useSecrets((s) => s.rawgKey);
+  const setRawgKey = useSecrets((s) => s.setRawgKey);
+  const toast = useUi((s) => s.toast);
+  const [draft, setDraft] = useState(rawgKey);
+  useEffect(() => setDraft(rawgKey), [rawgKey]);
+
+  const save = () =>
+    setRawgKey(draft).then(
+      () => toast(draft.trim() ? "Chave do RAWG salva no cofre do sistema" : "Chave do RAWG removida"),
+      () => toast("Não foi possível salvar no cofre do sistema"),
+    );
+
   return (
     <section className="panel narrow">
       <h3>Fontes de nota</h3>
@@ -31,9 +45,17 @@ export function RatingSourcesSettings() {
       </ul>
       <label>
         Chave da API do RAWG
-        <input type="password" autoComplete="off" value={rawgKey} placeholder="cole a chave aqui" onChange={(e) => setRawgKey(e.target.value)} />
+        <input type="password" autoComplete="off" value={draft} maxLength={64} placeholder="cole a chave aqui" onChange={(e) => setDraft(e.target.value)} />
       </label>
-      <p className="muted small">A chave fica só em memória nesta sessão (não é gravada em disco). No app nativo ela irá para o chaveiro do sistema.</p>
+      <div className="actions">
+        <button className="btn" disabled={draft.trim() === rawgKey} onClick={() => void save()}>
+          <Save size={14} aria-hidden /> Salvar
+        </button>
+      </div>
+      <p className="muted small">
+        A chave fica no cofre do sistema (Gerenciador de Credenciais do Windows), não no armazenamento do app, e só é enviada
+        para a api.rawg.io quando você abre as notas de um jogo. No navegador (modo dev) ela vale só para a sessão.
+      </p>
     </section>
   );
 }

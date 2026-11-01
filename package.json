@@ -13,6 +13,9 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --reporter=dot",
+    "smoke:live": "vitest run --config vitest.smoke.config.ts --reporter=dot",
+    "smoke:native": "cargo run --quiet --manifest-path src-tauri/Cargo.toml --example detect",
+    "smoke": "pnpm typecheck && pnpm test && pnpm smoke:live && pnpm smoke:native",
     "tauri": "tauri"
   },
   "pnpm": {

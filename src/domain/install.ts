@@ -7,6 +7,12 @@ export interface InstallCommand {
   label: string;
   /** Shown and copied as-is; one line per shell command. */
   command: string;
+  /** Package id exactly as the manager expects, for running the command for real. */
+  package: string;
+  /** Scoop bucket that must be added first. */
+  bucket?: string;
+  /** Homebrew cask instead of a formula. */
+  cask?: boolean;
 }
 
 // Ids are interpolated into text a user will paste into a terminal: only these shapes are accepted.
@@ -32,7 +38,7 @@ export function installCommands(install: EmulatorInstall | undefined): InstallCo
   if (!install) return [];
   const out: InstallCommand[] = [];
   if (install.winget && WINGET_ID.test(install.winget)) {
-    out.push({ manager: "winget", label: MANAGER_LABEL.winget, command: `winget install --id ${install.winget} --exact --source winget` });
+    out.push({ manager: "winget", label: MANAGER_LABEL.winget, command: `winget install --id ${install.winget} --exact --source winget`, package: install.winget });
   }
   if (install.scoop && SCOOP_REF.test(install.scoop)) {
     const bucket = install.scoop.split("/")[0];
@@ -40,16 +46,20 @@ export function installCommands(install: EmulatorInstall | undefined): InstallCo
       manager: "scoop",
       label: MANAGER_LABEL.scoop,
       command: `${bucket === "main" ? "" : `scoop bucket add ${bucket}\n`}scoop install ${install.scoop}`,
+      package: install.scoop,
+      bucket,
     });
   }
   if (install.flatpak && FLATPAK_ID.test(install.flatpak)) {
-    out.push({ manager: "flatpak", label: MANAGER_LABEL.flatpak, command: `flatpak install flathub ${install.flatpak}` });
+    out.push({ manager: "flatpak", label: MANAGER_LABEL.flatpak, command: `flatpak install flathub ${install.flatpak}`, package: install.flatpak });
   }
   if (install.brew && BREW_NAME.test(install.brew.name)) {
     out.push({
       manager: "brew",
       label: MANAGER_LABEL.brew,
       command: `brew install ${install.brew.kind === "cask" ? "--cask " : ""}${install.brew.name}`,
+      package: install.brew.name,
+      cask: install.brew.kind === "cask",
     });
   }
   return out;

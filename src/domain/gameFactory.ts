@@ -1,6 +1,4 @@
-import type { Game, PlayStatus } from "../types";
-
-export const ROMS_DIR = "D:/ROMs";
+import type { Game, PlayStatus } from "./types";
 
 export const steamCover = (appId: number) =>
   `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
@@ -26,6 +24,7 @@ export interface Opts {
 const slug = (s: string) =>
   s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
+/** Builds a library entry from values the user typed; ids stay stable per provider/platform/title. */
 export function game(
   platformId: string,
   providerId: string,
@@ -55,35 +54,4 @@ export function game(
     romPath: o.rom,
     emulatorId: o.emu,
   };
-}
-
-/** PC game from a store; Steam art is reused for other stores' copies of the same title. */
-export function pc(
-  providerId: string,
-  appId: number,
-  title: string,
-  year: number,
-  genres: string,
-  o: Opts = {},
-): Game {
-  const store = providerId === "steam" ? appId : `demo-${slug(title)}`;
-  return game("pc", providerId, title, year, genres, { ...o, store, cover: steamCover(appId), steamAppId: appId });
-}
-
-/** Emulated title: `file` is the exact libretro thumbnail name (also used for the demo ROM path). */
-export function rom(
-  platformId: string,
-  system: string,
-  file: string,
-  title: string,
-  year: number,
-  genres: string,
-  o: Opts & { provider?: string } = {},
-): Game {
-  const base = file.replace(/\.png$/, "");
-  return game(platformId, o.provider ?? "roms", title, year, genres, {
-    ...o,
-    cover: libretroCover(system, file),
-    rom: `${ROMS_DIR}/${platformId}/${base}.zip`,
-  });
 }

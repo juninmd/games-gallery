@@ -23,6 +23,10 @@ export interface Provider {
   importNote: string;
   /** `{id}` is replaced by Game.storeId; undefined = no URI launcher. */
   launchUri?: string;
+  /** Deep link that starts an install in the store's own client. */
+  installUri?: string;
+  /** Deep link that opens the store's uninstall flow. */
+  uninstallUri?: string;
 }
 
 export type EmulatorStatus = "active" | "experimental" | "community-fork" | "discontinued";
@@ -77,4 +81,32 @@ export interface Game {
   romPath?: string;
   emulatorId?: string;
   notes?: string;
+}
+
+/** One entry reported by a local launcher scan or by a store API. */
+export interface DetectedEntry {
+  storeId: string;
+  title: string;
+  sizeGb?: number;
+  installed: boolean;
+  installPath?: string;
+  playtimeH?: number;
+}
+
+/** Result of scanning one provider on this machine. */
+export interface ProviderDetection {
+  providerId: string;
+  source: string;
+  available: boolean;
+  note?: string;
+  games: DetectedEntry[];
+}
+
+export interface ProviderState {
+  connected: boolean;
+  lastSync?: string;
+  /** Where the data came from (file, API) — shown in the UI so nothing looks magical. */
+  source?: string;
+  /** Why a source is unavailable. */
+  note?: string;
 }

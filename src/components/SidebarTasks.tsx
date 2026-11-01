@@ -23,10 +23,11 @@ export function SidebarTasks({ compact }: { compact: boolean }) {
         <div key={t.key} className="grid gap-1.5 text-xs">
           <span className="flex items-center gap-2 text-mist">
             <LoaderCircle size={13} className="shrink-0 animate-spin text-aurora" aria-hidden />
-            <span className="truncate">{t.label}</span>
+            <span className="truncate" title={t.detail ?? t.label}>{t.label}</span>
             <span className="ml-auto tabular-nums text-fog">{Math.round(t.progress)}%</span>
           </span>
           <ProgressBar value={t.progress} label={t.label} />
+          {t.detail && <span className="truncate text-[11px] text-fog" title={t.detail}>{t.detail}</span>}
         </div>
       ))}
     </aside>

@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import type { Game } from "../domain/types";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
-import { ProgressBar } from "./Badges";
 import type { LaunchState } from "./useLaunch";
 
 /** Sticky footer: the one action that matters for the game's current state, plus uninstall and remove. */
@@ -13,7 +12,8 @@ export function DrawerActions({ game, launch }: { game: Game; launch: LaunchStat
   const uninstallGame = useLibrary((s) => s.uninstallGame);
   const removeGame = useLibrary((s) => s.removeGame);
   const select = useUi((s) => s.select);
-  const { plan, task, play } = launch;
+  const toast = useUi((s) => s.toast);
+  const { plan, play } = launch;
   const [confirming, setConfirming] = useState(false);
   const isPc = game.platformId === "pc";
 
@@ -25,9 +25,13 @@ export function DrawerActions({ game, launch }: { game: Game; launch: LaunchStat
 
   const primary = "group relative flex min-w-0 flex-1 items-center justify-center gap-2 overflow-hidden rounded-2xl bg-signature px-5 py-3 text-[15px] font-semibold text-white shadow-glow transition-all duration-300 ease-expo hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45";
 
+  const askUninstall = async () => {
+    if (!window.confirm(`Desinstalar ${game.title}? A loja abre o próprio fluxo: nada é apagado pelo app.`)) return;
+    await uninstallGame(game.id);
+  };
+
   return (
     <footer className="sticky bottom-0 z-10 mt-auto grid gap-3 border-t border-white/10 bg-ink-900/85 px-6 py-4 backdrop-blur-xl">
-      {task && <ProgressBar value={task.progress} label={task.label} />}
       <div className="flex items-center gap-2.5">
         {!game.owned ? (
           <button className={primary} onClick={() => patchGame(game.id, { owned: true, status: "backlog" })}>Marcar como comprado</button>
@@ -37,12 +41,22 @@ export function DrawerActions({ game, launch }: { game: Game; launch: LaunchStat
             <Play size={18} aria-hidden className="relative fill-current" /> <span className="relative">Jogar</span>
           </button>
         ) : (
-          <button className={primary} disabled={!!task} onClick={() => installGame(game.id)}>
-            <Download size={18} aria-hidden /> {task ? `${Math.round(task.progress)}%` : isPc ? "Instalar" : "Preparar jogo"}
+          <button
+            className={primary}
+            onClick={() => {
+              if (!isPc) {
+                if (!game.romPath?.trim()) toast("Defina o caminho da ROM/ISO na aba Jogar.");
+                else void installGame(game.id);
+                return;
+              }
+              void installGame(game.id);
+            }}
+          >
+            <Download size={18} aria-hidden /> {isPc ? "Instalar na loja" : "Preparar jogo"}
           </button>
         )}
         {game.installed && (
-          <button type="button" className="icon-btn !size-12 !rounded-2xl" onClick={() => uninstallGame(game.id)} aria-label="Desinstalar" title="Desinstalar">
+          <button type="button" className="icon-btn !size-12 !rounded-2xl" onClick={() => void askUninstall()} aria-label="Desinstalar" title="Desinstalar">
             <Download size={17} className="rotate-180" aria-hidden />
           </button>
         )}
