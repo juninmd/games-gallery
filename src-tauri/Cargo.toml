@@ -17,6 +17,16 @@ tauri-plugin-opener = "2"
 tauri-plugin-http = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+# OS credential store (Windows Credential Manager / macOS Keychain / Secret Service) for API keys.
+url = "2"
+base64 = "0.22"
+keyring = { version = "=3.6.3", default-features = false, features = ["windows-native", "apple-native", "sync-secret-service"] }
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.56"
 
 [profile.release]
 codegen-units = 1

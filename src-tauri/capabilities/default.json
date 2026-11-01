@@ -16,9 +16,17 @@
       "identifier": "http:default",
       "allow": [
         { "url": "https://store.steampowered.com/*" },
+        { "url": "https://api.steampowered.com/*" },
         { "url": "https://api.rawg.io/*" },
         { "url": "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions*" },
-        { "url": "https://blog.playstation.com/feed/*" }
+        { "url": "https://blog.playstation.com/feed/*" },
+        { "url": "https://catalog.gog.com/v1/catalog*" },
+        { "url": "https://api.amazon.com/auth/register" },
+        { "url": "https://api.amazon.com/auth/deregister" },
+        { "url": "https://gaming.amazon.com/api/distribution/entitlements" },
+        { "url": "https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/*" },
+        { "url": "https://library-service.live.use1a.on.epicgames.com/library/api/public/items*" },
+        { "url": "https://catalog-public-service-prod06.ol.epicgames.com/catalog/api/shared/namespace/*" }
       ]
     },
     {
@@ -31,6 +39,10 @@
         { "url": "battlenet://*" },
         { "url": "itch://*" },
         { "url": "https://store.epicgames.com/*" },
+        { "url": "https://www.gog.com/*" },
+        { "url": "https://www.epicgames.com/id/login*" },
+        { "url": "https://amazon.com/ap/signin*" },
+        { "url": "https://store.steampowered.com/*" },
         { "url": "https://blog.playstation.com/*" },
         { "url": "https://store.playstation.com/*" },
         { "url": "https://ares-emu.net/" },
