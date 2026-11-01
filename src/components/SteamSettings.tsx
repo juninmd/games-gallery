@@ -24,7 +24,7 @@ export function SteamSettings() {
 
   return (
     <section className="panel narrow">
-      <h3>Steam Web API (opcional)</h3>
+      <h3 aria-level={2}>Steam Web API (opcional)</h3>
       <p className="muted small">
         A biblioteca instalada já é lida dos <code>appmanifest_*.acf</code>. Com SteamID64 e chave,
         o app também lista os jogos da conta que não estão instalados e traz as horas jogadas.

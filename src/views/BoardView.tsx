@@ -1,14 +1,17 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Cover } from "../components/Cover";
 import { PlatformTag } from "../components/Badges";
+import { StoreChips } from "../components/StoreChips";
+import { groupGames, type GameGroup } from "../domain/duplicates";
 import { createGameQueryMatcher } from "../domain/filter";
 import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from "../domain/status";
 import type { Game, PlayStatus } from "../domain/types";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
 
-function BoardCard({ game, onMove, registerStatusSelect }: {
+function BoardCard({ game, members, onMove, registerStatusSelect }: {
   game: Game;
+  members: Game[];
   onMove: (game: Game, status: PlayStatus) => void;
   registerStatusSelect: (id: string, node: HTMLSelectElement | null) => void;
 }) {
@@ -25,7 +28,8 @@ function BoardCard({ game, onMove, registerStatusSelect }: {
       </button>
       <div className="bcard-main">
         <button className="bcard-title" onClick={() => select(game.id)}>{game.title}</button>
-        <div className="tags"><PlatformTag id={game.platformId} />{game.installed && <span className="tag ok">instalado</span>}</div>
+        <div className="tags"><PlatformTag id={game.platformId} />{members.some((m) => m.installed) && <span className="tag ok">instalado</span>}</div>
+        {members.length > 1 && <StoreChips members={members} />}
         <label className="bcard-status-label" htmlFor={`board-status-${game.id}`}>Status de {game.title}</label>
         <select
           ref={(node) => registerStatusSelect(game.id, node)}
@@ -53,9 +57,10 @@ export function BoardView() {
   const focusAfterMove = useRef<string | null>(null);
 
   const grouped = useMemo(() => {
-    const result: Record<PlayStatus, Game[]> = { playing: [], backlog: [], completed: [], dropped: [], wishlist: [] };
+    // One card per game, however many stores own it; status is shared across owned copies.
+    const result: Record<PlayStatus, GameGroup[]> = { playing: [], backlog: [], completed: [], dropped: [], wishlist: [] };
     const matchesQuery = createGameQueryMatcher(query);
-    for (const game of games) if (matchesQuery(game)) result[game.status].push(game);
+    for (const group of groupGames(games)) if (group.members.some(matchesQuery)) result[group.primary.status].push(group);
     return result;
   }, [games, query]);
 
@@ -117,8 +122,8 @@ export function BoardView() {
               <div className="col-body">
                 {col.length === 0 ? (
                   <p className="board-column-empty">{query.trim() ? "Nenhum resultado nesta coluna." : "Nenhum jogo nesta coluna."}</p>
-                ) : col.map((game) => (
-                  <BoardCard key={game.id} game={game} onMove={(item, next) => move(item, next, true)} registerStatusSelect={(id, node) => {
+                ) : col.map(({ primary: game, members }) => (
+                  <BoardCard key={game.id} game={game} members={members} onMove={(item, next) => move(item, next, true)} registerStatusSelect={(id, node) => {
                     if (node) statusSelects.current.set(id, node);
                     else if (statusSelects.current.get(id)?.isConnected === false) statusSelects.current.delete(id);
                   }} />

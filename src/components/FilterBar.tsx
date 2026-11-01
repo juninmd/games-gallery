@@ -53,7 +53,7 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
 
   const hasActiveFilters = Boolean(
     filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status ||
-    filter.installedOnly || filter.ownedOnly,
+    filter.installedOnly || filter.ownedOnly || filter.multiStoreOnly,
   );
 
   const clearFilters = () => setFilter({
@@ -63,6 +63,7 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
     status: null,
     installedOnly: false,
     ownedOnly: false,
+    multiStoreOnly: false,
   });
 
   return (
@@ -73,7 +74,7 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
           <input
             ref={searchRef}
             type="search"
-            placeholder="Buscar por título ou gênero…"
+            placeholder="Buscar por título, gênero ou loja…"
             value={filter.query}
             onChange={(e) => setFilter({ query: e.target.value })}
             aria-label="Buscar jogos"
@@ -107,6 +108,10 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
         <label className={toggleCls}>
           <input type="checkbox" checked={filter.ownedOnly} onChange={(e) => setFilter({ ownedOnly: e.target.checked })} />
           Só comprados
+        </label>
+        <label className={toggleCls}>
+          <input type="checkbox" checked={filter.multiStoreOnly} onChange={(e) => setFilter({ multiStoreOnly: e.target.checked })} />
+          Em mais de uma loja
         </label>
       </div>
 

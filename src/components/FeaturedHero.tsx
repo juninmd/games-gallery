@@ -1,22 +1,16 @@
 import { m } from "motion/react";
 import { Clock, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { totalHours, type GameGroup } from "../domain/duplicates";
 import { PLATFORM_BY_ID } from "../domain/platforms";
-import { PROVIDER_BY_ID } from "../domain/providers";
-import type { Game } from "../domain/types";
 import { useUi } from "../state/ui";
 import { Cover } from "./Cover";
+import { storeSummary } from "./StoreChips";
 
-/** The game to spotlight: what you are playing, else the most played one that has real art. */
-export function pickFeatured(games: Game[]): Game | undefined {
-  const withArt = games.filter((g) => g.coverUrl);
-  const pool = withArt.length ? withArt : games;
-  const playing = pool.filter((g) => g.status === "playing");
-  const ranked = [...(playing.length ? playing : pool)].sort((a, b) => b.playtimeH - a.playtimeH || a.title.localeCompare(b.title));
-  return ranked[0];
-}
-
-export function FeaturedHero({ game }: { game: Game }) {
+export function FeaturedHero({ group }: { group: GameGroup }) {
+  const { primary, members } = group;
+  // The primary may lack art that another store has.
+  const game = primary.coverUrl ? primary : { ...primary, coverUrl: members.find((m) => m.coverUrl)?.coverUrl };
   const select = useUi((s) => s.select);
   const [artFailed, setArtFailed] = useState(false);
   const playing = game.status === "playing";
@@ -52,7 +46,7 @@ export function FeaturedHero({ game }: { game: Game }) {
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fog">
           <span>{platform?.name}</span>
           <span aria-hidden>·</span>
-          <span>{PROVIDER_BY_ID[game.providerId]?.name}</span>
+          <span>{storeSummary(members, 4).names.join(" · ")}</span>
           {game.year > 0 && <><span aria-hidden>·</span><span>{game.year}</span></>}
           {game.genres.length > 0 && <><span aria-hidden>·</span><span>{game.genres.slice(0, 3).join(" · ")}</span></>}
         </p>
@@ -65,7 +59,7 @@ export function FeaturedHero({ game }: { game: Game }) {
             Ver detalhes
           </button>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.07] px-3 py-1.5 text-xs font-medium text-mist backdrop-blur">
-            <Clock size={13} aria-hidden /> {game.playtimeH.toLocaleString("pt-BR")} h jogadas
+            <Clock size={13} aria-hidden /> {totalHours(members).toLocaleString("pt-BR")} h jogadas
           </span>
         </div>
       </div>

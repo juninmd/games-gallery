@@ -22,7 +22,7 @@ export function WindowLoginSettings() {
 
   return (
     <section className="panel narrow">
-      <h3>Battle.net, EA app e Ubisoft: biblioteca da conta</h3>
+      <h3 aria-level={2}>Battle.net, EA app e Ubisoft: biblioteca da conta</h3>
       <p className="muted small">
         Os instalados já vêm dos launchers. Para listar também os comprados, entre na sua conta na janela que abrir.
         A janela é isolada do app, não guarda a sessão depois de fechar e o app não vê a sua senha.

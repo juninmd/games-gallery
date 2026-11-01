@@ -30,7 +30,7 @@ export function AmazonAccountSettings() {
 
   return (
     <section className="panel narrow">
-      <h3>Amazon Games: biblioteca da conta</h3>
+      <h3 aria-level={2}>Amazon Games: biblioteca da conta</h3>
       <p className="muted small">
         Os instalados já vêm do launcher. Para listar também os comprados (inclui Prime Gaming), entre na sua conta: depois do
         login a Amazon te leva à página inicial; copie o endereço completo da barra do navegador e cole aqui.

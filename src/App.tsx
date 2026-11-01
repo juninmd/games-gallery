@@ -4,9 +4,11 @@ import { AddGameModal } from "./components/AddGameModal";
 import { CommandPalette } from "./components/CommandPalette";
 import { GameDrawer } from "./components/GameDrawer";
 import { Toasts } from "./components/Overlays";
+import { ShortcutsHelp } from "./components/ShortcutsHelp";
 import { Sidebar } from "./components/Sidebar";
 import { useCompactSidebar } from "./components/useCompactSidebar";
 import { useLibrary } from "./state/library";
+import { watchPriceAlerts } from "./state/alertWatcher";
 import { useSecrets } from "./state/secrets";
 import { useUi, type View } from "./state/ui";
 import { GameBrowser } from "./views/GameBrowser";
@@ -76,7 +78,7 @@ export function App() {
   useEffect(() => {
     if (booted) return;
     booted = true;
-    void useSecrets.getState().hydrate();
+    void useSecrets.getState().hydrate().then(watchPriceAlerts);
     const library = useLibrary.getState();
     void library.refreshEmulators();
     if (!library.games.length) void library.detect();
@@ -90,6 +92,7 @@ export function App() {
       <GameDrawer />
       <AddGameModal />
       <CommandPalette />
+      <ShortcutsHelp />
       <Toasts />
     </div>
     </LazyMotion>

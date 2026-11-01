@@ -5,11 +5,13 @@ import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from "../domain/status";
 import type { Game, PlayStatus } from "../domain/types";
 import { useLibrary } from "../state/library";
 import { ratingEntry, useRatings } from "../state/ratings";
-import { useSecrets } from "../state/secrets";import { useUi } from "../state/ui";
+import { useSecrets } from "../state/secrets";
+import { useUi } from "../state/ui";
 import { DrawerActions } from "./DrawerActions";
 import { DrawerHero } from "./DrawerHero";
 import { LaunchPanel } from "./LaunchPanel";
 import { RatingsPanel } from "./RatingsPanel";
+import { StoresPanel } from "./StoresPanel";
 import { useLaunch } from "./useLaunch";
 import { useNativeDialog } from "./useNativeDialog";
 
@@ -122,6 +124,7 @@ function Overview({ game }: { game: Game }) {
   const patchGame = useLibrary((s) => s.patchGame);
   return (
     <div className="grid gap-4">
+      <StoresPanel game={game} />
       <Section title="Status"><StatusPicker game={game} /></Section>
       <Section title="Sua avaliação"><RatingStars game={game} /></Section>
       <Section title="Tempo de jogo"><HoursStepper game={game} /></Section>

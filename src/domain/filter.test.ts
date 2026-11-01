@@ -26,6 +26,12 @@ describe("filterGames", () => {
     expect(games.filter(createGameQueryMatcher(" "))).toHaveLength(games.length);
   });
 
+  it("finds games by store name once the query is long enough to mean it", () => {
+    expect(filterGames(games, { ...EMPTY_FILTER, query: "gog" }).map((g) => g.title)).toEqual(["Disco Elysium"]);
+    expect(filterGames(games, { ...EMPTY_FILTER, query: "stea" }).map((g) => g.title)).toEqual(["Pokémon Showdown"]);
+    expect(filterGames(games, { ...EMPTY_FILTER, query: "go" })).toHaveLength(0); // two letters stay a title search
+  });
+
   it("combines provider, platform and installed filters with AND", () => {
     const r = filterGames(games, { ...EMPTY_FILTER, providerIds: ["steam", "gog"], installedOnly: true });
     expect(r.map((g) => g.title)).toEqual(["Pokémon Showdown"]);

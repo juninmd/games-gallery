@@ -90,7 +90,7 @@ export function FoldersView() {
       </header>
       <div className="cards wide">
         <article className="vcard">
-          <h3>Detecção automática</h3>
+          <h3 aria-level={2}>Detecção automática</h3>
           <p className="small muted">
             Lê as bibliotecas dos launchers instalados sem pedir pasta: Steam (todas as bibliotecas),
             Epic/Legendary, GOG Galaxy, itch.io, Amazon Games, Ubisoft Connect e Rockstar.
@@ -102,17 +102,17 @@ export function FoldersView() {
           </div>
         </article>
         <article className="vcard">
-          <h3>Pasta de ROMs / ISOs</h3>
+          <h3 aria-level={2}>Pasta de ROMs / ISOs</h3>
           <p className="small muted">Uma subpasta por plataforma (<code>ps2</code>, <code>snes</code>, <code>gc</code>…, os mesmos nomes do ES-DE e do RetroArch). Extensões únicas (.gba, .sfc, .nsp…) dispensam a subpasta. Cada jogo recebe o emulador padrão da plataforma.</p>
           <button className="btn primary" disabled={busy} onClick={() => scan("roms")}><FolderSearch size={15} aria-hidden /> Escolher pasta e varrer</button>
         </article>
         <article className="vcard">
-          <h3>Pasta de jogos de PC</h3>
+          <h3 aria-level={2}>Pasta de jogos de PC</h3>
           <p className="small muted">Escolha a biblioteca Steam (a pasta que contém <code>steamapps</code>). Lê os <code>appmanifest_*.acf</code> e marca os jogos como instalados, com o tamanho em disco.</p>
           <button className="btn primary" disabled={busy} onClick={() => scan("games")}><FolderSearch size={15} aria-hidden /> Escolher pasta e varrer</button>
         </article>
         <article className="vcard epic-import-card">
-          <h3>Manifestos Epic / Legendary</h3>
+          <h3 aria-level={2}>Manifestos Epic / Legendary</h3>
           <p className="small muted">Escolha a pasta que contém os arquivos <code>.item</code> do Epic Games Launcher (geralmente em <code>ProgramData/Epic/EpicGamesLauncher/Data/Manifests</code>) ou a pasta de configuração do Legendary/Heroic que contém <code>installed.json</code>. O registro local declara a instalação; os arquivos do jogo não são verificados.</p>
           <button className="btn primary" disabled={busy} onClick={() => scan("epic")}><FolderSearch size={15} aria-hidden /> Escolher pasta e varrer</button>
         </article>

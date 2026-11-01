@@ -81,6 +81,8 @@ export interface Game {
   romPath?: string;
   emulatorId?: string;
   notes?: string;
+  /** The user said this copy is not the same game as its same-title siblings in other stores. */
+  separate?: boolean;
 }
 
 /** One entry reported by a local launcher scan or by a store API. */

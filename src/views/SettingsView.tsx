@@ -45,7 +45,7 @@ export function SettingsView() {
     <>
       <header className="page-head"><div><h1>Ajustes</h1></div></header>
       <section className="panel narrow">
-        <h3>Pastas</h3>
+        <h3 aria-level={2}>Pastas</h3>
         <label>Pasta de ROMs / ISOs<input value={settings.romsDir} onChange={(e) => setSettings({ romsDir: e.target.value })} placeholder="D:\ROMs" /></label>
         <label>Pasta de emuladores<input value={settings.emulatorsDir} onChange={(e) => setSettings({ emulatorsDir: e.target.value })} placeholder="ex.: D:\Games\Emuladores" /></label>
         <p className="muted small">
@@ -61,14 +61,14 @@ export function SettingsView() {
       <p className="muted small">Chaves da Steam, RAWG e testes de conexão ficam em <button className="link" onClick={() => go("connections")}>Conexões</button>.</p>
       <BackupSettings />
       <section className="panel narrow">
-        <h3>Dados reais</h3>
-        <h4>Lido direto do computador</h4>
+        <h3 aria-level={2}>Dados reais</h3>
+        <h4 aria-level={3}>Lido direto do computador</h4>
         <ul className="plain">{REAL.map((x) => <li key={x}>{x}</li>)}</ul>
-        <h4>Continua fora do alcance</h4>
+        <h4 aria-level={3}>Continua fora do alcance</h4>
         <ul className="plain">{LIMITED.map((x) => <li key={x}>{x}</li>)}</ul>
       </section>
       <section className="panel narrow">
-        <h3>Biblioteca</h3>
+        <h3 aria-level={2}>Biblioteca</h3>
         <p className="muted small">Apagar remove os jogos e o histórico de varreduras deste perfil. Os launchers no disco não são tocados; a detecção repovoa tudo em um clique.</p>
         <button className="btn ghost danger" onClick={() => {
           if (!window.confirm("Apagar a biblioteca deste perfil e começar do zero? Os jogos instalados continuam no disco.")) return;

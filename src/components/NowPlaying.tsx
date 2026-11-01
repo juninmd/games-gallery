@@ -1,5 +1,6 @@
 import { Clock, Dices } from "lucide-react";
 import { useMemo } from "react";
+import { groupGames, nowPlayingGroups, pickBacklog, totalHours } from "../domain/duplicates";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
 import { Cover } from "./Cover";
@@ -9,15 +10,12 @@ export function NowPlaying() {
   const games = useLibrary((s) => s.games);
   const select = useUi((s) => s.select);
   const go = useUi((s) => s.go);
-  const playing = useMemo(
-    () => games.filter((g) => g.status === "playing").sort((a, b) => b.playtimeH - a.playtimeH || a.title.localeCompare(b.title)).slice(0, 1),
-    [games],
-  );
+  const groups = useMemo(() => groupGames(games), [games]);
+  const playing = useMemo(() => nowPlayingGroups(groups).slice(0, 1), [groups]);
 
   const pickRandom = () => {
-    const pool = games.filter((g) => g.status === "backlog" && g.owned);
-    const pick = pool[Math.floor(Math.random() * pool.length)];
-    if (pick) select(pick.id); else go("board");
+    const pick = pickBacklog(groups);
+    if (pick) select(pick.primary.id); else go("board");
   };
 
   return (
@@ -33,7 +31,7 @@ export function NowPlaying() {
         <p className="px-1 text-xs text-fog">Nada em andamento.</p>
       ) : (
         <ul className="m-0 grid list-none gap-1 p-0">
-          {playing.map((g) => (
+          {playing.map(({ primary: g, members }) => (
             <li key={g.id}>
               <button
                 type="button"
@@ -44,7 +42,7 @@ export function NowPlaying() {
                 <div className="w-9 shrink-0 transition-transform duration-300 ease-expo group-hover:-rotate-3 group-hover:scale-105"><Cover game={g} /></div>
                 <div className="min-w-0">
                   <div className="truncate text-[12.5px] font-semibold text-mist">{g.title}</div>
-                  <div className="flex items-center gap-1 text-[11px] text-fog"><Clock size={11} aria-hidden /> {g.playtimeH.toLocaleString("pt-BR")} h</div>
+                  <div className="flex items-center gap-1 text-[11px] text-fog"><Clock size={11} aria-hidden /> {totalHours(members).toLocaleString("pt-BR")} h</div>
                 </div>
               </button>
             </li>

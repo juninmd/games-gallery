@@ -1,5 +1,6 @@
 import { EMULATOR_BY_ID } from "./emulators";
 import { PLATFORM_BY_ID } from "./platforms";
+import { sanitizeTargets, type PriceTargets } from "./priceAlerts";
 import { PROVIDER_BY_ID } from "./providers";
 import { STATUS_ORDER } from "./status";
 import type { Game } from "./types";
@@ -26,6 +27,8 @@ export interface BackupData {
   /** Absent in the file = keep the current value on restore (never wipe what the backup does not describe). */
   providers?: Record<string, { connected: boolean; lastSync?: string }>;
   emulators?: Record<string, boolean>;
+  /** Price alerts; absent = keep the current ones on restore. */
+  priceTargets?: PriceTargets;
   /** Missing or invalid fields preserve the current setting; an empty string explicitly clears it. */
   settings: Partial<{ romsDir: string; emulatorsDir: string }>;
 }
@@ -82,6 +85,7 @@ export function sanitizeGame(raw: unknown, profile: "backup" | "storage" = "back
     romPath: text(raw["romPath"], 2000),
     emulatorId: emulatorId && has(EMULATOR_BY_ID, emulatorId) ? emulatorId : undefined,
     notes: text(raw["notes"], 5000),
+    separate: raw["separate"] === true ? true : undefined,
   };
 }
 
@@ -148,5 +152,6 @@ export function parseBackup(text: string): ParseResult {
   const emulatorsDir = str(s["emulatorsDir"], 1000);
   if (romsDir !== undefined) settings.romsDir = romsDir;
   if (emulatorsDir !== undefined) settings.emulatorsDir = emulatorsDir;
-  return { ok: true, data: { games, scans: sanitizeScans(json["scans"]), providers, emulators, settings }, dropped };
+  const priceTargets = isObj(json["priceTargets"]) ? sanitizeTargets(json["priceTargets"]) : undefined;
+  return { ok: true, data: { games, scans: sanitizeScans(json["scans"]), providers, emulators, ...(priceTargets ? { priceTargets } : {}), settings }, dropped };
 }

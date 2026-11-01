@@ -55,7 +55,7 @@ function EmulatorCard({ emulator: e, usage }: { emulator: Emulator; usage?: Emul
     <article className="vcard">
       <div className="vcard-head">
         <div>
-          <h3>{e.name}</h3>
+          <h3 aria-level={2}>{e.name}</h3>
           <span className="muted small">{e.os.join(" · ")}</span>
         </div>
         <span className={`tag ${st.cls}`}>{st.label}</span>
