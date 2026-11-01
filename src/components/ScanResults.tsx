@@ -29,7 +29,7 @@ function NeededEmulators({ items }: { items: ImportItem[] }) {
             {installed[id] ? (
               <span className="tag ok">instalado</span>
             ) : (
-              <button className="btn" disabled={!!tasks[`emu:${id}`]} onClick={() => install(id)}>
+              <button className="btn" disabled={!!tasks[`emu:${id}`]} onClick={() => void install(id)}>
                 <Download size={14} aria-hidden /> Instalar
               </button>
             )}

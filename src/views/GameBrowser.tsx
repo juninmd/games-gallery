@@ -29,6 +29,7 @@ interface PageState {
 
 export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const games = useLibrary((s) => s.games);
+  const detect = useLibrary((s) => s.detect);
   const filter = useUi((s) => s.filter);
   const setFilter = useUi((s) => s.setFilter);
   const setAddOpen = useUi((s) => s.setAddOpen);
@@ -98,8 +99,11 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
       {games.length === 0 ? (
         <section className="discovery-empty" aria-labelledby="empty-library-title">
           <h2 id="empty-library-title">Sua biblioteca ainda está vazia</h2>
-          <p>Adicione um jogo para começar a organizar sua coleção.</p>
-          <button className="btn primary" type="button" onClick={() => setAddOpen(true)}>Adicionar jogo</button>
+          <p>O app lê as bibliotecas dos launchers instalados no seu PC (Steam, Epic, GOG, itch.io…) e as pastas de ROMs que você escolher.</p>
+          <div className="discovery-actions">
+            <button className="btn primary" type="button" onClick={() => void detect()}>Detectar bibliotecas</button>
+            <button className="btn" type="button" onClick={() => setAddOpen(true)}>Adicionar jogo</button>
+          </div>
         </section>
       ) : scope === "installed" && stats.installed === 0 ? (
         <section className="discovery-empty" aria-labelledby="empty-installed-title">

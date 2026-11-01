@@ -3,7 +3,7 @@ import { emulatorUsage } from "../emulatorUsage";
 import { planLaunch } from "../launch";
 import type { Game } from "../types";
 import { classifyRom, cleanTitle, scanRoms } from "./classify";
-import { applyImport, planRomImport, planSteamImport } from "./plan";
+import { applyImport, planRomImport, planSteamImport, planStoreImport } from "./plan";
 import { isManifestPath, parseAppManifest } from "./steam";
 
 const game = (over: Partial<Game>): Game => ({
@@ -207,5 +207,19 @@ describe("review regressions", () => {
     expect(steam.patch).toMatchObject({ owned: true, installed: true, status: "backlog" });
     const rom = planRomImport([{ path: "r/ps2/W.iso", platformId: "ps2", title: "W", baseName: "W" }], [game({ id: "x", title: "W", status: "wishlist", owned: false })], abs)[0]!;
     expect(rom.patch).toMatchObject({ owned: true, installed: true, status: "backlog" });
+  });
+
+  it("moves a store-account game to the launchable local id once it is installed", () => {
+    // imported earlier from the account (space id, not installed); the registry now reports the numeric launch id
+    const owned = game({ id: "u", platformId: "pc", providerId: "ubisoft", storeId: "6edd234a-abff-4e90-9aab-b9b9c6e49f01", title: "Fake Racer", installed: false });
+    const [item] = planStoreImport("ubisoft", [{ storeId: "4321", title: "Fake Racer", installed: true }], [owned]);
+    expect(item).toMatchObject({ kind: "link", gameId: "u" });
+    expect(item!.patch).toMatchObject({ installed: true, storeId: "4321" });
+    // not installed locally: the account id stays
+    const [still] = planStoreImport("ubisoft", [{ storeId: "other-id", title: "Fake Racer", installed: false }], [owned]);
+    expect(still!.patch).not.toHaveProperty("storeId");
+    // an already installed game keeps its id
+    const [kept] = planStoreImport("ubisoft", [{ storeId: "9999", title: "Fake Racer", installed: true }], [{ ...owned, installed: true, storeId: "4321" }]);
+    expect(kept!.patch).not.toHaveProperty("storeId");
   });
 });

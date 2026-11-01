@@ -1,6 +1,6 @@
 import { defaultEmulator } from "../emulators";
 import { resolveEmulator } from "../launch";
-import type { Game } from "../types";
+import type { DetectedEntry, Game } from "../types";
 import type { FoundRom } from "./classify";
 import type { EpicInstallRecord } from "./epic";
 import { fold, slug } from "./fold";
@@ -26,7 +26,7 @@ export interface ImportItem {
 }
 
 /** Evidence on disk proves ownership: a wishlist entry becomes a backlog game. */
-const ownedPatch = (g: Game): Partial<Game> => ({ owned: true, installed: true, ...(g.status === "wishlist" ? { status: "backlog" as const } : {}) });
+const ownedPatch = (g: Game, installed = true): Partial<Game> => ({ owned: true, ...(installed ? { installed: true } : {}), ...(g.status === "wishlist" ? { status: "backlog" as const } : {}) });
 
 /** libretro replaces these characters in thumbnail file names. */
 const libretroName = (base: string) => `${base.replace(/[&*/:`<>?\\|]/g, "_")}.png`;
@@ -81,24 +81,24 @@ export function planSteamImport(manifests: SteamManifest[], games: Game[]): Impo
     const key = `steam:${m.appId}`;
     const hit = games.find((g) => g.providerId === "steam" && (g.storeId === String(m.appId) || g.steamAppId === m.appId));
     if (hit) {
-      const same = hit.owned && hit.installed && (m.sizeGb === undefined || hit.sizeGb === m.sizeGb);
+      const installed = m.installed !== false;
+      const same = hit.owned && (!installed || hit.installed) && (m.sizeGb === undefined || hit.sizeGb === m.sizeGb);
       return {
         key, kind: same ? "same" : "link", title: hit.title, platformId: "pc",
-        gameId: hit.id, patch: { ...ownedPatch(hit), sizeGb: m.sizeGb ?? hit.sizeGb },
+        gameId: hit.id, patch: { ...ownedPatch(hit, installed), sizeGb: m.sizeGb ?? hit.sizeGb },
       } satisfies ImportItem;
     }
     const game: Game = {
       id: uniqueId(`steam-pc-${slug(m.name)}`, taken),
       title: m.name, platformId: "pc", providerId: "steam", storeId: String(m.appId), steamAppId: m.appId,
-      year: 0, genres: [], status: "backlog", owned: true, installed: true, sizeGb: m.sizeGb, playtimeH: 0,
+      year: 0, genres: [], status: "backlog", owned: true, installed: m.installed !== false, sizeGb: m.sizeGb, playtimeH: 0,
       coverUrl: `https://cdn.cloudflare.steamstatic.com/steam/apps/${m.appId}/library_600x900.jpg`,
     };
     return { key, kind: "new", title: m.name, platformId: "pc", game } satisfies ImportItem;
   });
 }
 
-/** Matches Epic installs only within Epic PC games; store IDs are the primary identity. */
-export function planEpicImport(records: EpicInstallRecord[], games: Game[]): ImportItem[] {
+/** Matches Epic installs only within Epic PC games; store IDs are the primary identity. */export function planEpicImport(records: EpicInstallRecord[], games: Game[]): ImportItem[] {
   const taken = new Set(games.map((g) => g.id));
   const byStoreId = new Map<string, Game>();
   const byEpicTitleWithoutStoreId = new Map<string, Game>();
@@ -123,19 +123,79 @@ export function planEpicImport(records: EpicInstallRecord[], games: Game[]): Imp
     if (hit) {
       const storeIdPatch = hit.storeId ? {} : { storeId: record.appName };
       const sizePatch = record.sizeGb === undefined ? {} : { sizeGb: record.sizeGb };
-      const same = !!hit.storeId && hit.owned && hit.installed && (record.sizeGb === undefined || hit.sizeGb === record.sizeGb);
+      const installed = record.installed !== false;
+      const same = !!hit.storeId && hit.owned && (!installed || hit.installed) && (record.sizeGb === undefined || hit.sizeGb === record.sizeGb);
       out.push({
         key, kind: same ? "same" : "link", title: hit.title, platformId: "pc", gameId: hit.id,
-        patch: { ...ownedPatch(hit), ...storeIdPatch, ...sizePatch }, warning: itemWarning,
+        patch: { ...ownedPatch(hit, installed), ...storeIdPatch, ...sizePatch }, warning: itemWarning,
       });
       continue;
     }
     const game: Game = {
       id: uniqueId(`epic-pc-${slug(record.title)}`, taken),
       title: record.title, platformId: "pc", providerId: "epic", storeId: record.appName,
-      year: 0, genres: [], status: "backlog", owned: true, installed: true, sizeGb: record.sizeGb, playtimeH: 0,
+      year: 0, genres: [], status: "backlog", owned: true, installed: record.installed !== false, sizeGb: record.sizeGb, playtimeH: 0,
     };
     out.push({ key, kind: "new", title: record.title, platformId: "pc", game, warning: itemWarning });
+  }
+  return out;
+}
+
+/** Matches detected stores (GOG, itch, Amazon, Ubisoft, Rockstar…) by store id, then by title. */
+export function planStoreImport(providerId: string, entries: DetectedEntry[], games: Game[]): ImportItem[] {
+  const taken = new Set(games.map((g) => g.id));
+  const byStoreId = new Map<string, Game>();
+  const byTitle = new Map<string, Game>();
+  for (const game of games) {
+    if (game.providerId !== providerId) continue;
+    if (game.storeId && !byStoreId.has(game.storeId)) byStoreId.set(game.storeId, game);
+    const key = fold(game.title);
+    if (!byTitle.has(key)) byTitle.set(key, game);
+  }
+
+  const out: ImportItem[] = [];
+  const seen = new Set<string>();
+  for (const entry of entries) {
+    const title = entry.title.trim();
+    if (!title || seen.has(entry.storeId)) continue;
+    seen.add(entry.storeId);
+    const hit = byStoreId.get(entry.storeId) ?? byTitle.get(fold(title));
+    const size = entry.sizeGb === undefined ? {} : { sizeGb: entry.sizeGb };
+    const playtime = entry.playtimeH === undefined ? {} : { playtimeH: entry.playtimeH };
+    if (hit) {
+      const same = hit.owned && hit.installed === entry.installed && (entry.sizeGb === undefined || hit.sizeGb === entry.sizeGb);
+      out.push({
+        key: `${providerId}:${entry.storeId}`,
+        kind: same ? "same" : "link",
+        title: hit.title,
+        platformId: hit.platformId,
+        gameId: hit.id,
+        // A newly installed game adopts the local id: launch URIs need it, and an account id (space/offer uuid) may differ.
+        patch: { owned: true, installed: entry.installed, ...(hit.storeId && !(entry.installed && !hit.installed) ? {} : { storeId: entry.storeId }), ...size, ...playtime },
+      });
+      continue;
+    }
+    out.push({
+      key: `${providerId}:${entry.storeId}`,
+      kind: "new",
+      title,
+      platformId: "pc",
+      game: {
+        id: uniqueId(`${providerId}-pc-${slug(title)}`, taken),
+        title,
+        platformId: "pc",
+        providerId,
+        storeId: entry.storeId,
+        year: 0,
+        genres: [],
+        status: "backlog",
+        owned: true,
+        installed: entry.installed,
+        playtimeH: entry.playtimeH ?? 0,
+        ...size,
+        coverUrl: providerId === "steam" ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${entry.storeId}/library_600x900.jpg` : undefined,
+      },
+    });
   }
   return out;
 }

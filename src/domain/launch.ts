@@ -10,6 +10,8 @@ export type LaunchPlan =
 export interface LaunchContext {
   /** emulatorId -> installed */
   installed: Record<string, boolean>;
+  /** emulatorId -> absolute executable found on disk (real detection). */
+  exePaths?: Record<string, string>;
 }
 
 const SAFE_STORE_ID = /^[\w.-]+$/;
@@ -56,7 +58,8 @@ function planEmulated(game: Game, ctx: LaunchContext): LaunchPlan {
     return { kind: "blocked", reason: "Caminho da ROM não pode começar com “-”." };
   }
   const args = renderArgs(emulator, game.platformId, rom);
-  return { kind: "exec", exe: emulator.exe, args, preview: [emulator.exe, ...args].map(quote).join(" ") };
+  const exe = ctx.exePaths?.[emulator.id] ?? emulator.exe;
+  return { kind: "exec", exe, args, preview: [exe, ...args].map(quote).join(" ") };
 }
 
 export function planLaunch(game: Game, ctx: LaunchContext): LaunchPlan {

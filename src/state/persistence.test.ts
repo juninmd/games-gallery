@@ -23,7 +23,7 @@ describe("persisted store rehydration", () => {
   it("keeps library actions and defaults when same-version game state is corrupt", async () => {
     const { useLibrary } = await import("./library");
     const originalCount = useLibrary.getState().games.length;
-    persist("games-gallery:v1", { games: null, patchGame: null }, 3);
+    persist("games-gallery:v1", { games: null, patchGame: null }, 4);
     await useLibrary.persist.rehydrate();
     expect(useLibrary.getState().games).toHaveLength(originalCount);
     expect(typeof useLibrary.getState().patchGame).toBe("function");
@@ -35,12 +35,12 @@ describe("persisted store rehydration", () => {
       id: "custom-local-1", title: "My Game", platformId: "pc", providerId: "steam", status: "backlog",
       owned: true, installed: false, year: 2024, genres: ["Custom"], playtimeH: 12, notes: "personal note",
     };
-    persist("games-gallery:v1", { games: [custom], patchGame: null }, 3);
+    persist("games-gallery:v1", { games: [custom], patchGame: null }, 4);
     await useLibrary.persist.rehydrate();
     expect(useLibrary.getState().games).toEqual([custom]);
     expect(typeof useLibrary.getState().patchGame).toBe("function");
 
-    persist("games-gallery:v1", { games: [] }, 3);
+    persist("games-gallery:v1", { games: [] }, 4);
     await useLibrary.persist.rehydrate();
     expect(useLibrary.getState().games).toEqual([]);
   });
@@ -52,24 +52,27 @@ describe("persisted store rehydration", () => {
       owned: true, installed: false, year: 2024, genres: ["Custom"], playtimeH: 1_000_001, romPath: "R".repeat(2001),
     };
     const settings = { romsDir: "A".repeat(1001), emulatorsDir: "B".repeat(1001) };
-    persist("games-gallery:v1", { games: [game], settings }, 3);
+    persist("games-gallery:v1", { games: [game], settings }, 4);
     await useLibrary.persist.rehydrate();
     expect(useLibrary.getState().games[0]).toMatchObject(game);
     expect(useLibrary.getState().settings).toEqual(settings);
   });
 
-  it("keeps migration robust for malformed v1 game collections and backfills valid seed ids", async () => {
+  it("drops prototype demo data from older versions but keeps settings and scan history", async () => {
     const { useLibrary } = await import("./library");
-    persist("games-gallery:v1", { games: { nope: true } }, 1);
+    const demo = {
+      id: "steam-pc-cyberpunk-2077", title: "Cyberpunk 2077", platformId: "pc", providerId: "steam", status: "backlog",
+      owned: true, installed: true, year: 2020, genres: ["RPG"], playtimeH: 12,
+    };
+    const scans = [{ id: "1", kind: "roms", name: "ROMs", at: "2026-10-01T00:00:00.000Z", added: 2, linked: 0 }];
+    persist("games-gallery:v1", { games: [demo], scans, providers: { steam: { connected: true } }, emulators: { retroarch: true }, settings: { romsDir: "D:/ROMs" } }, 3);
     await useLibrary.persist.rehydrate();
-    expect(useLibrary.getState().games.length).toBeGreaterThan(0);
+    expect(useLibrary.getState().games).toEqual([]);
+    expect(useLibrary.getState().providers).toEqual({});
+    expect(useLibrary.getState().emulators).toEqual({});
+    expect(useLibrary.getState().scans).toHaveLength(1);
+    expect(useLibrary.getState().settings.romsDir).toBe("D:/ROMs");
     expect(typeof useLibrary.getState().patchGame).toBe("function");
-
-    const seed = useLibrary.getState().games.find((g) => g.steamAppId);
-    expect(seed).toBeDefined();
-    persist("games-gallery:v1", { games: [{ ...seed, steamAppId: undefined }] }, 1);
-    await useLibrary.persist.rehydrate();
-    expect(useLibrary.getState().games[0]?.steamAppId).toBe(seed?.steamAppId);
   });
 
   it("drops malformed rating entries and preserves refresh action", async () => {

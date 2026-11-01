@@ -2,7 +2,8 @@ import { RefreshCw } from "lucide-react";
 import { useEffect } from "react";
 import { averageScore, scoreTone, steamAppIdOf, userScore100 } from "../domain/ratings";
 import type { Game } from "../domain/types";
-import { ratingEntry, ratingIsLoading, useRatings, useSecrets } from "../state/ratings";
+import { ratingEntry, ratingIsLoading, useRatings } from "../state/ratings";
+import { useSecrets } from "../state/secrets";
 import { useUi } from "../state/ui";
 
 function Row({ label, score, count, detail, mine = false }: { label: string; score: number; count?: number; detail?: string; mine?: boolean }) {
@@ -22,6 +23,7 @@ export function RatingsPanel({ game }: { game: Game }) {
   const error = useRatings((s) => s.errors[game.id]);
   const refresh = useRatings((s) => s.refresh);
   const rawgKey = useSecrets((s) => s.rawgKey);
+  const steamReviews = useSecrets((s) => s.steamReviews);
   const go = useUi((s) => s.go);
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export function RatingsPanel({ game }: { game: Game }) {
   const mine = userScore100(game.rating);
   const scores = entry?.scores ?? [];
   const avg = averageScore(scores);
-  const hasSource = !!steamAppIdOf(game) || !!rawgKey;
+  const hasSource = (steamReviews && !!steamAppIdOf(game)) || !!rawgKey;
   const diff = mine !== undefined && avg !== undefined ? mine - avg : undefined;
 
   return (

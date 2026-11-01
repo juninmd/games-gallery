@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { averageScore, isStale, matchesTitle, parseRawg, parseSteamReviews, steamAppIdOf, userScore100 } from "./ratings";
-import { game } from "./seed/build";
+import { averageScore, isStale, matchesTitle, parseRawg, parseSteamReviews, parseSteamBrowseReviews, steamAppIdOf, userScore100 } from "./ratings";
+import { game } from "./gameFactory";
 
 // Shape captured from the real endpoint (store.steampowered.com/appreviews/1245620?json=1).
 const steamSample = {
@@ -70,5 +70,25 @@ describe("helpers", () => {
     expect(steamAppIdOf(game("pc", "steam", "X", 1, "x", { store: 620 }))).toBe(620);
     expect(steamAppIdOf(game("pc", "gog", "X", 1, "x", { store: "abc", steamAppId: 99 }))).toBe(99);
     expect(steamAppIdOf(game("ps1", "roms", "X", 1, "x"))).toBeUndefined();
+  });
+});
+
+// Shape captured from IStoreBrowseService/GetItems with data_request.include_reviews (appid 570, pt-BR).
+const browseSample = (reviews: unknown) => ({ response: { store_items: [{ appid: 570, success: 1, reviews }] } });
+
+describe("parseSteamBrowseReviews", () => {
+  it("reads percent_positive and the localized label for the requested app", () => {
+    const json = browseSample({ summary_filtered: { review_count: 2808003, percent_positive: 80, review_score_label: "Muito positivas" } });
+    expect(parseSteamBrowseReviews(json, 570)).toMatchObject({ source: "steam", score: 80, count: 2808003, detail: "Muito positivas" });
+  });
+  it("falls back to the unfiltered summary and ignores other apps", () => {
+    const json = browseSample({ summary_unfiltered: { review_count: 10, percent_positive: 70 } });
+    expect(parseSteamBrowseReviews(json, 570)?.score).toBe(70);
+    expect(parseSteamBrowseReviews(json, 999)).toBeNull();
+  });
+  it("returns null for no reviews, out-of-range values and junk", () => {
+    expect(parseSteamBrowseReviews(browseSample({ summary_filtered: { review_count: 0, percent_positive: 0 } }), 570)).toBeNull();
+    expect(parseSteamBrowseReviews(browseSample({ summary_filtered: { review_count: 5, percent_positive: 140 } }), 570)).toBeNull();
+    for (const bad of [null, "x", [], {}, { response: {} }, browseSample(null)]) expect(parseSteamBrowseReviews(bad, 570)).toBeNull();
   });
 });

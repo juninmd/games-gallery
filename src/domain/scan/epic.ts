@@ -4,6 +4,8 @@ export interface EpicInstallRecord {
   appName: string;
   title: string;
   sizeGb?: number;
+  /** Absent means a local manifest (installed); false means owned-only. */
+  installed?: boolean;
   needsVerification: boolean;
   source: EpicMetadataSource;
 }

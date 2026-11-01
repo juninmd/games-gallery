@@ -5,7 +5,8 @@ import type { RatingsEntry } from "../domain/ratings";
 const fetchPublicRatings = vi.hoisted(() => vi.fn());
 vi.mock("../platform/ratingsApi", () => ({ fetchPublicRatings }));
 
-import { useRatings, useSecrets } from "./ratings";
+import { useRatings } from "./ratings";
+import { useSecrets } from "./secrets";
 
 const game = { id: "test-game", title: "Example" } as Game;
 const cached: RatingsEntry = { fetchedAt: Date.now() - 1000, scores: [{ source: "steam", label: "Steam", score: 80 }], errors: [] };

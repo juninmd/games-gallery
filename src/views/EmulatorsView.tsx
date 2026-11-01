@@ -1,4 +1,4 @@
-import { Download, ExternalLink, Trash2 } from "lucide-react";
+import { Download, ExternalLink, RefreshCw, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PlatformTag, ProgressBar } from "../components/Badges";
 import { EmulatorInstallPanel } from "../components/EmulatorInstallPanel";
@@ -40,10 +40,16 @@ function Usage({ usage }: { usage?: EmulatorUsage }) {
 
 function EmulatorCard({ emulator: e, usage }: { emulator: Emulator; usage?: EmulatorUsage }) {
   const installed = useLibrary((s) => !!s.emulators[e.id]);
+  const exePath = useLibrary((s) => s.emulatorPaths[e.id]);
   const installEmulator = useLibrary((s) => s.installEmulator);
   const uninstallEmulator = useLibrary((s) => s.uninstallEmulator);
+  const cancelEmulator = useLibrary((s) => s.cancelEmulator);
   const task = useTasks((s) => s.tasks[`emu:${e.id}`]);
   const st = STATUS[e.status];
+
+  const install = () => {
+    void installEmulator(e.id);
+  };
 
   return (
     <article className="vcard">
@@ -58,18 +64,35 @@ function EmulatorCard({ emulator: e, usage }: { emulator: Emulator; usage?: Emul
       <p className={`small ${e.needsBios ? "warn-text" : "muted"}`}>{e.needsBios ? "⚠ " : ""}{e.notes}</p>
       <Usage usage={usage} />
       {e.id === "retroarch" && <PlaylistExport />}
-      <pre className="cmd small">{[e.exe, ...e.args].join(" ")}</pre>
+      <pre className="cmd small">{[exePath ?? e.exe, ...e.args].join(" ")}</pre>
+      {exePath ? (
+        <p className="muted small">Encontrado em <code>{exePath}</code></p>
+      ) : (
+        <p className="muted small">Executável não encontrado no PATH nem nas pastas de programas.</p>
+      )}
       {!e.launchVerified && <p className="muted small">Comando de launch heurístico: confira na versão instalada.</p>}
       <EmulatorInstallPanel emulator={e} />
-      {task && <ProgressBar value={task.progress} label={task.label} />}
+      {task && (
+        <div className="grid gap-1">
+          <ProgressBar value={task.progress} label={task.label} />
+          <span className="muted small">{task.detail ?? task.label}</span>
+          <button className="btn ghost" onClick={() => void cancelEmulator(e.id)}><X size={13} aria-hidden /> Cancelar</button>
+        </div>
+      )}
       <div className="vcard-foot">
         {e.homepage ? (
           <a className="link" href={e.homepage} target="_blank" rel="noreferrer noopener"><ExternalLink size={13} aria-hidden /> Site</a>
         ) : <span />}
         {installed ? (
-          <button className="btn ghost" onClick={() => uninstallEmulator(e.id)}><Trash2 size={14} aria-hidden /> Remover</button>
+          <button
+            className="btn ghost"
+            disabled={!!task}
+            onClick={() => void uninstallEmulator(e.id)}
+          >
+            <Trash2 size={14} aria-hidden /> Remover
+          </button>
         ) : (
-          <button className="btn primary" disabled={!!task} onClick={() => installEmulator(e.id)}><Download size={14} aria-hidden /> Instalar</button>
+          <button className="btn primary" disabled={!!task} onClick={install}><Download size={14} aria-hidden /> Instalar</button>
         )}
       </div>
     </article>
@@ -79,11 +102,13 @@ function EmulatorCard({ emulator: e, usage }: { emulator: Emulator; usage?: Emul
 export function EmulatorsView() {
   const installed = useLibrary((s) => s.emulators);
   const games = useLibrary((s) => s.games);
+  const refresh = useLibrary((s) => s.refreshEmulators);
   const usage = useMemo(() => emulatorUsage(games), [games]);
   const [platformId, setPlatformId] = useState("");
   const [onlyInstalled, setOnlyInstalled] = useState(false);
   const list = EMULATORS.filter((e) => (!platformId || e.platforms.includes(platformId)) && (!onlyInstalled || installed[e.id]));
   const covered = PLATFORMS.filter((p) => p.id !== "pc" && EMULATORS.some((e) => e.platforms.includes(p.id)));
+  const installedCount = EMULATORS.filter((e) => installed[e.id]).length;
 
   return (
     <>
@@ -91,10 +116,12 @@ export function EmulatorsView() {
         <div>
           <h1>Emuladores</h1>
           <p className="muted">
-            {covered.length} de {PLATFORMS.length - 1} plataformas de console têm emulador no catálogo. Instalação simulada no protótipo.
+            {covered.length} de {PLATFORMS.length - 1} plataformas de console têm emulador no catálogo.
+            {" "}{installedCount} instalado(s) neste PC, conferido pelo executável em disco.
           </p>
         </div>
         <div className="head-tools">
+          <button className="btn" onClick={() => void refresh()}><RefreshCw size={14} aria-hidden /> Reconferir instalados</button>
           <select aria-label="Filtrar por plataforma" value={platformId} onChange={(e) => setPlatformId(e.target.value)}>
             <option value="">Todas as plataformas</option>
             {PLATFORMS.filter((p) => p.id !== "pc").map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}

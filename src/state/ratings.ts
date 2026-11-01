@@ -3,17 +3,7 @@ import { persist } from "zustand/middleware";
 import { isStale, type RatingsEntry } from "../domain/ratings";
 import type { Game } from "../domain/types";
 import { fetchPublicRatings } from "../platform/ratingsApi";
-
-/** API keys live in memory only; the Tauri phase moves them to the OS keychain. */
-interface SecretsState {
-  rawgKey: string;
-  setRawgKey: (k: string) => void;
-}
-
-export const useSecrets = create<SecretsState>((set) => ({
-  rawgKey: "",
-  setRawgKey: (rawgKey) => set({ rawgKey: rawgKey.trim() }),
-}));
+import { useSecrets } from "./secrets";
 
 interface RatingsState {
   entries: Record<string, RatingsEntry>;
@@ -87,7 +77,7 @@ export const useRatings = create<RatingsState>()(
         if (!force && !isStale(cached) && (hasRawg || !key)) return;
         set((s) => ({ loading: withKey(s.loading, game.id, true) }));
         try {
-          const entry = await fetchPublicRatings(game, key);
+          const entry = await fetchPublicRatings(game, key, { steam: useSecrets.getState().steamReviews });
           set((s) => ({ entries: withKey(s.entries, game.id, entry), errors: withKey(s.errors, game.id, undefined) }));
         } catch {
           set((s) => ({ errors: withKey(s.errors, game.id, "Não foi possível atualizar as notas. Tente novamente.") }));

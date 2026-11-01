@@ -2,6 +2,8 @@ export interface SteamManifest {
   appId: number;
   name: string;
   sizeGb?: number;
+  /** Absent means a local manifest (installed); false means owned-only (API / launcher library). */
+  installed?: boolean;
 }
 
 const field = (text: string, key: string) =>

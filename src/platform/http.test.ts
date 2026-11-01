@@ -1,9 +1,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { httpGetJson, httpGetText, readCapped, resolveRequestUrl } from "./http";
+import { DEV_PROXY, httpGetJson, httpGetText, readCapped, resolveRequestUrl } from "./http";
+import viteConfig from "../../vite.config.ts?raw";
+
+describe("dev proxy table", () => {
+  it("has no prefix that is a prefix of another (Vite matches keys with startsWith)", () => {
+    const prefixes = Object.values(DEV_PROXY).map((p) => `${p}/`);
+    for (const a of prefixes) for (const b of prefixes) if (a !== b) expect(b.startsWith(a), `${a} shadows ${b}`).toBe(false);
+  });
+  it("matches the prefixes configured in vite.config.ts", () => {
+    for (const p of Object.values(DEV_PROXY)) expect(viteConfig).toContain(`"${p}": proxy(`);
+  });
+});
 
 describe("resolveRequestUrl", () => {
   it("routes allowed hosts through the dev proxy in the browser", () => {
-    expect(resolveRequestUrl("https://store.steampowered.com/appreviews/620?json=1", false)).toBe("/proxy/steam/appreviews/620?json=1");
+    expect(resolveRequestUrl("https://store.steampowered.com/appreviews/620?json=1", false)).toBe("/proxy/steamstore/appreviews/620?json=1");
   });
 
   it("keeps the real URL under Tauri (the HTTP plugin scope is the allow-list)", () => {

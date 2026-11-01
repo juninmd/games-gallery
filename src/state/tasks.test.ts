@@ -1,78 +1,45 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { useTasks } from "./tasks";
 
-afterEach(() => {
-  useTasks.getState().cancelAll();
-  vi.useRealTimers();
-});
+afterEach(() => useTasks.getState().cancelAll());
 
-describe("task cancellation", () => {
-  it("cancels a keyed job immediately and allows restarting the same key", () => {
-    vi.useFakeTimers();
-    const stale = vi.fn();
-    const fresh = vi.fn();
-    useTasks.getState().run("same", "stale", 240, stale);
-    vi.advanceTimersByTime(120);
-    expect(useTasks.getState().tasks.same!.progress).toBe(50);
-    useTasks.getState().cancel("same");
-    expect(useTasks.getState().tasks.same).toBeUndefined();
-    useTasks.getState().run("same", "fresh", 120, fresh);
-    vi.advanceTimersByTime(120);
-    expect(stale).not.toHaveBeenCalled();
-    expect(fresh).toHaveBeenCalledOnce();
-    expect(useTasks.getState().tasks.same).toBeUndefined();
+describe("task registry", () => {
+  it("starts a key once and ignores updates for keys that do not exist", () => {
+    const tasks = useTasks.getState();
+    tasks.start("a", "Instalando DuckStation");
+    tasks.start("a", "Outro rótulo");
+    expect(useTasks.getState().tasks.a!.label).toBe("Instalando DuckStation");
+    tasks.update("missing", { progress: 10 });
+    expect(Object.keys(useTasks.getState().tasks)).toEqual(["a"]);
   });
 
-  it("cancelAll clears all active timers and jobs", () => {
-    vi.useFakeTimers();
-    const done = vi.fn();
-    useTasks.getState().run("a", "A", 120, done);
-    useTasks.getState().run("b", "B", 120, done);
-    useTasks.getState().cancelAll();
-    vi.runOnlyPendingTimers();
+  it("clamps progress and keeps the label when only the detail changes", () => {
+    const tasks = useTasks.getState();
+    tasks.start("a", "Instalando");
+    tasks.update("a", { progress: 250, detail: "line 1" });
+    expect(useTasks.getState().tasks.a).toMatchObject({ progress: 100, detail: "line 1", label: "Instalando" });
+    tasks.update("a", { progress: -5 });
+    expect(useTasks.getState().tasks.a!.progress).toBe(0);
+  });
+
+  it("done removes a single key and cancel removes an existing one", () => {
+    const tasks = useTasks.getState();
+    tasks.start("a", "A");
+    tasks.start("b", "B");
+    tasks.done("a");
+    expect(useTasks.getState().tasks.a).toBeUndefined();
+    expect(useTasks.getState().tasks.b).toBeDefined();
+    tasks.cancel("b");
     expect(useTasks.getState().tasks).toEqual({});
-    expect(done).not.toHaveBeenCalled();
   });
 
-  it("resists same-key run and cancellation during task publication", () => {
-    vi.useFakeTimers();
-    const done = vi.fn();
-    let rerun = false;
-    const unsubscribe = useTasks.subscribe((state, previous) => {
-      if (!previous.tasks.same && state.tasks.same) {
-        if (rerun) useTasks.getState().run("same", "nested", 120, done);
-        else useTasks.getState().cancel("same");
-      }
-    });
-    rerun = true;
-    useTasks.getState().run("same", "outer", 120, done);
-    unsubscribe();
-    expect(vi.getTimerCount()).toBe(1);
-    vi.advanceTimersByTime(120);
-    expect(done).toHaveBeenCalledOnce();
-    expect(vi.getTimerCount()).toBe(0);
-
-    const cancelOnPublish = useTasks.subscribe((state, previous) => {
-      if (!previous.tasks.cancelled && state.tasks.cancelled) useTasks.getState().cancel("cancelled");
-    });
-    useTasks.getState().run("cancelled", "cancel me", 120, done);
-    cancelOnPublish();
-    expect(useTasks.getState().tasks.cancelled).toBeUndefined();
-    expect(vi.getTimerCount()).toBe(0);
-    vi.runOnlyPendingTimers();
-    expect(done).toHaveBeenCalledOnce();
-  });
-
-  it("does not call onDone if a subscriber cancels during completion publication", () => {
-    vi.useFakeTimers();
-    const done = vi.fn();
-    const unsubscribe = useTasks.subscribe((state, previous) => {
-      if (previous.tasks.finish && !state.tasks.finish) useTasks.getState().cancel("finish");
-    });
-    useTasks.getState().run("finish", "finish", 120, done);
-    vi.advanceTimersByTime(120);
-    unsubscribe();
-    expect(done).not.toHaveBeenCalled();
-    expect(vi.getTimerCount()).toBe(0);
+  it("cancel of an unknown key is a no-op and cancelAll clears everything", () => {
+    const tasks = useTasks.getState();
+    tasks.cancel("ghost");
+    expect(useTasks.getState().tasks).toEqual({});
+    tasks.start("a", "A");
+    tasks.start("b", "B");
+    tasks.cancelAll();
+    expect(useTasks.getState().tasks).toEqual({});
   });
 });

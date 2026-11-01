@@ -40,7 +40,7 @@ function EmulationFields({ game }: { game: Game }) {
       </label>
       {chosen && !emulators[chosen.id] && (
         <div className="inline">
-          <button className="btn" disabled={!!task} onClick={() => installEmulator(chosen.id)}>
+          <button className="btn" disabled={!!task} onClick={() => void installEmulator(chosen.id)}>
             <Download size={15} aria-hidden /> Instalar {chosen.name}
           </button>
           {task && <ProgressBar value={task.progress} label={task.label} />}
@@ -75,7 +75,7 @@ export function LaunchPanel({ game, launch }: { game: Game; launch: LaunchState 
           <pre className="cmd">{plan.preview}</pre>
         </>
       )}
-      {last && <p className="note ok">Último launch simulado: {last}</p>}
+      {last && <p className="note ok">Último comando: {last}</p>}
     </section>
   );
 }

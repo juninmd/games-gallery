@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { game } from "../domain/gameFactory";
 import { useTasks } from "./tasks";
 
 let useLibrary: typeof import("./library").useLibrary;
@@ -19,65 +20,75 @@ afterAll(() => vi.unstubAllGlobals());
 afterEach(() => {
   useTasks.getState().cancelAll();
   useLibrary.getState().reset();
-  vi.useRealTimers();
 });
 
-describe("library task cancellation", () => {
+const library = () => useLibrary.getState();
+
+describe("library starts empty and real", () => {
+  it("has no demo games, providers or installed emulators", () => {
+    expect(library().games).toEqual([]);
+    expect(library().providers).toEqual({});
+    expect(library().emulators).toEqual({});
+    expect(library().settings).toEqual({ romsDir: "", emulatorsDir: "" });
+  });
+
+  it("does not invent data when detection runs outside the installed app", async () => {
+    await library().detect();
+    expect(library().games).toEqual([]);
+    expect(library().providers).toEqual({});
+  });
+});
+
+describe("restore and reset", () => {
   it("restores an explicitly empty setting while preserving missing setting keys", () => {
-    const before = { ...useLibrary.getState().settings };
-    useLibrary.getState().restore({ games: [], scans: [], settings: { romsDir: "" } });
-    expect(useLibrary.getState().settings).toEqual({ ...before, romsDir: "" });
+    const before = { ...library().settings };
+    library().restore({ games: [], scans: [], settings: { romsDir: "" } });
+    expect(library().settings).toEqual({ ...before, romsDir: "" });
   });
 
-  it("uninstalling during install prevents the game from being reinstalled", () => {
-    vi.useFakeTimers();
-    const game = useLibrary.getState().games.find((g) => g.owned && !g.installed)!;
-    useLibrary.getState().installGame(game.id);
-    useLibrary.getState().uninstallGame(game.id);
-    vi.runAllTimers();
-    expect(useLibrary.getState().games.find((g) => g.id === game.id)?.installed).toBe(false);
-  });
-
-  it("disconnecting cancels pending connect and sync jobs", () => {
-    vi.useFakeTimers();
-    const id = "steam";
-    useLibrary.getState().connectProvider(id);
-    useLibrary.getState().syncProvider(id);
-    useLibrary.getState().disconnectProvider(id);
-    vi.runAllTimers();
-    expect(useLibrary.getState().providers[id]?.connected).toBe(false);
-    expect(useLibrary.getState().providers[id]?.lastSync).toBeUndefined();
-  });
-
-  it("uninstalling an emulator cancels a pending install", () => {
-    vi.useFakeTimers();
-    const id = "retroarch";
-    useLibrary.getState().installEmulator(id);
-    useLibrary.getState().uninstallEmulator(id);
-    vi.runAllTimers();
-    expect(useLibrary.getState().emulators[id]).toBe(false);
-  });
-
-  it("restore cancels jobs from the prior library even when the restored id matches", () => {
-    vi.useFakeTimers();
-    const game = useLibrary.getState().games.find((g) => g.owned && !g.installed)!;
-    useLibrary.getState().installGame(game.id);
-    useLibrary.getState().restore({
-      games: [{ ...game, installed: false }], scans: [], settings: { romsDir: "", emulatorsDir: "" },
-      providers: {}, emulators: {},
-    });
-    vi.runAllTimers();
+  it("reset clears games, providers and jobs", () => {
+    library().addGame(game("pc", "steam", "Hades", 2020, "Roguelike", { i: true, store: 1145360 }));
+    useTasks.getState().start("emu:retroarch", "Instalando");
+    library().reset();
+    expect(library().games).toEqual([]);
     expect(useTasks.getState().tasks).toEqual({});
-    expect(useLibrary.getState().games.find((g) => g.id === game.id)?.installed).toBe(false);
+  });
+});
+
+describe("install / uninstall follow the real target", () => {
+  it("marks an emulated game as ready only when a ROM path exists", async () => {
+    const noRom = game("ps1", "roms", "Sem ROM", 1997, "JRPG", { i: false });
+    library().addGame(noRom);
+    await library().installGame(noRom.id);
+    expect(library().games.find((g) => g.id === noRom.id)?.installed).toBe(false);
+
+    const withRom = game("ps1", "roms", "Com ROM", 1997, "JRPG", { i: false, rom: "D:/ROMs/ps1/game.zip" });
+    library().addGame(withRom);
+    await library().installGame(withRom.id);
+    expect(library().games.find((g) => g.id === withRom.id)?.installed).toBe(true);
   });
 
-  it("reset cancels jobs from the prior library", () => {
-    vi.useFakeTimers();
-    const game = useLibrary.getState().games.find((g) => g.owned && !g.installed)!;
-    useLibrary.getState().installGame(game.id);
-    useLibrary.getState().reset();
-    vi.runAllTimers();
-    expect(useTasks.getState().tasks).toEqual({});
-    expect(useLibrary.getState().games.find((g) => g.id === game.id)?.installed).toBe(false);
+  it("does not flip a PC game to installed without a store install", async () => {
+    const g = game("pc", "steam", "Sem ID", 2020, "x", { i: false });
+    library().addGame(g);
+    await library().installGame(g.id);
+    expect(library().games.find((x) => x.id === g.id)?.installed).toBe(false);
+  });
+
+  it("uninstalling an emulated game only clears the installed flag", async () => {
+    const g = game("ps1", "roms", "A", 1997, "x", { i: true, rom: "D:/ROMs/ps1/a.zip" });
+    library().addGame(g);
+    await library().uninstallGame(g.id);
+    expect(library().games.find((x) => x.id === g.id)?.installed).toBe(false);
+    expect(library().games.find((x) => x.id === g.id)?.romPath).toBe("D:/ROMs/ps1/a.zip");
+  });
+
+  it("removing a game keeps the rest of the library", () => {
+    const a = game("pc", "steam", "A", 2020, "x", {});
+    const b = game("pc", "steam", "B", 2021, "x", {});
+    library().addGame(a);
+    library().addGame(b);
+    library().removeGame(a.id);
+    expect(library().games.map((g) => g.id)).toEqual([b.id]);
   });
 });

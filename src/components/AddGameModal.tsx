@@ -3,7 +3,7 @@ import { FAMILY_LABEL, PLATFORMS } from "../domain/platforms";
 import { PROVIDERS } from "../domain/providers";
 import { STATUS_LABEL, STATUS_ORDER } from "../domain/status";
 import type { PlayStatus } from "../domain/types";
-import { game as makeGame } from "../domain/seed/build";
+import { game as makeGame } from "../domain/gameFactory";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
 import { useNativeDialog } from "./useNativeDialog";
