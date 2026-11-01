@@ -13,8 +13,18 @@ const readCollapsed = () => {
   try { return localStorage.getItem(COLLAPSE_KEY) === "1"; } catch { return false; }
 };
 
+const DENSITY_KEY = "games-gallery:density";
+export type Density = "comfortable" | "compact";
+const readDensity = (): Density => {
+  try { return localStorage.getItem(DENSITY_KEY) === "compact" ? "compact" : "comfortable"; } catch { return "comfortable"; }
+};
+
 interface UiState {
   view: View;
+  density: Density;
+  shortcutsOpen: boolean;
+  setDensity: (density: Density) => void;
+  setShortcutsOpen: (open: boolean) => void;
   paletteOpen: boolean;
   sidebarCollapsed: boolean;
   setPaletteOpen: (open: boolean) => void;
@@ -34,6 +44,13 @@ let toastSeq = 0;
 
 export const useUi = create<UiState>((set) => ({
   view: "library",
+  density: readDensity(),
+  shortcutsOpen: false,
+  setDensity: (density) => {
+    try { localStorage.setItem(DENSITY_KEY, density); } catch { /* storage unavailable: keep in memory */ }
+    set({ density });
+  },
+  setShortcutsOpen: (shortcutsOpen) => set({ shortcutsOpen }),
   paletteOpen: false,
   sidebarCollapsed: readCollapsed(),
   setPaletteOpen: (paletteOpen) => set({ paletteOpen }),

@@ -1,10 +1,10 @@
-import { BadgeCheck, Hourglass, Library, Timer } from "lucide-react";
+import { BadgeCheck, Hourglass, LayoutGrid, Library, Rows3, Timer } from "lucide-react";
 import { useDeferredValue, useMemo, useState, type ReactNode } from "react";
 import { CountUp } from "../components/CountUp";
-import { FeaturedHero, pickFeatured } from "../components/FeaturedHero";
+import { FeaturedHero } from "../components/FeaturedHero";
 import { FilterBar } from "../components/FilterBar";
 import { GameCard } from "../components/GameCard";
-import { filterGames, libraryStats } from "../domain/filter";
+import { featuredGroup, filterGameGroups, groupGames, groupStats } from "../domain/duplicates";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
@@ -34,6 +34,8 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const setFilter = useUi((s) => s.setFilter);
   const setAddOpen = useUi((s) => s.setAddOpen);
   const go = useUi((s) => s.go);
+  const density = useUi((s) => s.density);
+  const setDensity = useUi((s) => s.setDensity);
   const deferredFilter = useDeferredValue(filter);
   const isUpdating = deferredFilter !== filter;
   const [pageState, setPageState] = useState<PageState>(() => ({ scope, filter, page: 1 }));
@@ -48,9 +50,10 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
     () => scope === "installed" ? { ...deferredFilter, installedOnly: true } : deferredFilter,
     [scope, deferredFilter],
   );
-  const shown = useMemo(() => filterGames(games, effective), [games, effective]);
-  const stats = useMemo(() => libraryStats(games), [games]);
-  const scopedCount = scope === "installed" ? stats.installed : games.length;
+  const shown = useMemo(() => filterGameGroups(games, effective), [games, effective]);
+  const allGroups = useMemo(() => groupGames(games), [games]);
+  const stats = useMemo(() => groupStats(allGroups), [allGroups]);
+  const scopedCount = scope === "installed" ? stats.installed : stats.total;
   const platform = filter.platformId ? PLATFORM_BY_ID[filter.platformId] : null;
   const pageCount = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
   const requestedPage = criteriaChanged ? 1 : pageState.page;
@@ -61,9 +64,9 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const rangeEnd = Math.min(page * PAGE_SIZE, shown.length);
 
   const filtering = Boolean(
-    filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status || filter.installedOnly || filter.ownedOnly,
+    filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status || filter.installedOnly || filter.ownedOnly || filter.multiStoreOnly,
   );
-  const featured = useMemo(() => (scope === "all" ? pickFeatured(games) : undefined), [scope, games]);
+  const featured = useMemo(() => (scope === "all" ? featuredGroup(allGroups) : undefined), [scope, allGroups]);
   const showHero = scope === "all" && !filtering && page === 1;
 
   const clearFilters = () => setFilter({
@@ -73,6 +76,7 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
     status: null,
     installedOnly: false,
     ownedOnly: false,
+    multiStoreOnly: false,
   });
 
   return (
@@ -83,6 +87,7 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
           <h1 className="text-gradient w-fit pb-1">{scope === "installed" ? "Instalados" : platform ? platform.name : "Biblioteca"}</h1>
           <p className="text-sm text-fog" aria-live="polite">
             {shown.length} de {scopedCount} jogos
+            {stats.duplicates > 0 && <span> · {stats.duplicates} em mais de uma loja</span>}
             {isUpdating && <span className="updating text-aurora"> · Atualizando resultados…</span>}
           </p>
         </div>
@@ -93,15 +98,16 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
           <StatTile icon={<Timer size={12} aria-hidden />} label="Horas" value={stats.hours} accent="bg-orchid" />
         </dl>
       </header>
-      {showHero && featured && <FeaturedHero game={featured} />}
+      {showHero && featured && <FeaturedHero group={featured} />}
       <FilterBar lockInstalled={scope === "installed"} />
 
       {games.length === 0 ? (
         <section className="discovery-empty" aria-labelledby="empty-library-title">
           <h2 id="empty-library-title">Sua biblioteca ainda está vazia</h2>
-          <p>O app lê as bibliotecas dos launchers instalados no seu PC (Steam, Epic, GOG, itch.io…) e as pastas de ROMs que você escolher.</p>
+          <p>O app lê as bibliotecas dos launchers instalados no seu PC (Steam, Epic, GOG, itch.io…) e as pastas de ROMs que você escolher. Para listar também o que você comprou e não instalou, entre nas suas contas em Conexões.</p>
           <div className="discovery-actions">
             <button className="btn primary" type="button" onClick={() => void detect()}>Detectar bibliotecas</button>
+            <button className="btn" type="button" onClick={() => go("connections")}>Conectar contas</button>
             <button className="btn" type="button" onClick={() => setAddOpen(true)}>Adicionar jogo</button>
           </div>
         </section>
@@ -127,6 +133,10 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
               Exibindo {rangeStart}–{rangeEnd} de {shown.length} jogos
               {isUpdating && <span className="updating"> · Atualizando…</span>}
             </p>
+            <div className="flex items-center gap-1" role="group" aria-label="Densidade da grade">
+              <button type="button" className="btn ghost" aria-pressed={density === "comfortable"} title="Capas grandes" onClick={() => setDensity("comfortable")}><LayoutGrid size={14} aria-hidden /> Confortável</button>
+              <button type="button" className="btn ghost" aria-pressed={density === "compact"} title="Mais jogos por tela" onClick={() => setDensity("compact")}><Rows3 size={14} aria-hidden /> Compacta</button>
+            </div>
             <nav className="pagination" aria-label="Paginação da biblioteca">
               <button className="btn" type="button" onClick={() => setPageState((s) => ({ ...s, page: Math.max(1, s.page - 1) }))} disabled={page <= 1}>
                 Anterior
@@ -137,8 +147,8 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
               </button>
             </nav>
           </div>
-          <div className="game-grid" aria-busy={isUpdating}>
-            {pageGames.map((g, i) => <GameCard key={g.id} game={g} index={i} />)}
+          <div className="game-grid" data-density={density} aria-busy={isUpdating}>
+            {pageGames.map((x, i) => <GameCard key={x.primary.id} game={x.primary} members={x.members} index={i} />)}
           </div>
         </>
       )}

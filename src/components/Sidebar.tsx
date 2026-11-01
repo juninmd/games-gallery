@@ -1,9 +1,11 @@
 import { PanelLeftClose, PanelLeftOpen, Plus, Search } from "lucide-react";
 import { m } from "motion/react";
 import { useMemo, type PointerEvent } from "react";
+import { groupGames, groupStats } from "../domain/duplicates";
 import { computeStats } from "../domain/stats";
 import { isTauri } from "../platform/runtime";
 import { useLibrary } from "../state/library";
+import { usePriceAlerts } from "../state/priceAlerts";
 import { useUi, type View } from "../state/ui";
 import { Logo } from "./Logo";
 import { NAV_GROUPS } from "./nav";
@@ -31,11 +33,18 @@ export function Sidebar() {
   const games = useLibrary((s) => s.games);
   const { compact, narrow } = useCompactSidebar();
   const stats = useMemo(() => computeStats(games), [games]);
-  const counts = useMemo<Partial<Record<View, number>>>(() => ({
-    library: games.length,
-    installed: games.filter((g) => g.installed).length,
-    board: games.filter((g) => g.status === "backlog" || g.status === "wishlist").length,
-  }), [games]);
+  const alertCount = usePriceAlerts((s) => s.hits.length);
+  const counts = useMemo<Partial<Record<View, number>>>(() => {
+    // The library and installed views show one card per game, however many stores own it.
+    const groups = groupGames(games);
+    const unique = groupStats(groups);
+    return {
+    library: unique.total,
+    installed: unique.installed,
+    board: groups.filter((x) => x.primary.status === "backlog" || x.primary.status === "wishlist").length,
+    ...(alertCount ? { deals: alertCount } : {}),
+    };
+  }, [games, alertCount]);
 
   return (
     <nav
@@ -87,7 +96,7 @@ export function Sidebar() {
         <div key={group.title} className={`relative grid gap-1 ${compact ? "w-full" : ""}`}>
           {compact
             ? <div aria-hidden className="mx-3 mb-1 h-px bg-white/[0.07]" />
-            : <h2 className="px-3 pb-0.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-fog/70">{group.title}</h2>}
+            : <h2 className="px-3 pb-0.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-fog">{group.title}</h2>}
           <ul className="m-0 grid list-none gap-0.5 p-0">
             {group.items.map((n) => {
               const active = view === n.view;

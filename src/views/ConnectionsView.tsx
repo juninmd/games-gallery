@@ -12,7 +12,7 @@ function SteamReviewsToggle() {
   const { steamReviews, setSteamReviews } = useSecrets();
   return (
     <section className="panel narrow">
-      <h3>Steam Reviews</h3>
+      <h3 aria-level={2}>Steam Reviews</h3>
       <p className="muted small">
         Nota pública (% de avaliações positivas) de <code>store.steampowered.com/appreviews</code>. Não precisa de chave.
         Vale para jogos com App ID da Steam.
@@ -31,7 +31,7 @@ function LocalSources() {
   const rows = PROVIDERS.filter((p) => providers[p.id]);
   return (
     <section className="panel narrow">
-      <h3>Launchers neste PC</h3>
+      <h3 aria-level={2}>Launchers neste PC</h3>
       {!rows.length && <p className="muted small">Nenhuma leitura ainda. Use “Detectar bibliotecas agora” em Ajustes.</p>}
       <ul className="plain sources">
         {rows.map((p) => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import tauriConf from "../../src-tauri/tauri.conf.json?raw";
-import { DEAL_IMAGE_HOSTS, buildWishlist, formatMoney, liveDeals, parseEpicDeals, parseGogDeals, parseSteamSpecials, parseStoreItems, parseWishlist, sortDeals, type Deal } from "./deals";
+import { DEAL_IMAGE_HOSTS, buildWishlist, formatMoney, endingSoon, liveDeals, parseEpicDeals, parseGogDeals, parseSteamSpecials, parseStoreItems, parseWishlist, sortDeals, type Deal } from "./deals";
 
 // Shapes trimmed from the live endpoints (BR/BRL), checked against real responses.
 const steamItem = (over: Record<string, unknown> = {}) => ({
@@ -141,5 +141,25 @@ describe("image hosts vs CSP", () => {
     const img = csp.split(";").find((d) => d.trim().startsWith("img-src")) ?? "";
     const allowed = (host: string) => img.includes(`https://${host}`) || img.includes(`https://*.${host.split(".").slice(1).join(".")}`);
     for (const host of DEAL_IMAGE_HOSTS) expect(allowed(host), host).toBe(true);
+  });
+});
+
+describe("endingSoon", () => {
+  const now = Date.parse("2026-11-01T12:00:00Z");
+  const at = (iso: string) => endingSoon(iso, now);
+
+  it("counts the time left, not calendar days, so it does not depend on the time zone", () => {
+    expect(at("2026-11-01T20:00:00Z")).toBe("Acaba em menos de 24 h");
+    expect(at("2026-11-02T11:59:00Z")).toBe("Acaba em menos de 24 h");
+    expect(at("2026-11-02T13:00:00Z")).toBe("Acaba em 2 dias");
+    expect(at("2026-11-03T11:00:00Z")).toBe("Acaba em 2 dias");
+    expect(at("2026-11-04T11:00:00Z")).toBe("Acaba em 3 dias");
+  });
+
+  it("stays quiet for far-off, expired, missing and malformed dates", () => {
+    expect(at("2026-11-04T13:00:00Z")).toBeUndefined();
+    expect(at("2026-10-31T12:00:00Z")).toBeUndefined();
+    expect(endingSoon(undefined, now)).toBeUndefined();
+    expect(at("not a date")).toBeUndefined();
   });
 });

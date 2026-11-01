@@ -1,10 +1,14 @@
 import { RefreshCw } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { DealCard } from "../components/DealCard";
+import { dealInsights, opportunities, type DealInsight } from "../domain/dealInsights";
+import { formatMoney } from "../domain/deals";
 import { type Deal, type DealStore, liveDeals, sortDeals } from "../domain/deals";
 import { fold } from "../domain/scan/fold";
 import { isValidSteamId } from "../platform/steamApi";
+import { recomputeHits } from "../state/alertWatcher";
 import { useDeals } from "../state/deals";
+import { usePriceAlerts } from "../state/priceAlerts";
 import { useLibrary } from "../state/library";
 import { useSecrets } from "../state/secrets";
 import { useUi } from "../state/ui";
@@ -64,7 +68,7 @@ function WishlistSection() {
   );
 }
 
-function StoreSection({ store }: { store: (typeof STORES)[number] }) {
+function StoreSection({ store, insights }: { store: (typeof STORES)[number]; insights: Map<string, DealInsight> }) {
   const { deals, loading, errors, refreshDeals } = useDeals();
   const slot = deals[store.id];
   useEffect(() => void refreshDeals(store.id), [store.id, refreshDeals]);
@@ -89,13 +93,59 @@ function StoreSection({ store }: { store: (typeof STORES)[number] }) {
       {errors[store.id] && <p className="note warn" role="alert">Não foi possível ler {store.name}: {errors[store.id]}</p>}
       {slot && !items.length && !errors[store.id] && <p className="empty">Nenhuma promoção encontrada agora.</p>}
       <div className="freebie-grid">
-        {items.map((d) => <DealCard key={d.id} {...d} note={until(d.endsAt)} owned={isOwned(d)} />)}
+        {items.map((d) => <DealCard key={d.id} {...d} note={until(d.endsAt)} owned={isOwned(d)} insight={insights.get(d.id)} />)}
       </div>
     </section>
   );
 }
 
+function ForYouSection({ list, insights }: { list: Deal[]; insights: Map<string, DealInsight> }) {
+  if (!list.length) return null;
+  return (
+    <section className="section-group">
+      <div className="section-head"><h2>Para você ({list.length})</h2></div>
+      <p className="muted small">Jogos da sua wishlist (Steam ou do app) em promoção agora e que você ainda não tem em nenhuma loja.</p>
+      <div className="freebie-grid">
+        {list.slice(0, 12).map((d) => <DealCard key={d.id} {...d} note={until(d.endsAt)} insight={insights.get(d.id)} />)}
+      </div>
+    </section>
+  );
+}
+
+function AlertsSection() {
+  const hits = usePriceAlerts((s) => s.hits);
+  const targets = usePriceAlerts((s) => s.targets);
+  const count = Object.keys(targets).length;
+  if (!count) return null;
+  return (
+    <section className="section-group" aria-label="Alertas de preço">
+      <div className="section-head"><h2>Alertas de preço ({hits.length} de {count} atingidos)</h2></div>
+      {hits.length === 0 ? (
+        <p className="muted small">Nenhum dos {count} jogos com aviso chegou ao preço-alvo agora. Os avisos ficam só neste computador e são conferidos quando o app abre e quando você atualiza as ofertas.</p>
+      ) : (
+        <ul className="plain">
+          {hits.map((h) => (
+            <li key={h.title}>
+              <strong>{h.title}</strong> por <b>{formatMoney(h.finalCents, h.currency)}</b> na {h.store}{" "}
+              <span className="tag ok">alvo {formatMoney(h.targetCents, h.currency)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export function DealsView() {
+  const deals = useDeals((s) => s.deals);
+  const wishlist = useDeals((s) => s.wishlist);
+  const games = useLibrary((s) => s.games);
+  const live = useMemo(() => STORES.flatMap((s) => sortDeals(liveDeals(deals[s.id]?.items ?? []))), [deals]);
+  const insights = useMemo(() => dealInsights(live, games, wishlist?.items.map((w) => w.title) ?? []), [live, games, wishlist]);
+  const forYou = useMemo(() => opportunities(live, insights), [live, insights]);
+  const targets = usePriceAlerts((s) => s.targets);
+  // Keep the hits (and the sidebar badge) in step with whatever was just fetched or edited.
+  useEffect(() => { recomputeHits(); }, [deals, wishlist, targets]);
   return (
     <>
       <header className="page-head">
@@ -104,8 +154,10 @@ export function DealsView() {
           <p className="muted">Ofertas da Steam, GOG e Epic, mais a sua wishlist da Steam com o preço de agora. A compra acontece na própria loja.</p>
         </div>
       </header>
+      <AlertsSection />
+      <ForYouSection list={forYou} insights={insights} />
       <WishlistSection />
-      {STORES.map((s) => <StoreSection key={s.id} store={s} />)}
+      {STORES.map((s) => <StoreSection key={s.id} store={s} insights={insights} />)}
     </>
   );
 }

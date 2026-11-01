@@ -28,7 +28,7 @@ export function EpicAccountSettings() {
 
   return (
     <section className="panel narrow">
-      <h3>Epic Games: biblioteca da conta</h3>
+      <h3 aria-level={2}>Epic Games: biblioteca da conta</h3>
       <p className="muted small">
         Os jogos instalados já vêm dos manifests do launcher. Para listar também os comprados, entre na sua conta:
         a página da Epic mostra um código de uso único, que você cola aqui. O app não guarda senha nem token

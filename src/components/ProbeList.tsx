@@ -20,7 +20,7 @@ export function ProbeList() {
 
   return (
     <section className="panel narrow">
-      <h3>Testar conexões</h3>
+      <h3 aria-level={2}>Testar conexões</h3>
       <p className="muted small">Cada teste faz uma leitura rápida e só de consulta, com as credenciais salvas neste perfil.</p>
       <ul className="plain sources" aria-live="polite">
         {IDS.map((id) => {

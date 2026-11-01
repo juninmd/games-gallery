@@ -2,6 +2,7 @@ import { memo, useRef, type CSSProperties, type PointerEvent } from "react";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
 import type { Game } from "../domain/types";
+import { StoreChips } from "./StoreChips";
 import { useUi } from "../state/ui";
 import { Cover } from "./Cover";
 import { EmulatorChip } from "./EmulatorChip";
@@ -10,7 +11,7 @@ const MAX_TILT = 9;
 const canTilt = () =>
   typeof window !== "undefined" && window.matchMedia("(hover: hover)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export const GameCard = memo(function GameCard({ game, index = 0 }: { game: Game; index?: number }) {
+export const GameCard = memo(function GameCard({ game, members = [game], index = 0 }: { game: Game; members?: Game[]; index?: number }) {
   const select = useUi((s) => s.select);
   const tilt = useRef<HTMLDivElement>(null);
 
@@ -40,7 +41,7 @@ export const GameCard = memo(function GameCard({ game, index = 0 }: { game: Game
       onClick={() => select(game.id)}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      aria-label={`Abrir ${game.title}`}
+      aria-label={members.length > 1 ? `Abrir ${game.title}, em ${members.length} lojas` : `Abrir ${game.title}`}
     >
       <div
         ref={tilt}
@@ -55,6 +56,11 @@ export const GameCard = memo(function GameCard({ game, index = 0 }: { game: Game
           aria-hidden
           className="pointer-events-none absolute inset-0 rounded-[18px] opacity-0 ring-1 ring-inset ring-rose/70 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 group-focus-visible:ring-2"
         />
+        {members.length > 1 && (
+          <span className="absolute bottom-2.5 right-2.5 rounded-full bg-ink-950/80 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-mist shadow-lg ring-1 ring-white/20 backdrop-blur">
+            {members.length} lojas
+          </span>
+        )}
         <div className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5">
           {game.installed && (
             <span className="rounded-full bg-aurora/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-950 shadow-lg backdrop-blur">Instalado</span>
@@ -66,9 +72,13 @@ export const GameCard = memo(function GameCard({ game, index = 0 }: { game: Game
       </div>
       <div className="grid min-w-0 gap-0.5 px-0.5">
         <strong className="truncate font-display text-[14px] font-semibold tracking-tight text-mist" title={game.title}>{game.title}</strong>
-        <span className="text-[11.5px] text-fog">
-          {PLATFORM_BY_ID[game.platformId]?.short} · {PROVIDER_BY_ID[game.providerId]?.name}
-        </span>
+        {members.length > 1 ? (
+          <StoreChips members={members} />
+        ) : (
+          <span className="text-[11.5px] text-fog">
+            {PLATFORM_BY_ID[game.platformId]?.short} · {PROVIDER_BY_ID[game.providerId]?.name}
+          </span>
+        )}
         <EmulatorChip game={game} />
       </div>
     </button>

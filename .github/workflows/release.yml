@@ -34,11 +34,11 @@ jobs:
             os: windows-2022
             args: ""
           - label: macos-arm64
-            os: macos-14
+            os: macos-15
             args: --target aarch64-apple-darwin
             rust-target: aarch64-apple-darwin
           - label: macos-x64
-            os: macos-14
+            os: macos-15
             args: --target x86_64-apple-darwin
             rust-target: x86_64-apple-darwin
           - label: linux-x64

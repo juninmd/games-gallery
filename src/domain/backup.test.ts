@@ -110,3 +110,30 @@ describe("parseBackup sanitizes games", () => {
     expect(r.ok && Object.keys(r.data.emulators ?? {})).toEqual(["pcsx2"]);
   });
 });
+
+describe("separate flag", () => {
+  it("survives a backup round trip, and only the literal true counts", () => {
+    const back = parseBackup(exportBackup(data([game({ separate: true }), game({ id: "g2", title: "Other" })])));
+    expect(back.ok && back.data.games.map((g) => g.separate)).toEqual([true, undefined]);
+    const tampered = JSON.parse(exportBackup(data([game({ separate: true })])));
+    tampered.games[0].separate = "yes";
+    const bad = parseBackup(JSON.stringify(tampered));
+    expect(bad.ok && bad.data.games[0]!.separate).toBeUndefined();
+  });
+});
+
+describe("price targets in a backup", () => {
+  it("round-trips valid targets and drops malformed ones, including prototype keys", () => {
+    const text = exportBackup({ ...data(), priceTargets: { hades: { cents: 4000, currency: "BRL", title: "Hades" } } });
+    const ok = parseBackup(text);
+    expect(ok.ok && ok.data.priceTargets).toEqual({ hades: { cents: 4000, currency: "BRL", title: "Hades" } });
+    const forged = JSON.parse(text);
+    forged.priceTargets = JSON.parse('{"__proto__": {"cents": 1, "currency": "BRL", "title": "x"}, "bad": {"cents": -3, "currency": "BRL", "title": "x"}, "good": {"cents": 7, "currency": "USD", "title": "Good"}}');
+    const r = parseBackup(JSON.stringify(forged));
+    expect(r.ok && Object.keys(r.data.priceTargets ?? {})).toEqual(["good"]);
+  });
+  it("an old backup without targets leaves the current ones alone (undefined, not empty)", () => {
+    const r = parseBackup(exportBackup(data()));
+    expect(r.ok && r.data.priceTargets).toBeUndefined();
+  });
+});

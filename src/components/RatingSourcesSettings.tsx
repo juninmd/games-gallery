@@ -34,7 +34,7 @@ export function RatingSourcesSettings() {
 
   return (
     <section className="panel narrow">
-      <h3>Fontes de nota</h3>
+      <h3 aria-level={2}>Fontes de nota</h3>
       <ul className="plain sources">
         {SOURCES.map((s) => (
           <li key={s.name}>

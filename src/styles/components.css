@@ -3,6 +3,10 @@
 .dot.big { width: 14px; height: 14px; }
 
 .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; }
+.game-grid[data-density="compact"] { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
+/* !important: Tailwind utilities such as `flex` on the store chips sit in a later layer and would win. */
+.game-grid[data-density="compact"] .group > div:last-child > :not(strong) { display: none !important; }
+.result-toolbar [aria-pressed="true"] { color: var(--text, #fff); background: rgb(255 255 255 / 10%); }
 .result-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
 .result-toolbar p { font-variant-numeric: tabular-nums; }
 .pagination { display: flex; align-items: center; gap: 10px; }

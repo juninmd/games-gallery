@@ -1,3 +1,4 @@
+import { applyShared } from "../domain/duplicates";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { sanitizeGame, sanitizeScans, type BackupData } from "../domain/backup";
@@ -153,7 +154,7 @@ export const useLibrary = create<LibraryState>()(
     (set, get) => ({
       ...initial(),
 
-      patchGame: (id, patch) => set((s) => ({ games: s.games.map((g) => (g.id === id ? { ...g, ...patch } : g)) })),
+      patchGame: (id, patch) => set((s) => ({ games: applyShared(s.games, id, patch) })),
       addGame: (game) => set((s) => ({ games: [game, ...s.games] })),
       importItems: (items, scan) =>
         set((s) => ({

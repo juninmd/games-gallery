@@ -1,13 +1,15 @@
-import { CornerDownLeft, Gamepad2, Plus } from "lucide-react";
+import { CornerDownLeft, Copy, Gamepad2, Keyboard, Plus, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { groupGames } from "../domain/duplicates";
 import { createGameQueryMatcher } from "../domain/filter";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
 import { NAV_GROUPS } from "./nav";
+import { storeSummary } from "./StoreChips";
 import { useNativeDialog } from "./useNativeDialog";
 
-interface Item { id: string; group: string; label: string; hint?: string; icon: ReactNode; run: () => void }
+interface Item { id: string; group: string; label: string; hint?: string; icon: ReactNode; run: () => void; keywords?: string }
 
 const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 const MAX_GAMES = 8;
@@ -43,6 +45,9 @@ export function CommandPalette() {
     const q = fold(query.trim());
     const base: Item[] = [
       { id: "add", group: "Ações", label: "Adicionar jogo", hint: "novo", icon: <Plus size={17} />, run: () => setAddOpen(true) },
+      { id: "detect", group: "Ações", label: "Detectar bibliotecas agora", hint: "launchers", icon: <RefreshCw size={17} />, keywords: "ler varrer atualizar steam epic gog ubisoft ea battle.net", run: () => { go("library"); void useLibrary.getState().detect(); } },
+      { id: "keys", group: "Ações", label: "Atalhos do teclado", hint: "?", icon: <Keyboard size={17} />, keywords: "ajuda teclas atalhos help", run: () => useUi.getState().setShortcutsOpen(true) },
+      { id: "dupes", group: "Ações", label: "Mostrar jogos em mais de uma loja", hint: "repetidos", icon: <Copy size={17} />, keywords: "duplicados unificados lojas repetido", run: () => go("library", { multiStoreOnly: true }) },
       ...NAV_GROUPS.flatMap((g) => g.items.map((n) => ({
         id: `go:${n.view}`, group: "Ir para", label: n.label, hint: g.title, icon: n.icon, run: () => go(n.view),
         keywords: n.keywords ?? "",
@@ -50,9 +55,11 @@ export function CommandPalette() {
     ].filter((i) => !q || fold(`${i.label} ${"keywords" in i ? i.keywords : ""}`).includes(q));
     if (!q) return base;
     const match = createGameQueryMatcher(query);
-    const found = games.filter(match).slice(0, MAX_GAMES).map<Item>((g) => ({
+    // One result per game: a title owned in three stores is listed once, with its stores as the hint.
+    const found = groupGames(games.filter(match)).slice(0, MAX_GAMES).map<Item>(({ primary: g, members }) => ({
       id: `game:${g.id}`, group: "Jogos", label: g.title,
-      hint: PLATFORM_BY_ID[g.platformId]?.short, icon: <Gamepad2 size={17} />, run: () => select(g.id),
+      hint: members.length > 1 ? storeSummary(members).names.join(" · ") : PLATFORM_BY_ID[g.platformId]?.short,
+      icon: <Gamepad2 size={17} />, run: () => select(g.id),
     }));
     return [...base, ...found];
   }, [query, games, go, select, setAddOpen]);

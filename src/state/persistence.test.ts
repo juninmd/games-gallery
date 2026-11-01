@@ -149,4 +149,25 @@ describe("persisted store rehydration", () => {
     await useFreebies.persist.rehydrate();
     expect(useFreebies.getState().epic?.items[0]?.startsAt).toBeUndefined();
   });
+
+  it("keeps only well-formed price alerts and never lets storage set the live hits", async () => {
+    const { usePriceAlerts } = await import("./priceAlerts");
+    persist("games-gallery:alerts:v1", { targets: { hades: { cents: 4000, currency: "BRL", title: "Hades" }, junk: { cents: -1, currency: "BRL", title: "x" } }, hits: [{ title: "forged" }], setTarget: null }, 1);
+    await usePriceAlerts.persist.rehydrate();
+    expect(usePriceAlerts.getState().targets).toEqual({ hades: { cents: 4000, currency: "BRL", title: "Hades" } });
+    expect(usePriceAlerts.getState().hits).toEqual([]);
+    expect(typeof usePriceAlerts.getState().setTarget).toBe("function");
+  });
+
+  it("finds offers under a target across the three stores and the Steam wishlist", async () => {
+    const { usePriceAlerts } = await import("./priceAlerts");
+    const { currentHits } = await import("./alertWatcher");
+    usePriceAlerts.getState().setTarget("Hades", 5000, "BRL");
+    const deal = (store: "steam" | "gog" | "epic", finalCents: number) => ({ id: `${store}:1`, store, title: "Hades", url: "https://store.steampowered.com/app/1", currency: "BRL", originalCents: 10000, finalCents, discountPercent: 50 });
+    const hits = currentHits({ steam: { items: [deal("steam", 6000)] }, gog: { items: [deal("gog", 4500)] }, epic: undefined }, [
+      { appId: 1, title: "Hades", url: "https://store.steampowered.com/app/1", price: { currency: "BRL", originalCents: 7000, finalCents: 4000, discountPercent: 40 } },
+    ]);
+    expect(hits).toHaveLength(1);
+    expect(hits[0]).toMatchObject({ finalCents: 4000, store: "Steam" });
+  });
 });

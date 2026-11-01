@@ -203,6 +203,14 @@ export function liveDeals(deals: Deal[], now = Date.now()): Deal[] {
   return deals.filter((d) => !d.endsAt || Date.parse(d.endsAt) > now);
 }
 
+/** Urgency label for an offer ending within three days, from the time left (so it is time-zone proof). */
+export function endingSoon(endsAt: string | undefined, now = Date.now()): string | undefined {
+  const end = endsAt ? Date.parse(endsAt) : NaN;
+  const hours = (end - now) / 3_600_000;
+  if (!Number.isFinite(hours) || hours <= 0 || hours > 72) return undefined;
+  return hours <= 24 ? "Acaba em menos de 24 h" : `Acaba em ${Math.ceil(hours / 24)} dias`;
+}
+
 /** `IWishlistService/GetWishlist` -> app ids. A private profile answers `{response:{}}`: that is empty, not an error. */
 export function parseWishlist(json: unknown): Array<{ appId: number; priority?: number; addedAt?: number }> {
   if (!isObj(json) || !isObj(json["response"])) return [];
