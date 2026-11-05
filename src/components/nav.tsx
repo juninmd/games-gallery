@@ -1,4 +1,4 @@
-import { BarChart3, Cpu, FolderSearch, Gamepad2, Gift, HardDriveDownload, Plug, Tags, Kanban, Library, Settings, Store } from "lucide-react";
+import { BarChart3, Cpu, FolderSearch, Gamepad2, Gift, HardDriveDownload, ListOrdered, Plug, Tags, Kanban, Library, Settings, Store } from "lucide-react";
 import type { ReactNode } from "react";
 import type { View } from "../state/ui";
 
@@ -11,6 +11,7 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { view: "library", label: "Biblioteca", icon: <Library size={18} />, keywords: "jogos catalogo todos" },
       { view: "installed", label: "Instalados", icon: <HardDriveDownload size={18} />, keywords: "disco instalado" },
       { view: "board", label: "Quero jogar", icon: <Kanban size={18} />, keywords: "backlog kanban wishlist" },
+      { view: "queue", label: "Fila", icon: <ListOrdered size={18} />, keywords: "proximo sorteio sortear backlog plano jogar agora" },
       { view: "platforms", label: "Plataformas", icon: <Gamepad2 size={18} />, keywords: "consoles pc playstation xbox nintendo" },
     ],
   },

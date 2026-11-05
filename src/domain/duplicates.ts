@@ -1,5 +1,6 @@
 import { compareGames, gameMatcher, type GameFilter } from "./filter";
 import { fold } from "./scan/fold";
+import { sanitizeTags } from "./tags";
 import type { Game } from "./types";
 
 /** One game as the user thinks of it: every store that owns it, with the best copy first. */
@@ -26,6 +27,22 @@ function comparePrimary(a: Game, b: Game): number {
 export const pickPrimary = (members: Game[]): Game => [...members].sort(comparePrimary)[0]!;
 
 /**
+ * A store copy added later does not carry what you set on the others, and the installed copy is the primary.
+ * The primary therefore shows the union of tags, the earliest queue slot and the first estimate among the owned copies;
+ * editing it writes the merged value back to every copy (see `applyShared`). Returns the same object when nothing differs.
+ */
+export function withShared(primary: Game, members: Game[]): Game {
+  if (members.length < 2) return primary;
+  const owned = members.filter((m) => m.owned);
+  const tags = sanitizeTags([...(primary.tags ?? []), ...owned.flatMap((m) => m.tags ?? [])]);
+  const slots = owned.flatMap((m) => (m.queuedAt === undefined ? [] : [m.queuedAt]));
+  const queuedAt = slots.length ? Math.min(...slots) : undefined;
+  const hoursToBeat = primary.hoursToBeat ?? owned.find((m) => m.hoursToBeat !== undefined)?.hoursToBeat;
+  const same = JSON.stringify(tags) === JSON.stringify(primary.tags) && queuedAt === primary.queuedAt && hoursToBeat === primary.hoursToBeat;
+  return same ? primary : { ...primary, tags, queuedAt, hoursToBeat };
+}
+
+/**
  * Groups the same PC title found in different stores. The same store twice (demo, re-import) stays
  * separate: only a second provider proves it is the same game owned elsewhere.
  */
@@ -49,7 +66,7 @@ export function groupGames(games: Game[]): GameGroup[] {
     if (typeof entry !== "string") return [{ primary: entry, members: [entry] }];
     const bucket = buckets.get(entry)!;
     if (new Set(bucket.map((g) => g.providerId)).size < 2) return bucket.map((g) => ({ primary: g, members: [g] }));
-    return [{ primary: pickPrimary(bucket), members: [...bucket].sort(comparePrimary) }];
+    return [{ primary: withShared(pickPrimary(bucket), bucket), members: [...bucket].sort(comparePrimary) }];
   });
 }
 
@@ -73,7 +90,7 @@ export function filterGameGroups(games: Game[], f: GameFilter): GameGroup[] {
     .filter((group) => !f.multiStoreOnly || group.members.length > 1)
     .flatMap((group): GameGroup[] => {
       const passing = group.members.filter(matches);
-      return passing.length ? [{ primary: pickPrimary(passing), members: group.members }] : [];
+      return passing.length ? [{ primary: withShared(pickPrimary(passing), group.members), members: group.members }] : [];
     })
     .sort(f.sort === "playtime" ? (a, b) => hours(b) - hours(a) : (a, b) => compare(a.primary, b.primary));
 }
@@ -103,10 +120,10 @@ export function groupStats(groups: GameGroup[]): GroupStats {
   };
 }
 
-const SHARED_FIELDS = ["status", "rating", "notes"] as const;
+const SHARED_FIELDS = ["status", "rating", "notes", "tags", "hoursToBeat", "queuedAt"] as const;
 
 /**
- * Applies a patch to one game and spreads what is about *you and the game* (status, rating, notes) to your
+ * Applies a patch to one game and spreads what is about *you and the game* (status, rating, notes, tags, time to beat, queue) to your
  * other owned copies, so "Zerado" on Steam is not "Quero jogar" on GOG. Ownership, installs, hours and
  * store ids stay per store, and a wishlist move never spreads (you may own it elsewhere).
  */

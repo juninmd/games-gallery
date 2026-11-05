@@ -117,6 +117,30 @@ describe("separate flag", () => {
   });
 });
 
+describe("shared fields survive a copy that lacks them", () => {
+  const epic = g({ id: "e", title: "Hades", providerId: "epic", tags: ["roguelike", "co-op"], queuedAt: 7, hoursToBeat: 20 });
+  const steam = g({ id: "s", title: "Hades", providerId: "steam", installed: true });
+  it("shows the tags, queue slot and estimate of any owned copy on the primary", () => {
+    const [x] = groupGames([epic, steam]);
+    expect(x!.primary.id).toBe("s");
+    expect(x!.primary).toMatchObject({ tags: ["roguelike", "co-op"], queuedAt: 7, hoursToBeat: 20 });
+  });
+  it("merges tags from several copies without duplicates and takes the earliest queue slot", () => {
+    const [x] = groupGames([{ ...epic, tags: ["roguelike", "Co-op"], queuedAt: 9 }, { ...steam, tags: ["co-op", "cozy"], queuedAt: 3 }]);
+    expect(x!.primary.tags).toEqual(["co-op", "cozy", "roguelike"]);
+    expect(x!.primary.queuedAt).toBe(3);
+  });
+  it("keeps the same filtered view, and editing through the merged primary does not lose the other copy's tags", () => {
+    const merged = filterGameGroups([epic, steam], EMPTY_FILTER)[0]!.primary;
+    const out = applyShared([epic, steam], merged.id, { tags: [...(merged.tags ?? []), "rpg"] });
+    expect(out.find((x) => x.id === "e")!.tags).toEqual(["roguelike", "co-op", "rpg"]);
+  });
+  it("leaves a single-store title untouched (same object)", () => {
+    const solo = g({ id: "a", title: "Solo", providerId: "steam", tags: ["x"] });
+    expect(groupGames([solo])[0]!.primary).toBe(solo);
+  });
+});
+
 describe("applyShared", () => {
   it("copies status, rating and notes to every owned copy, but never ownership or hours", () => {
     const lib = [...hades, g({ id: "w", title: "Hades", providerId: "ubisoft", owned: false, status: "wishlist" })];
@@ -126,6 +150,13 @@ describe("applyShared", () => {
     expect(by("h-gog")).toMatchObject({ status: "completed", rating: 5 });
     expect(by("h-steam")).toMatchObject({ playtimeH: 99, status: "completed" });
     expect(by("w")).toMatchObject({ status: "wishlist", owned: false }); // a store you do not own it in stays a wish
+  });
+
+  it("spreads tags, time to beat and the queue slot to every owned copy", () => {
+    const out = applyShared(hades, "h-steam", { tags: ["Cozy"], hoursToBeat: 20, queuedAt: 5 });
+    for (const id of ["h-epic", "h-gog"]) expect(out.find((x) => x.id === id)).toMatchObject({ tags: ["Cozy"], hoursToBeat: 20, queuedAt: 5 });
+    const cleared = applyShared(out, "h-epic", { queuedAt: undefined });
+    expect(cleared.find((x) => x.id === "h-gog")!.queuedAt).toBeUndefined();
   });
 
   it("does not spread a wishlist move or purely local fields", () => {

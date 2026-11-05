@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { Deal, DealStore, WishlistEntry } from "../domain/deals";
 import { fetchEpicDeals, fetchGogDeals, fetchSteamDeals, fetchWishlist } from "../platform/dealsApi";
+import { usePriceHistory } from "./priceHistory";
 import { useSecrets } from "./secrets";
 
 /** Promotions move slowly; this keeps the three public endpoints from being hit on every visit. */
@@ -38,6 +39,7 @@ export const useDeals = create<DealsState>()((set, get) => ({
     set({ loading: { ...s.loading, [store]: true }, errors: { ...s.errors, [store]: undefined } });
     try {
       const items = await FETCHERS[store]();
+      usePriceHistory.getState().record(items.flatMap((d) => (Number.isInteger(d.finalCents) ? [{ store, title: d.title, currency: d.currency, cents: d.finalCents }] : [])));
       set((x) => ({ deals: { ...x.deals, [store]: { fetchedAt: Date.now(), items } } }));
     } catch (e) {
       set((x) => ({ errors: { ...x.errors, [store]: msg(e) } }));
@@ -54,7 +56,10 @@ export const useDeals = create<DealsState>()((set, get) => ({
     try {
       const items = await fetchWishlist(steamId, steamKey);
       // The account may have been switched while this request was in flight.
-      if (useSecrets.getState().steamId === steamId) set({ wishlist: { fetchedAt: Date.now(), items, steamId } });
+      if (useSecrets.getState().steamId === steamId) {
+        set({ wishlist: { fetchedAt: Date.now(), items, steamId } });
+        usePriceHistory.getState().record(items.flatMap((w) => (w.price ? [{ store: "steam", title: w.title, currency: w.price.currency, cents: w.price.finalCents }] : [])));
+      }
     } catch (e) {
       set((x) => ({ errors: { ...x.errors, wishlist: msg(e) } }));
     } finally {

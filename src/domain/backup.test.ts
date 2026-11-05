@@ -122,6 +122,36 @@ describe("separate flag", () => {
   });
 });
 
+describe("tags, time to beat and queue in a backup", () => {
+  it("round-trips them and sanitizes tampered values", () => {
+    const back = parseBackup(exportBackup(data([game({ tags: ["Cozy"], hoursToBeat: 12, queuedAt: 1700000000000 })])));
+    expect(back.ok && back.data.games[0]).toMatchObject({ tags: ["Cozy"], hoursToBeat: 12, queuedAt: 1700000000000 });
+    const forged = parseBackup(wrap({ games: [{ ...game(), tags: ["ok", "ok", 3, "x".repeat(99)], hoursToBeat: -5, queuedAt: "now" }] }));
+    expect(forged.ok && forged.data.games[0]).toMatchObject({ tags: ["ok", "x".repeat(30)], hoursToBeat: undefined, queuedAt: undefined });
+  });
+});
+
+describe("saved views and play log in a backup", () => {
+  const view = { id: "v1", name: "Cozy curtos", filter: { query: "", providerIds: ["steam"], platformId: null, status: null, installedOnly: true, ownedOnly: false, multiStoreOnly: false, tag: "cozy", sort: "title" } };
+  it("round-trips both and sanitizes tampered entries", () => {
+    const text = exportBackup({ ...data(), savedViews: [view as never], playLog: [{ d: 20000, title: "Okami", h: 2.5 }] });
+    const ok = parseBackup(text);
+    expect(ok.ok && ok.data.savedViews).toEqual([view]);
+    expect(ok.ok && ok.data.playLog).toEqual([{ d: 20000, title: "Okami", h: 2.5 }]);
+    const forged = JSON.parse(text);
+    forged.savedViews = [{ id: "x", name: "ok", filter: { providerIds: ["constructor"], status: "bogus" } }, { id: "", name: "bad" }];
+    forged.playLog = [{ d: -1, title: "x", h: 1 }, { d: 5, title: "y", h: 0 }, { d: 5, title: "z", h: 3 }];
+    const r = parseBackup(JSON.stringify(forged));
+    expect(r.ok && r.data.savedViews?.map((v) => [v.id, v.filter.providerIds, v.filter.status])).toEqual([["x", [], null]]);
+    expect(r.ok && r.data.playLog).toEqual([{ d: 5, title: "z", h: 3 }]);
+  });
+  it("an older backup without them leaves the current ones alone", () => {
+    const r = parseBackup(exportBackup(data()));
+    expect(r.ok && r.data.savedViews).toBeUndefined();
+    expect(r.ok && r.data.playLog).toBeUndefined();
+  });
+});
+
 describe("price targets in a backup", () => {
   it("round-trips valid targets and drops malformed ones, including prototype keys", () => {
     const text = exportBackup({ ...data(), priceTargets: { hades: { cents: 4000, currency: "BRL", title: "Hades" } } });

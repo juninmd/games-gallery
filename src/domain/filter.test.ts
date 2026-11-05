@@ -44,6 +44,17 @@ describe("filterGames", () => {
   });
 });
 
+describe("tag filter", () => {
+  const tagged = [{ ...games[0]!, tags: ["Cozy", "Co-op"] }, { ...games[1]!, tags: ["Hard"] }, games[2]!];
+  it("keeps only games carrying the tag, matched by folded key", () => {
+    expect(filterGames(tagged, { ...EMPTY_FILTER, tag: "cozy" }).map((g) => g.title)).toEqual(["Pokémon Showdown"]);
+    expect(filterGames(tagged, { ...EMPTY_FILTER, tag: "nope" })).toEqual([]);
+  });
+  it("is inert when unset", () => {
+    expect(filterGames(tagged, EMPTY_FILTER)).toHaveLength(3);
+  });
+});
+
 describe("libraryStats", () => {
   it("counts wishlist as not owned and never installed", () => {
     const s = libraryStats(games);

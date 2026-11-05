@@ -27,7 +27,11 @@ export default defineConfig({
       "/proxy/epic": proxy("https://store-site-backend-static.ak.epicgames.com", "/proxy/epic"),
       "/proxy/psblog": proxy("https://blog.playstation.com", "/proxy/psblog"),
       "/proxy/gogcatalog": proxy("https://catalog.gog.com", "/proxy/gogcatalog"),
+      "/proxy/protondb": proxy("https://www.protondb.com", "/proxy/protondb"),
+      "/proxy/gamepass": proxy("https://catalog.gamepass.com", "/proxy/gamepass"),
+      "/proxy/msstore": proxy("https://displaycatalog.mp.microsoft.com", "/proxy/msstore"),
     },
   },
-  test: { environment: "node", include: ["src/**/*.test.ts"], testTimeout: 20_000 },
+  // TZ pinned: day numbers follow the local calendar, so tests must not depend on the machine.
+  test: { environment: "node", include: ["src/**/*.test.ts"], testTimeout: 20_000, env: { TZ: "UTC" } },
 });

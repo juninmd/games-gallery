@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { StoreChips } from "../components/StoreChips";
+import { WrappedPanel } from "../components/WrappedPanel";
 import { groupGames, groupStats } from "../domain/duplicates";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
@@ -84,6 +85,7 @@ export function StatsView() {
             </>
           )}
         </section>
+        <WrappedPanel />
         <section className="panel">
           <h3 aria-level={2}>Backlog e disco</h3>
           <p><strong>{s.untouched}</strong> jogos comprados nunca foram jogados.</p>

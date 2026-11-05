@@ -4,9 +4,11 @@ import type { SortKey } from "../domain/filter";
 import { FAMILY_LABEL, PLATFORMS } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
 import { STATUS_LABEL, STATUS_ORDER } from "../domain/status";
+import { tagCounts } from "../domain/tags";
 import type { PlayStatus } from "../domain/types";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
+import { SavedViewsBar } from "./SavedViewsBar";
 
 const SORTS: [SortKey, string][] = [
   ["title", "Título"],
@@ -38,6 +40,8 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  const tags = useMemo(() => tagCounts(games), [games]);
+
   const providerCounts = useMemo(() => {
     const m = new Map<string, number>();
     for (const g of games) m.set(g.providerId, (m.get(g.providerId) ?? 0) + 1);
@@ -53,7 +57,7 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
 
   const hasActiveFilters = Boolean(
     filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status ||
-    filter.installedOnly || filter.ownedOnly || filter.multiStoreOnly,
+    filter.installedOnly || filter.ownedOnly || filter.multiStoreOnly || filter.tag,
   );
 
   const clearFilters = () => setFilter({
@@ -64,6 +68,7 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
     installedOnly: false,
     ownedOnly: false,
     multiStoreOnly: false,
+    tag: null,
   });
 
   return (
@@ -96,6 +101,12 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
           <option value="">Qualquer status</option>
           {STATUS_ORDER.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
         </select>
+        {tags.length > 0 && (
+          <select className={selectCls} aria-label="Tag" value={filter.tag ?? ""} onChange={(e) => setFilter({ tag: e.target.value || null })}>
+            <option value="">Qualquer tag</option>
+            {tags.map((t) => <option key={t.key} value={t.key}>{t.label} ({t.count})</option>)}
+          </select>
+        )}
         <select className={selectCls} aria-label="Ordenar" value={filter.sort} onChange={(e) => setFilter({ sort: e.target.value as SortKey })}>
           {SORTS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
         </select>
@@ -143,6 +154,7 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
           <X size={13} aria-hidden /> Limpar filtros
         </button>
       </div>
+      <SavedViewsBar />
     </div>
   );
 }

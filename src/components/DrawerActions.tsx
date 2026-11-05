@@ -56,12 +56,13 @@ export function DrawerActions({ game, launch }: { game: Game; launch: LaunchStat
           </button>
         )}
         {game.installed && (
-          <button type="button" className="icon-btn !size-12 !rounded-2xl" onClick={() => void askUninstall()} aria-label="Desinstalar" title="Desinstalar">
+          <button type="button" data-no-gamepad className="icon-btn !size-12 !rounded-2xl" onClick={() => void askUninstall()} aria-label="Desinstalar" title="Desinstalar">
             <Download size={17} className="rotate-180" aria-hidden />
           </button>
         )}
         <button
           type="button"
+          data-no-gamepad
           onClick={() => { if (confirming) { removeGame(game.id); select(null); } else setConfirming(true); }}
           aria-label={confirming ? "Confirmar remoção da biblioteca" : "Remover da biblioteca"}
           title={confirming ? "Clique de novo para confirmar" : "Remover da biblioteca"}

@@ -8,7 +8,9 @@ import { ratingEntry, useRatings } from "../state/ratings";
 import { useSecrets } from "../state/secrets";
 import { useUi } from "../state/ui";
 import { DrawerActions } from "./DrawerActions";
+import { CompatBadges } from "./CompatBadges";
 import { DrawerHero } from "./DrawerHero";
+import { GameOrganizer } from "./GameOrganizer";
 import { LaunchPanel } from "./LaunchPanel";
 import { RatingsPanel } from "./RatingsPanel";
 import { StoresPanel } from "./StoresPanel";
@@ -125,7 +127,9 @@ function Overview({ game }: { game: Game }) {
   return (
     <div className="grid gap-4">
       <StoresPanel game={game} />
+      <CompatBadges game={game} />
       <Section title="Status"><StatusPicker game={game} /></Section>
+      <GameOrganizer game={game} />
       <Section title="Sua avaliação"><RatingStars game={game} /></Section>
       <Section title="Tempo de jogo"><HoursStepper game={game} /></Section>
       <section className="glass grid gap-2 rounded-2xl p-4 game-notes">

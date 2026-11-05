@@ -1,7 +1,10 @@
 import { EMULATOR_BY_ID } from "./emulators";
 import { PLATFORM_BY_ID } from "./platforms";
+import { sanitizeLog, type PlayEntry } from "./playLog";
 import { sanitizeTargets, type PriceTargets } from "./priceAlerts";
 import { PROVIDER_BY_ID } from "./providers";
+import { sanitizeViews, type SavedView } from "./savedViews";
+import { sanitizeTags } from "./tags";
 import { STATUS_ORDER } from "./status";
 import type { Game } from "./types";
 
@@ -29,6 +32,9 @@ export interface BackupData {
   emulators?: Record<string, boolean>;
   /** Price alerts; absent = keep the current ones on restore. */
   priceTargets?: PriceTargets;
+  /** Saved filters and the play-time log; absent = keep the current ones. */
+  savedViews?: SavedView[];
+  playLog?: PlayEntry[];
   /** Missing or invalid fields preserve the current setting; an empty string explicitly clears it. */
   settings: Partial<{ romsDir: string; emulatorsDir: string }>;
 }
@@ -86,6 +92,9 @@ export function sanitizeGame(raw: unknown, profile: "backup" | "storage" = "back
     emulatorId: emulatorId && has(EMULATOR_BY_ID, emulatorId) ? emulatorId : undefined,
     notes: text(raw["notes"], 5000),
     separate: raw["separate"] === true ? true : undefined,
+    tags: sanitizeTags(raw["tags"]),
+    hoursToBeat: number(raw["hoursToBeat"], 0.5, 2000),
+    queuedAt: number(raw["queuedAt"], 1, 8.64e15),
   };
 }
 
@@ -153,5 +162,11 @@ export function parseBackup(text: string): ParseResult {
   if (romsDir !== undefined) settings.romsDir = romsDir;
   if (emulatorsDir !== undefined) settings.emulatorsDir = emulatorsDir;
   const priceTargets = isObj(json["priceTargets"]) ? sanitizeTargets(json["priceTargets"]) : undefined;
-  return { ok: true, data: { games, scans: sanitizeScans(json["scans"]), providers, emulators, ...(priceTargets ? { priceTargets } : {}), settings }, dropped };
+  const savedViews = Array.isArray(json["savedViews"]) ? sanitizeViews(json["savedViews"]) : undefined;
+  const playLog = Array.isArray(json["playLog"]) ? sanitizeLog(json["playLog"]) : undefined;
+  return {
+    ok: true,
+    data: { games, scans: sanitizeScans(json["scans"]), providers, emulators, ...(priceTargets ? { priceTargets } : {}), ...(savedViews ? { savedViews } : {}), ...(playLog ? { playLog } : {}), settings },
+    dropped,
+  };
 }

@@ -64,7 +64,7 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const rangeEnd = Math.min(page * PAGE_SIZE, shown.length);
 
   const filtering = Boolean(
-    filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status || filter.installedOnly || filter.ownedOnly || filter.multiStoreOnly,
+    filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status || filter.installedOnly || filter.ownedOnly || filter.multiStoreOnly || filter.tag,
   );
   const featured = useMemo(() => (scope === "all" ? featuredGroup(allGroups) : undefined), [scope, allGroups]);
   const showHero = scope === "all" && !filtering && page === 1;
@@ -77,6 +77,7 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
     installedOnly: false,
     ownedOnly: false,
     multiStoreOnly: false,
+    tag: null,
   });
 
   return (

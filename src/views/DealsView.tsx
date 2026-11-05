@@ -1,6 +1,7 @@
 import { RefreshCw } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { DealCard } from "../components/DealCard";
+import { PriceDrops } from "../components/PriceDrops";
 import { dealInsights, opportunities, type DealInsight } from "../domain/dealInsights";
 import { formatMoney } from "../domain/deals";
 import { type Deal, type DealStore, liveDeals, sortDeals } from "../domain/deals";
@@ -52,6 +53,7 @@ function WishlistSection() {
         {wishlist?.items.map((w) => (
           <DealCard
             key={w.appId}
+            store="steam"
             title={w.title}
             url={w.url}
             imageUrl={w.imageUrl}
@@ -155,6 +157,7 @@ export function DealsView() {
         </div>
       </header>
       <AlertsSection />
+      <PriceDrops />
       <ForYouSection list={forYou} insights={insights} />
       <WishlistSection />
       {STORES.map((s) => <StoreSection key={s.id} store={s} insights={insights} />)}

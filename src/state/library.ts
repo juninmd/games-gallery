@@ -27,6 +27,7 @@ import { importAmazonAccount } from "../platform/amazonAccount";
 import { importEpicAccount } from "../platform/epicAccount";
 import { isTauri, openStore } from "../platform/runtime";
 import { fetchOwnedGames, isValidSteamId, isValidSteamKey } from "../platform/steamApi";
+import { quietly } from "./playLogGate";
 import { useSecrets } from "./secrets";
 import { useTasks } from "./tasks";
 import { useUi } from "./ui";
@@ -58,7 +59,11 @@ interface LibraryState {
   emulatorPaths: Record<string, string>;
   settings: Settings;
   patchGame: (id: string, patch: Partial<Game>) => void;
+  /** Several patches as one state change (one storage write), applied in order. */
+  patchGames: (patches: { id: string; patch: Partial<Game> }[]) => void;
   addGame: (game: Game) => void;
+  /** Adds many at once (one state change), newest first like `addGame`. */
+  addGames: (games: Game[]) => void;
   importItems: (items: ImportItem[], scan: Omit<ScanRecord, "id" | "at" | "added" | "linked">) => void;
   removeGame: (id: string) => void;
   /** Reads every launcher installed on this machine (or just one provider). */
@@ -155,7 +160,9 @@ export const useLibrary = create<LibraryState>()(
       ...initial(),
 
       patchGame: (id, patch) => set((s) => ({ games: applyShared(s.games, id, patch) })),
+      patchGames: (patches) => set((s) => ({ games: patches.reduce((games, p) => applyShared(games, p.id, p.patch), s.games) })),
       addGame: (game) => set((s) => ({ games: [game, ...s.games] })),
+      addGames: (games) => set((s) => ({ games: [...games, ...s.games] })),
       importItems: (items, scan) =>
         set((s) => ({
           games: applyImport(s.games, items),
@@ -448,18 +455,18 @@ export const useLibrary = create<LibraryState>()(
       setSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
       restore: (data) => {
         useTasks.getState().cancelAll();
-        set((s) => ({
+        quietly(() => set((s) => ({
           games: data.games,
           scans: data.scans,
           providers: data.providers ?? s.providers,
           emulators: data.emulators ?? s.emulators,
           settings: { ...s.settings, ...data.settings },
-        }));
+        })));
         void get().refreshEmulators();
       },
       reset: () => {
         useTasks.getState().cancelAll();
-        set(initial());
+        quietly(() => set(initial()));
       },
     }),
     {

@@ -83,6 +83,12 @@ export interface Game {
   notes?: string;
   /** The user said this copy is not the same game as its same-title siblings in other stores. */
   separate?: boolean;
+  /** Your own labels ("cozy", "co-op"); shared by every owned copy of the title. */
+  tags?: string[];
+  /** Hours to finish, typed by you (no public API is relied on); shared like tags. */
+  hoursToBeat?: number;
+  /** Epoch ms when the title joined the play queue; the queue is ordered by it. */
+  queuedAt?: number;
 }
 
 /** One entry reported by a local launcher scan or by a store API. */

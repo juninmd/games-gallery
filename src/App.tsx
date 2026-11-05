@@ -9,6 +9,10 @@ import { Sidebar } from "./components/Sidebar";
 import { useCompactSidebar } from "./components/useCompactSidebar";
 import { useLibrary } from "./state/library";
 import { watchPriceAlerts } from "./state/alertWatcher";
+import { startGamepadNav } from "./platform/gamepad";
+import { usePrefs } from "./state/prefs";
+import { watchPlayLog } from "./state/playLog";
+import { usePriceHistory } from "./state/priceHistory";
 import { useSecrets } from "./state/secrets";
 import { useUi, type View } from "./state/ui";
 import { GameBrowser } from "./views/GameBrowser";
@@ -18,10 +22,14 @@ const loadMotionFeatures = () => import("./motionFeatures").then((m) => m.defaul
 
 /** StrictMode mounts effects twice in dev; detection should read the disk once per session. */
 let booted = false;
+const stopWatchers: Array<() => void> = [];
+// A hot reload re-runs boot with fresh state; without this the old timer and listeners would keep running.
+import.meta.hot?.dispose(() => stopWatchers.forEach((stop) => stop()));
 
 type Loader = () => Promise<{ default: React.ComponentType }>;
 const loaders: Partial<Record<View, Loader>> = {
   board: () => import("./views/BoardView").then((m) => ({ default: m.BoardView })),
+  queue: () => import("./views/QueueView").then((m) => ({ default: m.QueueView })),
   platforms: () => import("./views/PlatformsView").then((m) => ({ default: m.PlatformsView })),
   folders: () => import("./views/FoldersView").then((m) => ({ default: m.FoldersView })),
   deals: () => import("./views/DealsView").then((m) => ({ default: m.DealsView })),
@@ -73,12 +81,18 @@ function CurrentView() {
 export function App() {
   const view = useUi((s) => s.view);
   const { compact } = useCompactSidebar();
+  const gamepadNav = usePrefs((s) => s.gamepadNav);
+
+  // Controller control exists only while the user has switched it on.
+  useEffect(() => (gamepadNav ? startGamepadNav() : undefined), [gamepadNav]);
 
   // Real data on first paint: executables on disk, then the launchers' libraries when empty.
   useEffect(() => {
     if (booted) return;
     booted = true;
-    void useSecrets.getState().hydrate().then(watchPriceAlerts);
+    usePriceHistory.getState().startVisit();
+    stopWatchers.push(watchPlayLog());
+    void useSecrets.getState().hydrate().then(() => stopWatchers.push(watchPriceAlerts()));
     const library = useLibrary.getState();
     void library.refreshEmulators();
     if (!library.games.length) void library.detect();

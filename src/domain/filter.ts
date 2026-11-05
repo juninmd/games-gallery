@@ -1,4 +1,5 @@
 import { PROVIDER_BY_ID } from "./providers";
+import { tagKey } from "./tags";
 import type { Game, PlayStatus } from "./types";
 
 export type SortKey = "title" | "year" | "playtime" | "rating";
@@ -12,6 +13,8 @@ export interface GameFilter {
   ownedOnly: boolean;
   /** Library views only: keep games that were unified from more than one store. */
   multiStoreOnly: boolean;
+  /** Folded tag key (see `tagKey`); null = any. */
+  tag: string | null;
   sort: SortKey;
 }
 
@@ -23,6 +26,7 @@ export const EMPTY_FILTER: GameFilter = {
   installedOnly: false,
   ownedOnly: false,
   multiStoreOnly: false,
+  tag: null,
   sort: "title",
 };
 
@@ -57,6 +61,7 @@ export function gameMatcher(f: GameFilter): (g: Game) => boolean {
     if (f.status && g.status !== f.status) return false;
     if (f.installedOnly && !g.installed) return false;
     if (f.ownedOnly && !g.owned) return false;
+    if (f.tag && !(g.tags ?? []).some((t) => tagKey(t) === f.tag)) return false;
     return true;
   };
 }

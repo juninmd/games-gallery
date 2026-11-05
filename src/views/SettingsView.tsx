@@ -1,5 +1,7 @@
 import { FolderSearch, FolderOpen, RefreshCw } from "lucide-react";
 import { BackupSettings } from "../components/BackupSettings";
+import { ControllerSettings } from "../components/ControllerSettings";
+import { NotificationSettings } from "../components/NotificationSettings";
 import { EMULATORS } from "../domain/emulators";
 import { PLATFORMS } from "../domain/platforms";
 import { PROVIDERS } from "../domain/providers";
@@ -59,6 +61,8 @@ export function SettingsView() {
         </div>
       </section>
       <p className="muted small">Chaves da Steam, RAWG e testes de conexão ficam em <button className="link" onClick={() => go("connections")}>Conexões</button>.</p>
+      <NotificationSettings />
+      <ControllerSettings />
       <BackupSettings />
       <section className="panel narrow">
         <h3 aria-level={2}>Dados reais</h3>
@@ -70,7 +74,7 @@ export function SettingsView() {
       <section className="panel narrow">
         <h3 aria-level={2}>Biblioteca</h3>
         <p className="muted small">Apagar remove os jogos e o histórico de varreduras deste perfil. Os launchers no disco não são tocados; a detecção repovoa tudo em um clique.</p>
-        <button className="btn ghost danger" onClick={() => {
+        <button className="btn ghost danger" data-no-gamepad onClick={() => {
           if (!window.confirm("Apagar a biblioteca deste perfil e começar do zero? Os jogos instalados continuam no disco.")) return;
           reset();
           toast("Biblioteca limpa");

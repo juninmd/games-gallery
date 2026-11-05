@@ -1,7 +1,11 @@
+import { liveDeals, type Deal, type WishlistEntry } from "../domain/deals";
+import { freebieMessage, hitMessage, newFreebies, newHits } from "../domain/notifyPlan";
 import { alertHits, type AlertHit } from "../domain/priceAlerts";
-import { liveDeals, formatMoney, type Deal, type WishlistEntry } from "../domain/deals";
+import { notifyNative } from "../platform/notify";
 import { isValidSteamId } from "../platform/steamApi";
-import { useDeals } from "./deals";
+import { useDeals, DEALS_TTL_MS } from "./deals";
+import { useFreebies } from "./freebies";
+import { usePrefs } from "./prefs";
 import { usePriceAlerts } from "./priceAlerts";
 import { useSecrets } from "./secrets";
 import { useUi } from "./ui";
@@ -24,15 +28,55 @@ export function recomputeHits(): AlertHit[] {
   return hits;
 }
 
-/** On app start: when any price target exists, refresh the (cached) offers and say what reached its price. */
-export async function watchPriceAlerts(): Promise<void> {
+/** In-app toast always; the OS notification only when the user opted in. */
+async function announce(message: { title: string; body: string }): Promise<void> {
+  useUi.getState().toast(`${message.title}: ${message.body}`);
+  if (usePrefs.getState().notifications) await notifyNative(message.title, message.body);
+}
+
+async function checkPrices(): Promise<void> {
   if (!Object.keys(usePriceAlerts.getState().targets).length) return;
   const d = useDeals.getState();
   const jobs = [d.refreshDeals("steam"), d.refreshDeals("gog"), d.refreshDeals("epic")];
   if (isValidSteamId(useSecrets.getState().steamId)) jobs.push(d.refreshWishlist());
   await Promise.allSettled(jobs);
   const hits = recomputeHits();
-  if (!hits.length) return;
-  const first = hits.slice(0, 2).map((h) => `${h.title} por ${formatMoney(h.finalCents, h.currency)} (${h.store})`).join("; ");
-  useUi.getState().toast(`Preço-alvo atingido: ${first}${hits.length > 2 ? ` e mais ${hits.length - 2}` : ""}`);
+  const { fresh, announced } = newHits(hits, usePrefs.getState().announcedHits);
+  usePrefs.getState().remember({ announcedHits: announced });
+  if (fresh.length) await announce(hitMessage(fresh));
+}
+
+async function checkFreebies(): Promise<void> {
+  // Only worth a request when the user asked to be told; the Freebies screen fetches on its own.
+  if (!usePrefs.getState().notifications) return;
+  const f = useFreebies.getState();
+  await f.refreshEpic();
+  const items = useFreebies.getState().epic?.items;
+  if (!items) return;
+  const { fresh, seen } = newFreebies(items, usePrefs.getState().seenFreebies);
+  usePrefs.getState().remember({ seenFreebies: seen });
+  if (fresh.length) await announce(freebieMessage(fresh));
+}
+
+const CHECK_EVERY_MS = DEALS_TTL_MS / 6;
+
+let running = false;
+
+/** One pass: price targets, then giveaways. A pass already in flight is not doubled. */
+export async function runChecks(): Promise<void> {
+  if (running) return;
+  running = true;
+  try {
+    await Promise.allSettled([checkPrices(), checkFreebies()]);
+  } finally {
+    running = false;
+  }
+}
+
+/** On app start and then while the app stays open (new data at most every 3 h for prices, 6 h for giveaways). Returns the stop function. */
+export function watchPriceAlerts(): () => void {
+  void runChecks();
+  // Ticks are cheap: the stores' own caches (3 h deals, 6 h giveaways) decide what is really fetched.
+  const timer = setInterval(() => void runChecks(), CHECK_EVERY_MS);
+  return () => clearInterval(timer);
 }

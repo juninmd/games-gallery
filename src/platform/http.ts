@@ -8,6 +8,9 @@ export const DEV_PROXY: Record<string, string> = {
   "https://store-site-backend-static.ak.epicgames.com": "/proxy/epic",
   "https://blog.playstation.com": "/proxy/psblog",
   "https://catalog.gog.com": "/proxy/gogcatalog",
+  "https://www.protondb.com": "/proxy/protondb",
+  "https://catalog.gamepass.com": "/proxy/gamepass",
+  "https://displaycatalog.mp.microsoft.com": "/proxy/msstore",
 };
 const REQUEST_DEADLINE_MS = 30_000;
 const JSON_MAX_BYTES = 4 * 1024 * 1024;
