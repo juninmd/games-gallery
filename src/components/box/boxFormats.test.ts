@@ -26,6 +26,8 @@ describe("boxSpecFor", () => {
     expect(boxSpecFor("switch").media).toBe("card");
     expect(boxSpecFor("gc").media).toBe("minidisc");
     expect(boxSpecFor("psp").media).toBe("umd");
+    expect(boxSpecFor("gba").media).toBe("cart-gba");
+    expect(boxSpecFor("gb").media).toBe("cart-gb");
   });
 
   it("falls back to a disc case for an unknown platform", () => {

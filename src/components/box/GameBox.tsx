@@ -58,6 +58,9 @@ function BoxArt({ game, title = false, className = "" }: { game: Game; title?: b
   );
 }
 
+/** Stacked copies of the shell silhouette give a cartridge its thickness when it turns. */
+const SLABS = [0, 1, 2, 3, 4, 5, 6, 7];
+
 function Media({ game, spec }: { game: Game; spec: BoxSpec }) {
   const icon = brandPath(game.platformId, game.providerId);
   const label = <BoxArt game={game} />;
@@ -77,8 +80,12 @@ function Media({ game, spec }: { game: Game; spec: BoxSpec }) {
   }
   return (
     <div className={`bx-cart ${spec.media}`} style={{ "--bx-tint": spec.tint } as CSSProperties}>
-      <div className="bx-cart-label">{label}<b>{game.title}</b></div>
-      <i className="bx-pins" /><i className="bx-gloss2" />
+      {SLABS.map((k) => <i key={k} className="bx-slab" style={{ "--k": k } as CSSProperties} />)}
+      <div className="bx-cart-body">
+        <i className="bx-shell" />
+        <div className="bx-cart-label">{label}<b>{game.title}</b></div>
+        <i className="bx-pins" /><i className="bx-gloss2" />
+      </div>
     </div>
   );
 }

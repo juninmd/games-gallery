@@ -6,7 +6,7 @@ export type BoxFormat = "dvd" | "bluray" | "jewel" | "umd" | "card" | "ds" | "ca
 /** What lives inside the package. */
 export type MediaKind =
   | "disc" | "minidisc" | "umd" | "card" | "dscart"
-  | "cart-snes" | "cart-nes" | "cart-n64" | "cart-gb" | "cart-md";
+  | "cart-snes" | "cart-nes" | "cart-n64" | "cart-gb" | "cart-gba" | "cart-md";
 
 export interface BoxSpec {
   format: BoxFormat;
@@ -59,7 +59,7 @@ const RULES: Record<string, Rule> = {
   switch: { format: "card", media: "card", mediaLabel: "Cartão de jogo", take: "o cartão", tint: "#2b2e3a" },
   gb: { format: "cartonSm", media: "cart-gb", mediaLabel: "Cartucho Game Boy", take: "o cartucho", tint: "#b8b8b0" },
   gbc: { format: "cartonSm", media: "cart-gb", mediaLabel: "Cartucho Game Boy", take: "o cartucho", tint: "#b8b8b0" },
-  gba: { format: "cartonSm", media: "cart-gb", mediaLabel: "Cartucho Game Boy", take: "o cartucho", tint: "#a9a9b8" },
+  gba: { format: "cartonSm", media: "cart-gba", mediaLabel: "Cartucho Game Boy Advance", take: "o cartucho", tint: "#a9a9b8" },
   nds: { format: "ds", media: "dscart", mediaLabel: "Cartão DS", take: "o cartão", tint: "#2a2d36" },
   "3ds": { format: "ds", media: "dscart", mediaLabel: "Cartão 3DS", take: "o cartão", tint: "#2a2d36" },
   sms: { format: "clam", media: "cart-md", mediaLabel: "Cartucho", take: "o cartucho", tint: "#15161c" },
