@@ -14,9 +14,13 @@ const readCollapsed = () => {
 };
 
 const DENSITY_KEY = "games-gallery:density";
-export type Density = "comfortable" | "compact";
+export type Density = "comfortable" | "compact" | "boxes";
+const DENSITIES: readonly Density[] = ["comfortable", "compact", "boxes"];
 const readDensity = (): Density => {
-  try { return localStorage.getItem(DENSITY_KEY) === "compact" ? "compact" : "comfortable"; } catch { return "comfortable"; }
+  try {
+    const stored = localStorage.getItem(DENSITY_KEY);
+    return DENSITIES.find((d) => d === stored) ?? "comfortable";
+  } catch { return "comfortable"; }
 };
 
 interface UiState {
