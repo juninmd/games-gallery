@@ -1,5 +1,6 @@
-import { BadgeCheck, Hourglass, LayoutGrid, Library, Rows3, Timer } from "lucide-react";
+import { BadgeCheck, Hourglass, LayoutGrid, Library, Package, Rows3, Timer } from "lucide-react";
 import { useDeferredValue, useMemo, useState, type ReactNode } from "react";
+import { BoxShelf } from "../components/box/BoxShelf";
 import { CountUp } from "../components/CountUp";
 import { FeaturedHero } from "../components/FeaturedHero";
 import { FilterBar } from "../components/FilterBar";
@@ -10,6 +11,8 @@ import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
 
 const PAGE_SIZE = 60;
+/** Every box is a small 3D scene, so a shelf page holds fewer of them. */
+const BOX_PAGE_SIZE = 30;
 
 function StatTile({ icon, label, value, accent }: { icon: ReactNode; label: string; value: number; accent: string }) {
   return (
@@ -55,13 +58,14 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const stats = useMemo(() => groupStats(allGroups), [allGroups]);
   const scopedCount = scope === "installed" ? stats.installed : stats.total;
   const platform = filter.platformId ? PLATFORM_BY_ID[filter.platformId] : null;
-  const pageCount = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+  const pageSize = density === "boxes" ? BOX_PAGE_SIZE : PAGE_SIZE;
+  const pageCount = Math.max(1, Math.ceil(shown.length / pageSize));
   const requestedPage = criteriaChanged ? 1 : pageState.page;
   const page = Math.min(requestedPage, pageCount);
   if (page !== requestedPage) setPageState((s) => ({ ...s, page }));
-  const pageGames = shown.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const rangeStart = shown.length ? (page - 1) * PAGE_SIZE + 1 : 0;
-  const rangeEnd = Math.min(page * PAGE_SIZE, shown.length);
+  const pageGames = shown.slice((page - 1) * pageSize, page * pageSize);
+  const rangeStart = shown.length ? (page - 1) * pageSize + 1 : 0;
+  const rangeEnd = Math.min(page * pageSize, shown.length);
 
   const filtering = Boolean(
     filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status || filter.installedOnly || filter.ownedOnly || filter.multiStoreOnly,
@@ -136,6 +140,7 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
             <div className="flex items-center gap-1" role="group" aria-label="Densidade da grade">
               <button type="button" className="btn ghost" aria-pressed={density === "comfortable"} title="Capas grandes" onClick={() => setDensity("comfortable")}><LayoutGrid size={14} aria-hidden /> Confortável</button>
               <button type="button" className="btn ghost" aria-pressed={density === "compact"} title="Mais jogos por tela" onClick={() => setDensity("compact")}><Rows3 size={14} aria-hidden /> Compacta</button>
+              <button type="button" className="btn ghost" aria-pressed={density === "boxes"} title="Caixas de jogo em estante 3D" onClick={() => setDensity("boxes")}><Package size={14} aria-hidden /> Caixas</button>
             </div>
             <nav className="pagination" aria-label="Paginação da biblioteca">
               <button className="btn" type="button" onClick={() => setPageState((s) => ({ ...s, page: Math.max(1, s.page - 1) }))} disabled={page <= 1}>
@@ -147,9 +152,13 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
               </button>
             </nav>
           </div>
-          <div className="game-grid" data-density={density} aria-busy={isUpdating}>
-            {pageGames.map((x, i) => <GameCard key={x.primary.id} game={x.primary} members={x.members} index={i} />)}
-          </div>
+          {density === "boxes" ? (
+            <BoxShelf groups={pageGames} busy={isUpdating} />
+          ) : (
+            <div className="game-grid" data-density={density} aria-busy={isUpdating}>
+              {pageGames.map((x, i) => <GameCard key={x.primary.id} game={x.primary} members={x.members} index={i} />)}
+            </div>
+          )}
         </>
       )}
     </>

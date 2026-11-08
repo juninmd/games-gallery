@@ -24,6 +24,14 @@ describe("grid density", () => {
     expect(again.useUi.getState().density).toBe("compact");
   });
 
+  it("remembers the boxes shelf view", async () => {
+    const { useUi } = await import("./ui");
+    useUi.getState().setDensity("boxes");
+    vi.resetModules();
+    const again = await import("./ui");
+    expect(again.useUi.getState().density).toBe("boxes");
+  });
+
   it("ignores a tampered stored value", async () => {
     values.set("games-gallery:density", "<script>");
     const { useUi } = await import("./ui");
