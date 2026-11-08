@@ -27,6 +27,7 @@ export default defineConfig({
       "/proxy/epic": proxy("https://store-site-backend-static.ak.epicgames.com", "/proxy/epic"),
       "/proxy/psblog": proxy("https://blog.playstation.com", "/proxy/psblog"),
       "/proxy/gogcatalog": proxy("https://catalog.gog.com", "/proxy/gogcatalog"),
+      "/proxy/github": proxy("https://api.github.com", "/proxy/github"),
     },
   },
   test: { environment: "node", include: ["src/**/*.test.ts"], testTimeout: 20_000 },

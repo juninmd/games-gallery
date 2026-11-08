@@ -1,0 +1,135 @@
+name: auto-release
+
+# Every push to main: read the Conventional Commits since the last v* tag, compute the next version,
+# build the installers and publish a GitHub release. Installed apps look at that release to update.
+#   feat -> minor | fix, perf, revert -> patch | breaking change -> major (minor while the app is 0.x)
+# Nothing is committed back to main: the git tag is the version, and the version is stamped into the
+# build checkout only (scripts/release/stamp.mjs). The first run publishes the version in package.json.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versão a publicar (ex.: 1.2.0). Vazio calcula pelos commits."
+        required: false
+        type: string
+      allow-unsigned:
+        description: "Publicar mesmo sem a chave de assinatura das atualizações (os apps instalados não se atualizam sozinhos)"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Releases are queued, never cancelled, so two merges cannot publish the same version.
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    outputs:
+      release: ${{ steps.plan.outputs.release }}
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      # A first release without the key could never update itself, so releasing waits for the setup.
+      - name: Check the update signing setup
+        id: signing
+        env:
+          HAS_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+          HAS_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBKEY != '' }}
+          ALLOW_UNSIGNED: ${{ inputs.allow-unsigned }}
+        run: |
+          if [ "$HAS_PRIVATE_KEY" = "true" ] && [ "$HAS_PUBLIC_KEY" = "true" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          elif [ "$ALLOW_UNSIGNED" = "true" ]; then
+            echo "::warning::Publicando sem atualização automática (execução manual com allow-unsigned)."
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Release adiada: defina o secret TAURI_SIGNING_PRIVATE_KEY e a variável TAURI_UPDATER_PUBKEY (veja o README, seção Releases e atualização automática)."
+          fi
+      - name: Plan the release
+        id: plan
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          FORCE_VERSION: ${{ inputs.version }}
+        run: node scripts/release/plan.mjs
+      - uses: actions/upload-artifact@v7
+        if: steps.plan.outputs.release == 'true'
+        with:
+          name: release-notes
+          path: release-notes.md
+          if-no-files-found: error
+          retention-days: 1
+
+  draft:
+    name: draft release
+    needs: plan
+    if: needs.plan.outputs.release == 'true'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      release-id: ${{ steps.draft.outputs.id }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-notes
+      - name: Create the draft release
+        id: draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.plan.outputs.tag }}
+          TARGET: ${{ github.sha }}
+        run: |
+          # A failed earlier run can leave an unpublished draft for this tag: replace it.
+          stale=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate | jq -r --arg tag "$TAG" '.[] | select(.draft and .tag_name == $tag) | .id')
+          while IFS= read -r old; do
+            [ -n "$old" ] && gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$old"
+          done <<< "$stale"
+          id=$(gh api -X POST "repos/$GITHUB_REPOSITORY/releases" \
+            -f tag_name="$TAG" -f target_commitish="$TARGET" -f name="Games Gallery $TAG" \
+            -F draft=true -F prerelease=false -F body=@release-notes.md --jq .id)
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+  bundle:
+    name: bundle
+    needs: [plan, draft]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release.yml
+    with:
+      version: ${{ needs.plan.outputs.version }}
+      release-id: ${{ needs.draft.outputs.release-id }}
+    secrets: inherit
+
+  publish:
+    name: publish
+    needs: [plan, draft, bundle]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      # Published only after every installer is attached, so nobody (and no updater) sees a half release.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ needs.draft.outputs.release-id }}
+        run: gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" -F draft=false -f make_latest=true --jq '.html_url'

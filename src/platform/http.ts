@@ -8,6 +8,7 @@ export const DEV_PROXY: Record<string, string> = {
   "https://store-site-backend-static.ak.epicgames.com": "/proxy/epic",
   "https://blog.playstation.com": "/proxy/psblog",
   "https://catalog.gog.com": "/proxy/gogcatalog",
+  "https://api.github.com": "/proxy/github",
 };
 const REQUEST_DEADLINE_MS = 30_000;
 const JSON_MAX_BYTES = 4 * 1024 * 1024;
@@ -45,11 +46,11 @@ async function cancelBody(res: Response): Promise<void> {
   try { void res.body?.cancel().catch(() => undefined); } catch { /* best effort */ }
 }
 
-async function httpGet(url: string, accept: string, signal: AbortSignal): Promise<Response> {
+async function httpGet(url: string, accept: string, signal: AbortSignal, headers?: Record<string, string>): Promise<Response> {
   const tauri = isTauri();
   const target = resolveRequestUrl(url, tauri);
   const doFetch = tauri ? (await import("@tauri-apps/plugin-http")).fetch : fetch;
-  const res = await doFetch(target, { headers: { Accept: accept }, signal });
+  const res = await doFetch(target, { headers: { Accept: accept, ...headers }, signal });
   if (signal.aborted) {
     void cancelBody(res);
     throw timeoutError();
@@ -101,8 +102,9 @@ function readWithAbort<T>(operation: Promise<T>, signal: AbortSignal): Promise<T
   });
 }
 
-export async function httpGetJson(url: string): Promise<unknown> {
-  return bounded(async (signal) => readJsonCapped(await httpGet(url, "application/json", signal), JSON_MAX_BYTES, signal));
+/** `headers` are extras such as a User-Agent (only the desktop fetch may set it). */
+export async function httpGetJson(url: string, headers?: Record<string, string>): Promise<unknown> {
+  return bounded(async (signal) => readJsonCapped(await httpGet(url, "application/json", signal, headers), JSON_MAX_BYTES, signal));
 }
 
 /** Reads at most `maxChars` characters and cancels the stream past that, so a hostile host cannot fill memory. */

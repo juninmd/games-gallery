@@ -1,10 +1,11 @@
-import { PanelLeftClose, PanelLeftOpen, Plus, Search } from "lucide-react";
+import { Download, PanelLeftClose, PanelLeftOpen, Plus, Search } from "lucide-react";
 import { m } from "motion/react";
 import { useMemo, type PointerEvent } from "react";
 import { groupGames, groupStats } from "../domain/duplicates";
 import { computeStats } from "../domain/stats";
 import { isTauri } from "../platform/runtime";
 import { useLibrary } from "../state/library";
+import { useUpdates } from "../state/updates";
 import { usePriceAlerts } from "../state/priceAlerts";
 import { useUi, type View } from "../state/ui";
 import { Logo } from "./Logo";
@@ -30,6 +31,7 @@ export function Sidebar() {
   const setPaletteOpen = useUi((s) => s.setPaletteOpen);
   const toggleSidebar = useUi((s) => s.toggleSidebar);
   const collapsed = useUi((s) => s.sidebarCollapsed);
+  const updateVersion = useUpdates((s) => (s.phase === "available" ? s.latest?.version : undefined));
   const games = useLibrary((s) => s.games);
   const { compact, narrow } = useCompactSidebar();
   const stats = useMemo(() => computeStats(games), [games]);
@@ -136,6 +138,18 @@ export function Sidebar() {
       <div className={`relative mt-auto grid gap-3 pt-2 ${compact ? "justify-items-center" : ""}`}>
         {!compact && <NowPlaying />}
         <SidebarTasks compact={compact} />
+        {updateVersion && (
+          <button
+            type="button"
+            onClick={() => go("settings")}
+            title={`Nova versão v${updateVersion} disponível`}
+            aria-label={`Nova versão v${updateVersion} disponível. Abrir Ajustes`}
+            className={`flex items-center gap-2 rounded-xl border border-aurora/40 bg-aurora/10 text-[12px] font-semibold text-aurora transition-colors hover:bg-aurora/20 ${compact ? "size-9 justify-center" : "px-3 py-2"}`}
+          >
+            <Download size={14} aria-hidden />
+            {!compact && <span>Atualizar para v{updateVersion}</span>}
+          </button>
+        )}
         <div className={`flex items-center gap-2 text-[11px] text-fog/80 ${compact ? "flex-col" : "justify-between px-1"}`}>
           {!compact && <span className="tabular-nums">v{__APP_VERSION__} · {isTauri() ? "Desktop" : "Web"}</span>}
           {!narrow && (

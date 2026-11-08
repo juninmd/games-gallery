@@ -7,3 +7,4 @@ src-tauri/gen
 .playwright-mcp/
 .env
 .env.*
+src-tauri/tauri.updater.conf.json

@@ -1,0 +1,27 @@
+name: semantic-pr
+
+# The title of a squash-merged PR becomes the commit message that auto-release.yml reads to pick the
+# next version, so it has to be a Conventional Commit: `feat(library): modo Caixas`.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  title:
+    name: conventional title
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Check the pull request title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: node scripts/release/check-title.mjs
