@@ -1,6 +1,7 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
-import type { SortKey } from "../domain/filter";
+import { tagCounts } from "../domain/collection";
+import { CLEARED_FILTER, hasActiveFilter, type SortKey } from "../domain/filter";
 import { FAMILY_LABEL, PLATFORMS } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
 import { STATUS_LABEL, STATUS_ORDER } from "../domain/status";
@@ -51,20 +52,10 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
         : [...filter.providerIds, id],
     });
 
-  const hasActiveFilters = Boolean(
-    filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status ||
-    filter.installedOnly || filter.ownedOnly || filter.multiStoreOnly,
-  );
-
-  const clearFilters = () => setFilter({
-    query: "",
-    providerIds: [],
-    platformId: null,
-    status: null,
-    installedOnly: false,
-    ownedOnly: false,
-    multiStoreOnly: false,
-  });
+  const tags = useMemo(() => tagCounts(games), [games]);
+  const loaned = useMemo(() => games.some((g) => g.loan), [games]);
+  const hasActiveFilters = hasActiveFilter(filter);
+  const clearFilters = () => setFilter(CLEARED_FILTER);
 
   return (
     <div className="glass mb-7 grid gap-4 rounded-3xl p-4">
@@ -96,6 +87,13 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
           <option value="">Qualquer status</option>
           {STATUS_ORDER.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
         </select>
+        {(tags.length > 0 || filter.tag) && (
+          <select className={selectCls} aria-label="Tag" value={filter.tag ?? ""} onChange={(e) => setFilter({ tag: e.target.value || null })}>
+            <option value="">Qualquer tag</option>
+            {filter.tag && !tags.some(([t]) => t === filter.tag) && <option value={filter.tag}>{filter.tag}</option>}
+            {tags.map(([t, n]) => <option key={t} value={t}>{t} ({n})</option>)}
+          </select>
+        )}
         <select className={selectCls} aria-label="Ordenar" value={filter.sort} onChange={(e) => setFilter({ sort: e.target.value as SortKey })}>
           {SORTS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
         </select>
@@ -113,6 +111,12 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
           <input type="checkbox" checked={filter.multiStoreOnly} onChange={(e) => setFilter({ multiStoreOnly: e.target.checked })} />
           Em mais de uma loja
         </label>
+        {(loaned || filter.loanedOnly) && (
+          <label className={toggleCls}>
+            <input type="checkbox" checked={filter.loanedOnly} onChange={(e) => setFilter({ loanedOnly: e.target.checked })} />
+            Emprestados
+          </label>
+        )}
       </div>
 
       <div className="flex items-start justify-between gap-3">

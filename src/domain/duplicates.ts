@@ -103,10 +103,10 @@ export function groupStats(groups: GameGroup[]): GroupStats {
   };
 }
 
-const SHARED_FIELDS = ["status", "rating", "notes"] as const;
+const SHARED_FIELDS = ["status", "rating", "notes", "tags"] as const;
 
 /**
- * Applies a patch to one game and spreads what is about *you and the game* (status, rating, notes) to your
+ * Applies a patch to one game and spreads what is about *you and the game* (status, rating, notes, tags) to your
  * other owned copies, so "Zerado" on Steam is not "Quero jogar" on GOG. Ownership, installs, hours and
  * store ids stay per store, and a wishlist move never spreads (you may own it elsewhere).
  */
