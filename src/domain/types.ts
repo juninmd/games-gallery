@@ -83,6 +83,10 @@ export interface Game {
   notes?: string;
   /** The user said this copy is not the same game as its same-title siblings in other stores. */
   separate?: boolean;
+  /** Personal lists ("Coop", "Para a viagem"); shared with the same game in other stores. */
+  tags?: string[];
+  /** A copy in the "physical" collection lent to someone. `since` is an ISO date. */
+  loan?: { to: string; since: string };
 }
 
 /** One entry reported by a local launcher scan or by a store API. */

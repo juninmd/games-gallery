@@ -7,6 +7,7 @@ import { useLibrary } from "../state/library";
 import { ratingEntry, useRatings } from "../state/ratings";
 import { useSecrets } from "../state/secrets";
 import { useUi } from "../state/ui";
+import { CollectionPanel } from "./CollectionPanel";
 import { DrawerActions } from "./DrawerActions";
 import { DrawerHero } from "./DrawerHero";
 import { LaunchPanel } from "./LaunchPanel";
@@ -40,7 +41,7 @@ function Section({ title, children, aside }: { title: string; children: React.Re
 function StatusPicker({ game }: { game: Game }) {
   const patchGame = useLibrary((s) => s.patchGame);
   const setStatus = (status: PlayStatus) =>
-    patchGame(game.id, status === "wishlist" ? { status, owned: false, installed: false } : { status, owned: true });
+    patchGame(game.id, status === "wishlist" ? { status, owned: false, installed: false, loan: undefined } : { status, owned: true });
 
   return (
     <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Status do jogo">
@@ -126,6 +127,7 @@ function Overview({ game }: { game: Game }) {
     <div className="grid gap-4">
       <StoresPanel game={game} />
       <Section title="Status"><StatusPicker game={game} /></Section>
+      <Section title="Coleção"><CollectionPanel game={game} /></Section>
       <Section title="Sua avaliação"><RatingStars game={game} /></Section>
       <Section title="Tempo de jogo"><HoursStepper game={game} /></Section>
       <section className="glass grid gap-2 rounded-2xl p-4 game-notes">

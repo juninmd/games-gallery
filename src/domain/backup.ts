@@ -1,3 +1,4 @@
+import { canLend, MAX_LOAN_NAME, normalizeTags } from "./collection";
 import { EMULATOR_BY_ID } from "./emulators";
 import { PLATFORM_BY_ID } from "./platforms";
 import { sanitizeTargets, type PriceTargets } from "./priceAlerts";
@@ -71,6 +72,12 @@ export function sanitizeGame(raw: unknown, profile: "backup" | "storage" = "back
   const coverUrl = text(raw["coverUrl"], 1000);
   const rawGenres = Array.isArray(raw["genres"]) ? raw["genres"].flatMap((g) => (text(g, 60) ? [g as string] : [])) : [];
   const genres = profile === "backup" ? rawGenres.slice(0, 12) : rawGenres;
+  const tags = Array.isArray(raw["tags"]) ? normalizeTags(raw["tags"]) : [];
+  const rawLoan = isObj(raw["loan"]) ? raw["loan"] : undefined;
+  const loanTo = str(rawLoan?.["to"], MAX_LOAN_NAME)?.trim();
+  const loanSince = str(rawLoan?.["since"], 60);
+  // Only an owned physical copy can be lent out.
+  const loan = canLend({ providerId, owned }) && loanTo && loanSince && Number.isFinite(Date.parse(loanSince)) ? { to: loanTo, since: loanSince } : undefined;
   return {
     id, title, platformId, providerId, status, owned,
     installed: owned && raw["installed"],
@@ -86,6 +93,8 @@ export function sanitizeGame(raw: unknown, profile: "backup" | "storage" = "back
     emulatorId: emulatorId && has(EMULATOR_BY_ID, emulatorId) ? emulatorId : undefined,
     notes: text(raw["notes"], 5000),
     separate: raw["separate"] === true ? true : undefined,
+    tags: tags.length ? tags : undefined,
+    loan,
   };
 }
 

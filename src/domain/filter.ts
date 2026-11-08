@@ -1,3 +1,4 @@
+import { hasTag } from "./collection";
 import { PROVIDER_BY_ID } from "./providers";
 import type { Game, PlayStatus } from "./types";
 
@@ -12,6 +13,10 @@ export interface GameFilter {
   ownedOnly: boolean;
   /** Library views only: keep games that were unified from more than one store. */
   multiStoreOnly: boolean;
+  /** A personal tag; null = any. */
+  tag: string | null;
+  /** Physical copies that are lent out. */
+  loanedOnly: boolean;
   sort: SortKey;
 }
 
@@ -23,8 +28,18 @@ export const EMPTY_FILTER: GameFilter = {
   installedOnly: false,
   ownedOnly: false,
   multiStoreOnly: false,
+  tag: null,
+  loanedOnly: false,
   sort: "title",
 };
+
+/** Everything but the query-independent sort: what "Limpar filtros" resets. */
+export const CLEARED_FILTER: Omit<GameFilter, "sort"> = (({ sort: _sort, ...rest }) => rest)(EMPTY_FILTER);
+
+export const hasActiveFilter = (f: GameFilter) => Boolean(
+  f.query.trim() || f.providerIds.length || f.platformId || f.status || f.installedOnly || f.ownedOnly ||
+  f.multiStoreOnly || f.tag || f.loanedOnly,
+);
 
 const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
@@ -36,6 +51,7 @@ export function createGameQueryMatcher(query: string): (game: Game) => boolean {
   return (game) =>
     !q ||
     fold(game.title).includes(q) ||
+    (game.tags ?? []).some((tag) => fold(tag).includes(q)) ||
     game.genres.some((genre) => fold(genre).includes(q)) ||
     (byStore && fold(PROVIDER_BY_ID[game.providerId]?.name ?? "").startsWith(q));
 }
@@ -57,6 +73,8 @@ export function gameMatcher(f: GameFilter): (g: Game) => boolean {
     if (f.status && g.status !== f.status) return false;
     if (f.installedOnly && !g.installed) return false;
     if (f.ownedOnly && !g.owned) return false;
+    if (f.tag && !hasTag(g, f.tag)) return false;
+    if (f.loanedOnly && !g.loan) return false;
     return true;
   };
 }

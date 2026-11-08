@@ -6,6 +6,7 @@ import { FeaturedHero } from "../components/FeaturedHero";
 import { FilterBar } from "../components/FilterBar";
 import { GameCard } from "../components/GameCard";
 import { featuredGroup, filterGameGroups, groupGames, groupStats } from "../domain/duplicates";
+import { CLEARED_FILTER, hasActiveFilter } from "../domain/filter";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
@@ -67,21 +68,11 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const rangeStart = shown.length ? (page - 1) * pageSize + 1 : 0;
   const rangeEnd = Math.min(page * pageSize, shown.length);
 
-  const filtering = Boolean(
-    filter.query.trim() || filter.providerIds.length || filter.platformId || filter.status || filter.installedOnly || filter.ownedOnly || filter.multiStoreOnly,
-  );
+  const filtering = hasActiveFilter(filter);
   const featured = useMemo(() => (scope === "all" ? featuredGroup(allGroups) : undefined), [scope, allGroups]);
   const showHero = scope === "all" && !filtering && page === 1;
 
-  const clearFilters = () => setFilter({
-    query: "",
-    providerIds: [],
-    platformId: null,
-    status: null,
-    installedOnly: false,
-    ownedOnly: false,
-    multiStoreOnly: false,
-  });
+  const clearFilters = () => setFilter(CLEARED_FILTER);
 
   return (
     <>
