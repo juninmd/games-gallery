@@ -12,6 +12,8 @@
     "fs:allow-read-text-file",
     "fs:allow-write-text-file",
     "fs:allow-exists",
+    "updater:default",
+    "process:allow-restart",
     {
       "identifier": "http:default",
       "allow": [
@@ -21,6 +23,7 @@
         { "url": "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions*" },
         { "url": "https://blog.playstation.com/feed/*" },
         { "url": "https://catalog.gog.com/v1/catalog*" },
+        { "url": "https://api.github.com/repos/juninmd/games-gallery/releases/latest" },
         { "url": "https://api.amazon.com/auth/register" },
         { "url": "https://api.amazon.com/auth/deregister" },
         { "url": "https://gaming.amazon.com/api/distribution/entitlements" },
@@ -38,6 +41,8 @@
         { "url": "uplay://*" },
         { "url": "battlenet://*" },
         { "url": "itch://*" },
+        { "url": "https://github.com/juninmd/games-gallery/releases" },
+        { "url": "https://github.com/juninmd/games-gallery/releases/*" },
         { "url": "https://store.epicgames.com/*" },
         { "url": "https://www.gog.com/*" },
         { "url": "https://www.epicgames.com/id/login*" },

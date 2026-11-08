@@ -1,11 +1,21 @@
 name: release
 
-# Builds the Tauri 2 installers (Windows, macOS, Linux). Pushing a tag `v*` publishes a
-# draft GitHub release with every bundle attached; manual runs and PRs touching the
-# packaging only upload the bundles as workflow artifacts.
+# Builds the Tauri 2 installers (Windows, macOS, Linux).
+# - Called by auto-release.yml with a draft release id: stamps the release version into the checkout,
+#   builds, and attaches the installers to that release. With the signing key configured it also attaches
+#   the signed updater artifacts and latest.json, which is what installed apps update from.
+# - Manual runs and PRs touching the packaging only upload the bundles as workflow artifacts.
 on:
-  push:
-    tags: ["v*"]
+  workflow_call:
+    inputs:
+      version:
+        description: "Release version without the v prefix, e.g. 1.2.0"
+        required: true
+        type: string
+      release-id:
+        description: "Id of the draft GitHub release the bundles are attached to"
+        required: true
+        type: string
   workflow_dispatch:
   pull_request:
     paths:
@@ -18,8 +28,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: true
+  group: release-${{ github.ref }}-${{ inputs.release-id }}
+  # A release build is never cancelled by a newer push: auto-release.yml queues runs instead.
+  cancel-in-progress: ${{ inputs.release-id == '' }}
 
 jobs:
   bundle:
@@ -69,23 +80,47 @@ jobs:
         with:
           workspaces: src-tauri
           key: ${{ matrix.label }}
+      - name: Stamp the release version
+        if: inputs.release-id != ''
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: node scripts/release/stamp.mjs "$VERSION"
       - run: pnpm install --frozen-lockfile
+      # Signed updates need the private key (secret) and its public half (repository variable). The
+      # public key and the update endpoint are merged into the Tauri config of this build only.
+      - name: Configure signed updates
+        id: updater
+        if: inputs.release-id != ''
+        shell: bash
+        env:
+          PUBKEY: ${{ vars.TAURI_UPDATER_PUBKEY }}
+          PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -n "$PUBKEY" ] && [ -n "$PRIVATE_KEY" ]; then
+            node -e 'require("fs").writeFileSync("src-tauri/tauri.updater.conf.json", JSON.stringify({ bundle: { createUpdaterArtifacts: true }, plugins: { updater: { pubkey: process.env.PUBKEY, endpoints: ["https://github.com/" + process.env.REPO + "/releases/latest/download/latest.json"] } } }))'
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Atualizações assinadas desligadas: defina o secret TAURI_SIGNING_PRIVATE_KEY e a variável TAURI_UPDATER_PUBKEY."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Build bundles
-        if: startsWith(github.ref, 'refs/tags/v') != true
+        if: inputs.release-id == ''
         run: pnpm tauri build ${{ matrix.args }}
-      - name: Build and publish release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Build and attach to the release
+        if: inputs.release-id != ''
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: Games Gallery ${{ github.ref_name }}
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
+          releaseId: ${{ inputs.release-id }}
+          includeUpdaterJson: ${{ steps.updater.outputs.enabled == 'true' }}
+          args: ${{ matrix.args }} ${{ steps.updater.outputs.enabled == 'true' && '--config src-tauri/tauri.updater.conf.json' || '' }}
       - uses: actions/upload-artifact@v7
-        if: startsWith(github.ref, 'refs/tags/v') != true
+        if: inputs.release-id == ''
         with:
           name: games-gallery-${{ matrix.label }}
           path: |

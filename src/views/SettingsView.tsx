@@ -1,5 +1,6 @@
 import { FolderSearch, FolderOpen, RefreshCw } from "lucide-react";
 import { BackupSettings } from "../components/BackupSettings";
+import { UpdatesPanel } from "../components/UpdatesPanel";
 import { EMULATORS } from "../domain/emulators";
 import { PLATFORMS } from "../domain/platforms";
 import { PROVIDERS } from "../domain/providers";
@@ -59,6 +60,7 @@ export function SettingsView() {
         </div>
       </section>
       <p className="muted small">Chaves da Steam, RAWG e testes de conexão ficam em <button className="link" onClick={() => go("connections")}>Conexões</button>.</p>
+      <UpdatesPanel />
       <BackupSettings />
       <section className="panel narrow">
         <h3 aria-level={2}>Dados reais</h3>

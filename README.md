@@ -55,12 +55,48 @@ Painel lateral com hero cinematográfico (arte desfocada, capa flutuante, status
 
 ## Executáveis (Tauri 2)
 
-O workflow `release` (`.github/workflows/release.yml`) gera os instaladores em Windows (NSIS `.exe` e `.msi`), macOS (`.dmg`, Apple Silicon e Intel) e Linux (`.deb`, `.rpm`, `.AppImage`). Em PRs que mexem no empacotamento e em execuções manuais os bundles saem como artifacts; ao publicar uma tag `v*` o workflow cria um release em rascunho com todos os instaladores.
+O workflow `release` (`.github/workflows/release.yml`) gera os instaladores em Windows (NSIS `.exe` e `.msi`), macOS (`.dmg`, Apple Silicon e Intel) e Linux (`.deb`, `.rpm`, `.AppImage`). Em PRs que mexem no empacotamento e em execuções manuais os bundles saem como artifacts; as releases de verdade são publicadas pelo `auto-release` (próxima seção).
 
 ```bash
 pnpm tauri build               # bundles do seu sistema em src-tauri/target/release/bundle
 pnpm tauri build --bundles deb # exemplo: só um formato
 ```
+
+## Releases e atualização automática
+
+**Versão pelos commits.** A cada push na `main`, o workflow `auto-release` (`.github/workflows/auto-release.yml`) lê os [Conventional Commits](https://www.conventionalcommits.org/pt-br/) desde a última tag `v*`, calcula a próxima versão, gera as notas, compila os instaladores e publica a release no GitHub (a tag nasce junto). Nada é commitado de volta na `main`: a tag é a versão, e o número é gravado só no checkout do build (`scripts/release/stamp.mjs`).
+
+| Commit | Efeito |
+| --- | --- |
+| `feat: ...` | sobe o minor (`1.2.0` → `1.3.0`) |
+| `fix:`, `perf:`, `revert:` | sobe o patch (`1.2.0` → `1.2.1`) |
+| `feat!: ...` ou rodapé `BREAKING CHANGE:` | sobe o major (`1.x` → `2.0.0`); enquanto o app é `0.x`, sobe o minor |
+| `docs`, `style`, `refactor`, `test`, `build`, `ci`, `chore` | não publica nada |
+
+- O título do PR vira a mensagem do squash merge, então o workflow `semantic-pr` confere que ele segue o padrão (`feat(library): modo Caixas`). Para não publicar um commit, escreva `[skip release]` na mensagem.
+- A primeira execução publica a versão do `package.json` (`0.1.0`). Em **Actions → auto-release → Run workflow** dá para forçar uma versão (`1.2.0`) ou publicar sem assinatura (`allow-unsigned`).
+- A release só é publicada depois que todos os instaladores estão anexados; antes disso ela fica em rascunho.
+
+**Atualização dentro do app.** Em **Ajustes → Atualizações** o app compara a versão instalada com a última release do GitHub (`api.github.com/repos/juninmd/games-gallery/releases/latest`, só releases estáveis `vX.Y.Z` deste repositório), mostra as notas e:
+
+- com a chave de assinatura configurada, baixa o instalador assinado, confere a assinatura (minisign, pelo `tauri-plugin-updater`), instala e reinicia;
+- sem ela (ou na versão web), leva à página da release para baixar o instalador.
+
+![Atualizações](docs/ui/updates.png)
+
+O app verifica sozinho ao abrir (no máximo a cada 6 h; dá para desligar em Ajustes) e mostra um aviso na barra lateral quando há versão nova.
+
+**Configuração única (antes do primeiro merge).** O `auto-release` só publica quando a assinatura está configurada, para que a primeira release já possa se atualizar sozinha:
+
+```bash
+pnpm tauri signer generate -w ~/.tauri/games-gallery.key   # gera a chave privada (protegida por senha) e a pública
+```
+
+1. **Settings → Secrets and variables → Actions → Secrets:** `TAURI_SIGNING_PRIVATE_KEY` (conteúdo do arquivo `.key`) e `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+2. **… → Variables:** `TAURI_UPDATER_PUBKEY` (conteúdo do arquivo `.key.pub`; é público).
+3. Guarde a chave privada: se ela for perdida, os apps instalados não aceitam atualizações assinadas por outra chave.
+
+A chave pública e o endereço do `latest.json` são mesclados na configuração do Tauri só no build da release (`src-tauri/tauri.updater.conf.json`, gerado pelo workflow); builds locais (`pnpm tauri build`) não têm atualização automática. No Windows e no macOS os instaladores ainda não têm certificado de código/notarização, então o sistema avisa na instalação.
 
 ## Telas
 
@@ -197,7 +233,8 @@ src/domain/     tipos, catálogos (platforms, providers, emulators), launch.ts, 
 src/state/      zustand: library (persistido), ui (navegação/filtros), tasks (jobs reais), secrets (chaves)
 src/components/ Cover, GameCard, GameDrawer, LaunchPanel, FilterBar, ...
 src/views/      uma view por tela
-src/platform/   runtime.ts, native.ts (invoke), folders.ts, http.ts, steamApi.ts, dealsApi.ts, epicAccount.ts, probes.ts
+src/platform/   runtime.ts, native.ts (invoke), folders.ts, http.ts, steamApi.ts, dealsApi.ts, epicAccount.ts, probes.ts, updates.ts
+scripts/release/ regras de versão e notas (lib.mjs), plan/stamp/check-title usados pelo CI
 src-tauri/      detect*.rs (bibliotecas locais: Steam/Epic/GOG, ea, battlenet, ubisoft), emulators.rs (detecção/instalação/execução), plugins
 ```
 
@@ -209,6 +246,7 @@ src-tauri/      detect*.rs (bibliotecas locais: Steam/Epic/GOG, ea, battlenet, u
 - Os comandos nativos validam gerenciador e pacote (`valid_token`) e exigem executável existente em caminho absoluto.
 - A permissão de abertura do Tauri usa somente a lista explícita de URLs e esquemas; `opener:default` não é concedido, pois também permite URLs HTTP/HTTPS fora dessa lista.
 - CSP restringe imagens a `self`, Steam CDN e libretro.
+- Atualizações: só aceita release publicada, estável (`vX.Y.Z`) e com link deste repositório; o instalador só é aplicado com assinatura minisign válida, e o app só abre páginas de release deste repositório.
 - O app **não baixa nem distribui BIOS, firmware, chaves ou ROMs**; o usuário fornece os dele.
 - A leitura é somente leitura: `galaxy-2.0.db`, `butler.db` e `GameInstallInfo.sqlite` são abertos com `SQLITE_OPEN_READ_ONLY`.
 

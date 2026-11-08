@@ -10,6 +10,8 @@ import { useCompactSidebar } from "./components/useCompactSidebar";
 import { useLibrary } from "./state/library";
 import { watchPriceAlerts } from "./state/alertWatcher";
 import { useSecrets } from "./state/secrets";
+import { useUpdates } from "./state/updates";
+import { isTauri } from "./platform/runtime";
 import { useUi, type View } from "./state/ui";
 import { GameBrowser } from "./views/GameBrowser";
 
@@ -82,6 +84,8 @@ export function App() {
     const library = useLibrary.getState();
     void library.refreshEmulators();
     if (!library.games.length) void library.detect();
+    // Installed app only: look for a newer GitHub release a few seconds after the window opens.
+    if (isTauri()) setTimeout(() => void useUpdates.getState().check({ auto: true }), 5000);
   }, []);
 
   return (
