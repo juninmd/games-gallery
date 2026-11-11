@@ -1,4 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { confetti, confettiFrom } from "../components/confetti";
 import { Cover } from "../components/Cover";
 import { PlatformTag } from "../components/Badges";
 import { StoreChips } from "../components/StoreChips";
@@ -12,16 +13,18 @@ import { useUi } from "../state/ui";
 function BoardCard({ game, members, onMove, registerStatusSelect }: {
   game: Game;
   members: Game[];
-  onMove: (game: Game, status: PlayStatus) => void;
+  onMove: (game: Game, status: PlayStatus, from?: Element) => void;
   registerStatusSelect: (id: string, node: HTMLSelectElement | null) => void;
 }) {
   const select = useUi((s) => s.select);
+  const [dragging, setDragging] = useState(false);
   return (
     <article
-      className="bcard"
+      className={`bcard ${dragging ? "is-dragging" : ""}`}
       data-game-id={game.id}
       draggable
-      onDragStart={(e) => { e.dataTransfer.setData("text/plain", game.id); e.dataTransfer.effectAllowed = "move"; }}
+      onDragStart={(e) => { e.dataTransfer.setData("text/plain", game.id); e.dataTransfer.effectAllowed = "move"; setDragging(true); }}
+      onDragEnd={() => setDragging(false)}
     >
       <button className="bcard-cover-open" aria-label={`Abrir detalhes de ${game.title}`} onClick={() => select(game.id)}>
         <div className="bcover"><Cover game={game} /></div>
@@ -37,7 +40,7 @@ function BoardCard({ game, members, onMove, registerStatusSelect }: {
           className="bcard-status"
           value={game.status}
           aria-label={`Status de ${game.title}`}
-          onChange={(e) => onMove(game, e.target.value as PlayStatus)}
+          onChange={(e) => onMove(game, e.target.value as PlayStatus, e.currentTarget)}
           onDragStart={(e) => e.stopPropagation()}
         >
           {STATUS_ORDER.map((status) => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}
@@ -74,8 +77,12 @@ export function BoardView() {
     }
   }, [games]);
 
-  const move = (game: Game, status: PlayStatus, restoreFocus = false) => {
+  const move = (game: Game, status: PlayStatus, restoreFocus = false, at?: Element | { x: number; y: number }) => {
     if (game.status === status) return;
+    if (status === "completed") {
+      if (at instanceof Element) confettiFrom(at);
+      else if (at) confetti(at.x, at.y);
+    }
     if (restoreFocus) focusAfterMove.current = game.id;
     patchGame(game.id, status === "wishlist" ? { status, owned: false, installed: false } : { status, owned: true });
     setAnnouncement(`${game.title} movido para ${STATUS_LABEL[status]}.`);
@@ -114,7 +121,7 @@ export function BoardView() {
               onDrop={(e) => {
                 e.preventDefault(); setOver(null);
                 const game = games.find((item) => item.id === e.dataTransfer.getData("text/plain"));
-                if (game) move(game, status);
+                if (game) move(game, status, false, { x: e.clientX, y: e.clientY });
               }}
               aria-label={`${STATUS_LABEL[status]}: ${col.length} jogos`}
             >
@@ -123,7 +130,7 @@ export function BoardView() {
                 {col.length === 0 ? (
                   <p className="board-column-empty">{query.trim() ? "Nenhum resultado nesta coluna." : "Nenhum jogo nesta coluna."}</p>
                 ) : col.map(({ primary: game, members }) => (
-                  <BoardCard key={game.id} game={game} members={members} onMove={(item, next) => move(item, next, true)} registerStatusSelect={(id, node) => {
+                  <BoardCard key={game.id} game={game} members={members} onMove={(item, next, from) => move(item, next, true, from)} registerStatusSelect={(id, node) => {
                     if (node) statusSelects.current.set(id, node);
                     else if (statusSelects.current.get(id)?.isConnected === false) statusSelects.current.delete(id);
                   }} />

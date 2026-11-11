@@ -12,6 +12,7 @@
 @import "./board.css" layer(legacy);
 @import "./identity.css" layer(legacy);
 @import "./boxes.css" layer(legacy);
+@import "./prisma.css" layer(legacy);
 
 @layer base {
   button { background: none; border: 0; padding: 0; font: inherit; color: inherit; }

@@ -28,7 +28,7 @@ export function DrawerHero({ game, ratings, onClose }: { game: Game; ratings?: R
   const color = STATUS_COLOR[game.status];
 
   return (
-    <header className="relative isolate overflow-hidden px-6 pb-5 pt-12">
+    <header className="relative isolate overflow-hidden px-6 pb-6 pt-14 sm:px-10">
       {game.coverUrl && !artFailed ? (
         <img
           src={game.coverUrl} alt="" aria-hidden decoding="async" onError={() => setArtFailed(true)}
@@ -42,7 +42,7 @@ export function DrawerHero({ game, ratings, onClose }: { game: Game; ratings?: R
       <button type="button" onClick={onClose} aria-label="Fechar" className="icon-btn absolute right-4 top-4 z-10 !rounded-full backdrop-blur"><X size={18} /></button>
 
       <div className="flex items-end gap-5">
-        <div className="w-[128px] shrink-0 -rotate-2 shadow-lift transition-transform duration-500 ease-expo hover:rotate-0 hover:scale-105"><Cover game={game} /></div>
+        <div className="drawer-cover w-[128px] shrink-0 -rotate-2 shadow-lift transition-transform duration-500 ease-expo hover:rotate-0 hover:scale-105 sm:w-[200px]"><Cover game={game} /></div>
         <div className="grid min-w-0 gap-2.5 pb-1">
           <span
             className="inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold"
@@ -51,7 +51,7 @@ export function DrawerHero({ game, ratings, onClose }: { game: Game; ratings?: R
             <i className="size-1.5 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
             {STATUS_LABEL[game.status]}
           </span>
-          <h2 id="game-drawer-title" className="font-display text-[28px] font-bold leading-[1.05] tracking-tight text-mist [text-wrap:balance]">{game.title}</h2>
+          <h2 id="game-drawer-title" className="drawer-title font-display text-mist [text-wrap:balance]">{game.title}</h2>
           <p className="text-[13px] text-fog">
             {[game.year || null, game.genres.join(" · ") || null].filter(Boolean).join(" · ") || "Sem metadados"}
           </p>
@@ -63,7 +63,7 @@ export function DrawerHero({ game, ratings, onClose }: { game: Game; ratings?: R
         </div>
       </div>
 
-      <dl className="m-0 mt-5 grid grid-cols-3 gap-2.5">
+      <dl className="m-0 mt-6 grid max-w-[560px] grid-cols-3 gap-2.5">
         <Tile icon={<Clock size={12} aria-hidden />} label="Horas" value={game.playtimeH.toLocaleString("pt-BR")} />
         <Tile icon={<Star size={12} aria-hidden />} label="Minha nota" value={mine !== undefined ? String(mine) : "—"} tone={mine !== undefined ? "text-warn" : "text-fog"} />
         <Tile icon={<TrendingUp size={12} aria-hidden />} label="Média pública" value={avg !== undefined ? String(avg) : "—"} tone={avg !== undefined ? TONE[scoreTone(avg)] : "text-fog"} />

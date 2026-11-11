@@ -14,9 +14,9 @@ beforeEach(() => {
 });
 
 describe("grid density", () => {
-  it("defaults to comfortable and remembers the choice across reloads", async () => {
+  it("defaults to the rails view and remembers the choice across reloads", async () => {
     const { useUi } = await import("./ui");
-    expect(useUi.getState().density).toBe("comfortable");
+    expect(useUi.getState().density).toBe("rails");
     useUi.getState().setDensity("compact");
     expect(values.get("games-gallery:density")).toBe("compact");
     vi.resetModules();
@@ -32,18 +32,38 @@ describe("grid density", () => {
     expect(again.useUi.getState().density).toBe("boxes");
   });
 
+  it("remembers the list view", async () => {
+    const { useUi } = await import("./ui");
+    useUi.getState().setDensity("list");
+    vi.resetModules();
+    const again = await import("./ui");
+    expect(again.useUi.getState().density).toBe("list");
+  });
+
   it("ignores a tampered stored value", async () => {
     values.set("games-gallery:density", "<script>");
     const { useUi } = await import("./ui");
-    expect(useUi.getState().density).toBe("comfortable");
+    expect(useUi.getState().density).toBe("rails");
   });
 
   it("still works in memory when storage throws", async () => {
     vi.stubGlobal("localStorage", { getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); } });
     const { useUi } = await import("./ui");
-    expect(useUi.getState().density).toBe("comfortable");
+    expect(useUi.getState().density).toBe("rails");
     useUi.getState().setDensity("compact");
     expect(useUi.getState().density).toBe("compact");
+  });
+});
+
+describe("ambient colors", () => {
+  it("keeps the same state object when the colors do not change", async () => {
+    const { useUi } = await import("./ui");
+    useUi.getState().setAmbient(["#111", "#222"]);
+    const before = useUi.getState();
+    useUi.getState().setAmbient(["#111", "#222"]);
+    expect(useUi.getState()).toBe(before);
+    useUi.getState().setAmbient(null);
+    expect(useUi.getState().ambient).toBeNull();
   });
 });
 

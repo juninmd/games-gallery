@@ -35,22 +35,29 @@ O modo **Caixas** mostra cada jogo como a embalagem de varejo da plataforma (est
 
 ![Caixas](docs/ui/boxes.png)
 
-### Sidebar
+### Interface Prisma
 
-- **Perfil e nível:** anel de XP em volta do nível (1 h jogada = 1 XP, jogo zerado = 20, nota dada = 2; ver `src/domain/profile.ts`), título por faixa de nível, barra de status da coleção, % zerados e GB em disco.
-- **Paleta de comandos (`Ctrl`/`⌘` + `K`):** vai para qualquer tela, adiciona jogo e abre qualquer título, tudo pelo teclado (setas, Enter, Esc).
-- **Jogando agora:** o jogo em andamento com atalho para abrir e "Sortear do backlog".
-- **Navegação:** pílula ativa que desliza, brilho que segue o ponteiro e contadores; tarefas em andamento aparecem no rodapé.
-- **Recolher:** botão no rodapé (a escolha fica salva); em janelas estreitas (≤ 860 px) vira trilho de ícones automaticamente.
+Sem barra lateral: o conteúdo ocupa a janela inteira e o fundo assume as cores do jogo em foco (cor da plataforma + um tom derivado do título), com transição suave.
 
-![Sidebar](docs/ui/sidebar.png)
-![Paleta de comandos](docs/ui/palette.png)
+- **Barra de comando (topo):** logo, **busca inteligente**, adicionar jogo, paleta de comandos e o anel de nível. Palavras como `ps2`, `zerado`, `steam`, `instalado`, `emprestado`, `duplicado` ou `#tag` viram filtros removíveis ao apertar espaço (`src/domain/searchTokens.ts`); o resto busca título, gênero e tags. Backspace no campo vazio desfaz o último filtro e devolve a palavra.
+- **Perfil:** o anel abre um painel com nível e XP (1 h jogada = 1 XP, jogo zerado = 20, nota dada = 2; ver `src/domain/profile.ts`), barra de status da coleção, % zerados, GB em disco, **Jogando agora** com "Sortear do backlog", tarefas em andamento e o aviso de nova versão.
+- **Dock flutuante (rodapé):** Biblioteca, Instalados, Quero jogar, Plataformas, Promoções, Jogos grátis, Estatísticas e **Central**. Os ícones crescem sob o cursor, uma pílula desliza até a tela ativa e as teclas `1`–`8` trocam de tela. A troca usa View Transitions.
+- **Central:** Conexões, Provedores, Pastas, Emuladores e Ajustes juntos, com abas.
+- **Biblioteca:** destaque em carrossel (o que você está jogando, girando sozinho e pausando ao passar o mouse), números animados e uma barra fixa com o modo de exibição (**Trilhos**, **Grade**, **Compacta**, **Lista**, **Caixas**; `G` alterna), lojas, ordenação e o painel **Filtros** (plataforma, status, tag, só instalados, só comprados, em mais de uma loja, emprestados). Trilhos agrupam continue jogando, backlog, prontos para jogar, mais jogados, zerados com nota alta, físico/retrô, em mais de uma loja e wishlist; "Ver todos" abre a grade filtrada.
+- **Cards:** tilt 3D com brilho, botão de jogar direto no card quando o jogo está instalado e a capa "voa" até a página do jogo.
+- **Paleta de comandos (`Ctrl`/`⌘` + `K`):** telas, ações, modos de exibição e qualquer título.
+- Zerar um jogo (no detalhe ou no quadro "Quero jogar") solta confete. Tudo respeita `prefers-reduced-motion`.
+
+![Biblioteca](docs/ui/prisma-library.png)
+![Busca inteligente](docs/ui/prisma-search.png)
+![Lista](docs/ui/prisma-list.png)
+![Central](docs/ui/prisma-central.png)
 
 ### Detalhes do jogo
 
-Painel lateral com hero cinematográfico (arte desfocada, capa flutuante, status, horas, minha nota e média pública), três abas (**Visão geral**, **Notas**, **Jogar**; navegáveis com ← →) e barra de ação fixa no rodapé com a ação certa para o estado do jogo (comprar, instalar/preparar, jogar), desinstalar e remover com confirmação em dois cliques. Status em pílulas coloridas, estrelas com prévia ao passar o mouse e contador de horas com `−` / `+` e atalhos `+2 h`, `+5 h`, `+10 h`.
+Página imersiva (abre por cima da tela, com a capa vindo do card) com hero cinematográfico (arte desfocada, capa flutuante, status, horas, minha nota e média pública), três abas (**Visão geral**, **Notas**, **Jogar**; navegáveis com ← →) e barra de ação fixa no rodapé com a ação certa para o estado do jogo (comprar, instalar/preparar, jogar), desinstalar e remover com confirmação em dois cliques. Status em pílulas coloridas, estrelas com prévia ao passar o mouse e contador de horas com `−` / `+` e atalhos `+2 h`, `+5 h`, `+10 h`.
 
-![Detalhes do jogo](docs/ui/drawer.png)
+![Detalhes do jogo](docs/ui/prisma-detail.png)
 ![Aba Jogar](docs/ui/drawer-play.png)
 
 ## Executáveis (Tauri 2)

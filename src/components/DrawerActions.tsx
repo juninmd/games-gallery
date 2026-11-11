@@ -31,7 +31,7 @@ export function DrawerActions({ game, launch }: { game: Game; launch: LaunchStat
   };
 
   return (
-    <footer className="sticky bottom-0 z-10 mt-auto grid gap-3 border-t border-white/10 bg-ink-900/85 px-6 py-4 backdrop-blur-xl">
+    <footer className="sticky bottom-0 z-10 mt-auto grid gap-3 border-t border-white/10 bg-ink-900/85 px-6 py-4 backdrop-blur-xl sm:px-10">
       <div className="flex items-center gap-2.5">
         {!game.owned ? (
           <button className={primary} onClick={() => patchGame(game.id, { owned: true, status: "backlog" })}>Marcar como comprado</button>

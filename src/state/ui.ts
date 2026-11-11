@@ -8,19 +8,15 @@ interface Toast {
   msg: string;
 }
 
-const COLLAPSE_KEY = "games-gallery:sidebar-collapsed";
-const readCollapsed = () => {
-  try { return localStorage.getItem(COLLAPSE_KEY) === "1"; } catch { return false; }
-};
-
 const DENSITY_KEY = "games-gallery:density";
-export type Density = "comfortable" | "compact" | "boxes";
-const DENSITIES: readonly Density[] = ["comfortable", "compact", "boxes"];
+/** How the library lays out games: themed rails, a grid (two sizes), a table-like list or 3D boxes. */
+export type Density = "rails" | "comfortable" | "compact" | "list" | "boxes";
+export const DENSITIES: readonly Density[] = ["rails", "comfortable", "compact", "list", "boxes"];
 const readDensity = (): Density => {
   try {
     const stored = localStorage.getItem(DENSITY_KEY);
-    return DENSITIES.find((d) => d === stored) ?? "comfortable";
-  } catch { return "comfortable"; }
+    return DENSITIES.find((d) => d === stored) ?? "rails";
+  } catch { return "rails"; }
 };
 
 interface UiState {
@@ -30,9 +26,10 @@ interface UiState {
   setDensity: (density: Density) => void;
   setShortcutsOpen: (open: boolean) => void;
   paletteOpen: boolean;
-  sidebarCollapsed: boolean;
   setPaletteOpen: (open: boolean) => void;
-  toggleSidebar: () => void;
+  /** Colors of the game in focus; the ambient backdrop fades to them. Null = signature colors. */
+  ambient: [string, string] | null;
+  setAmbient: (ambient: [string, string] | null) => void;
   filter: GameFilter;
   selectedId: string | null;
   addOpen: boolean;
@@ -56,13 +53,9 @@ export const useUi = create<UiState>((set) => ({
   },
   setShortcutsOpen: (shortcutsOpen) => set({ shortcutsOpen }),
   paletteOpen: false,
-  sidebarCollapsed: readCollapsed(),
   setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
-  toggleSidebar: () => set((s) => {
-    const sidebarCollapsed = !s.sidebarCollapsed;
-    try { localStorage.setItem(COLLAPSE_KEY, sidebarCollapsed ? "1" : "0"); } catch { /* storage unavailable: keep in memory */ }
-    return { sidebarCollapsed };
-  }),
+  ambient: null,
+  setAmbient: (ambient) => set((s) => (s.ambient?.[0] === ambient?.[0] && s.ambient?.[1] === ambient?.[1] ? s : { ambient })),
   filter: EMPTY_FILTER,
   selectedId: null,
   addOpen: false,

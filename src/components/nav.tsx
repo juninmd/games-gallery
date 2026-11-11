@@ -1,4 +1,4 @@
-import { BarChart3, Cpu, FolderSearch, Gamepad2, Gift, HardDriveDownload, Plug, Tags, Kanban, Library, Settings, Store } from "lucide-react";
+import { BarChart3, Blocks, Cpu, FolderSearch, Gamepad2, Gift, HardDriveDownload, Plug, Tags, Kanban, Library, Settings, Store } from "lucide-react";
 import type { ReactNode } from "react";
 import type { View } from "../state/ui";
 
@@ -33,3 +33,19 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     ],
   },
 ];
+
+/** System screens grouped behind one dock item, switched with tabs. */
+export const CENTRAL_VIEWS: View[] = ["connections", "providers", "folders", "emulators", "settings"];
+export const isCentral = (view: View) => CENTRAL_VIEWS.includes(view);
+
+export interface DockItem { view: View; label: string; icon: ReactNode }
+/** The floating dock: collection and discovery screens, then stats and the system Central. */
+export const DOCK_GROUPS: DockItem[][] = [
+  NAV_GROUPS[0]!.items,
+  NAV_GROUPS[1]!.items.filter((n) => n.view === "deals" || n.view === "freebies"),
+  [
+    NAV_GROUPS[2]!.items.find((n) => n.view === "stats")!,
+    { view: "connections", label: "Central", icon: <Blocks size={18} /> },
+  ],
+];
+export const DOCK_ITEMS: DockItem[] = DOCK_GROUPS.flat();

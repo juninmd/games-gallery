@@ -13,6 +13,7 @@ import { DrawerHero } from "./DrawerHero";
 import { LaunchPanel } from "./LaunchPanel";
 import { RatingsPanel } from "./RatingsPanel";
 import { StoresPanel } from "./StoresPanel";
+import { confettiFrom } from "./confetti";
 import { useLaunch } from "./useLaunch";
 import { useNativeDialog } from "./useNativeDialog";
 
@@ -40,8 +41,10 @@ function Section({ title, children, aside }: { title: string; children: React.Re
 
 function StatusPicker({ game }: { game: Game }) {
   const patchGame = useLibrary((s) => s.patchGame);
-  const setStatus = (status: PlayStatus) =>
-    patchGame(game.id, status === "wishlist" ? { status, owned: false, installed: false, loan: undefined } : { status, owned: true });
+  const setStatus = (status: PlayStatus, from?: Element) => {
+    if (status === "completed" && game.status !== "completed") confettiFrom(from);
+    return patchGame(game.id, status === "wishlist" ? { status, owned: false, installed: false, loan: undefined } : { status, owned: true });
+  };
 
   return (
     <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Status do jogo">
@@ -53,7 +56,7 @@ function StatusPicker({ game }: { game: Game }) {
             key={s}
             role="radio"
             aria-checked={on}
-            onClick={() => setStatus(s)}
+            onClick={(e) => setStatus(s, e.currentTarget)}
             className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[12.5px] font-semibold transition-all duration-300 ease-expo hover:-translate-y-0.5 active:scale-95"
             style={on
               ? { color: c, borderColor: c, background: `${c}26`, boxShadow: `0 8px 22px -10px ${c}` }
@@ -124,7 +127,7 @@ function HoursStepper({ game }: { game: Game }) {
 function Overview({ game }: { game: Game }) {
   const patchGame = useLibrary((s) => s.patchGame);
   return (
-    <div className="grid gap-4">
+    <div className="overview-grid grid gap-4">
       <StoresPanel game={game} />
       <Section title="Status"><StatusPicker game={game} /></Section>
       <Section title="Coleção"><CollectionPanel game={game} /></Section>
@@ -171,7 +174,7 @@ function GameDetails({ game, onClose }: { game: Game; onClose: () => void }) {
     <div className="flex min-h-full flex-col">
       <DrawerHero game={game} ratings={entry} onClose={onClose} />
 
-      <div className="px-6">
+      <div className="px-6 sm:px-10">
         <div role="tablist" aria-label="Seções do jogo" onKeyDown={onTabKey} className="relative flex gap-1 border-b border-white/10">
           {TABS.map((t) => (
             <button
@@ -191,7 +194,7 @@ function GameDetails({ game, onClose }: { game: Game; onClose: () => void }) {
         </div>
       </div>
 
-      <div key={tab} id={`drawer-panel-${tab}`} role="tabpanel" aria-labelledby={`drawer-tab-${tab}`} className="animate-rise px-6 py-5">
+      <div key={tab} id={`drawer-panel-${tab}`} role="tabpanel" aria-labelledby={`drawer-tab-${tab}`} className="animate-rise px-6 py-5 sm:px-10">
         {tab === "overview" && <Overview game={game} />}
         {tab === "scores" && <RatingsPanel game={game} />}
         {tab === "play" && <LaunchPanel game={game} launch={launch} />}
