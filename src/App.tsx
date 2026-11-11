@@ -5,8 +5,12 @@ import { CommandPalette } from "./components/CommandPalette";
 import { GameDrawer } from "./components/GameDrawer";
 import { Toasts } from "./components/Overlays";
 import { ShortcutsHelp } from "./components/ShortcutsHelp";
-import { Sidebar } from "./components/Sidebar";
-import { useCompactSidebar } from "./components/useCompactSidebar";
+import { isCentral } from "./components/nav";
+import { Ambient } from "./components/shell/Ambient";
+import { CentralTabs } from "./components/shell/CentralTabs";
+import { Dock } from "./components/shell/Dock";
+import { Intro } from "./components/shell/Intro";
+import { TopBar } from "./components/shell/TopBar";
 import { useLibrary } from "./state/library";
 import { watchPriceAlerts } from "./state/alertWatcher";
 import { useSecrets } from "./state/secrets";
@@ -74,7 +78,6 @@ function CurrentView() {
 
 export function App() {
   const view = useUi((s) => s.view);
-  const { compact } = useCompactSidebar();
 
   // Real data on first paint: executables on disk, then the launchers' libraries when empty.
   useEffect(() => {
@@ -90,14 +93,22 @@ export function App() {
 
   return (
     <LazyMotion features={loadMotionFeatures} strict>
-    <div className="app" style={{ gridTemplateColumns: `${compact ? 76 : 280}px minmax(0, 1fr)` }}>
-      <Sidebar />
-      <main className="main"><div className="view-enter" key={view}><CurrentView /></div></main>
+    <div className="app">
+      <Ambient />
+      <main className="main">
+        <TopBar />
+        <div className="stage">
+          {isCentral(view) && <CentralTabs />}
+          <div className="view-enter" key={view}><CurrentView /></div>
+        </div>
+      </main>
+      <Dock />
       <GameDrawer />
       <AddGameModal />
       <CommandPalette />
       <ShortcutsHelp />
       <Toasts />
+      <Intro />
     </div>
     </LazyMotion>
   );

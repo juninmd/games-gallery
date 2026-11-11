@@ -5,7 +5,10 @@ import { useNativeDialog } from "./useNativeDialog";
 const mod = typeof navigator !== "undefined" && /mac/i.test(navigator.platform) ? "⌘" : "Ctrl";
 const SHORTCUTS: [string[], string][] = [
   [[mod, "K"], "Abrir a paleta: telas, ações e jogos"],
-  [["/"], "Ir para a busca da biblioteca"],
+  [["/"], "Ir para a busca inteligente"],
+  [["1", "…", "8"], "Trocar de tela pelo dock"],
+  [["G"], "Alternar Trilhos, Grade, Compacta, Lista e Caixas"],
+  [["⌫"], "Na busca vazia, desfazer o último filtro"],
   [["?"], "Mostrar esta ajuda"],
   [["Esc"], "Fechar a janela ou o painel aberto"],
   [["←", "→"], "Trocar de aba no painel do jogo"],

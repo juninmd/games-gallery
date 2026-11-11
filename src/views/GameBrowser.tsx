@@ -1,11 +1,12 @@
-import { BadgeCheck, Hourglass, LayoutGrid, Library, Package, Rows3, Timer } from "lucide-react";
-import { useDeferredValue, useMemo, useState, type ReactNode } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { BoxShelf } from "../components/box/BoxShelf";
 import { CountUp } from "../components/CountUp";
-import { FeaturedHero } from "../components/FeaturedHero";
 import { FilterBar } from "../components/FilterBar";
 import { GameCard } from "../components/GameCard";
-import { featuredGroup, filterGameGroups, groupGames, groupStats } from "../domain/duplicates";
+import { GameList } from "../components/GameList";
+import { GameRails } from "../components/GameRails";
+import { HeroCarousel } from "../components/HeroCarousel";
+import { featuredGroup, filterGameGroups, groupGames, groupStats, nowPlayingGroups } from "../domain/duplicates";
 import { CLEARED_FILTER, hasActiveFilter } from "../domain/filter";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { useLibrary } from "../state/library";
@@ -15,12 +16,12 @@ const PAGE_SIZE = 60;
 /** Every box is a small 3D scene, so a shelf page holds fewer of them. */
 const BOX_PAGE_SIZE = 30;
 
-function StatTile({ icon, label, value, accent }: { icon: ReactNode; label: string; value: number; accent: string }) {
+function Num({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="glass group relative min-w-[118px] overflow-hidden rounded-2xl px-4 py-3 transition-all duration-300 ease-expo hover:-translate-y-1 hover:border-white/20">
-      <span aria-hidden className={`absolute -right-5 -top-5 size-16 rounded-full opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-60 ${accent}`} />
-      <dt className="relative flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">{icon}{label}</dt>
-      <dd className="relative m-0 mt-1 font-display text-[28px] font-bold leading-none tracking-tight text-mist tabular-nums"><CountUp value={value} /></dd>
+    <div className="lib-num">
+      <i aria-hidden style={{ background: color }} />
+      <dd><CountUp value={value} /></dd>
+      <dt>{label}</dt>
     </div>
   );
 }
@@ -39,7 +40,6 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const setAddOpen = useUi((s) => s.setAddOpen);
   const go = useUi((s) => s.go);
   const density = useUi((s) => s.density);
-  const setDensity = useUi((s) => s.setDensity);
   const deferredFilter = useDeferredValue(filter);
   const isUpdating = deferredFilter !== filter;
   const [pageState, setPageState] = useState<PageState>(() => ({ scope, filter, page: 1 }));
@@ -59,7 +59,10 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const stats = useMemo(() => groupStats(allGroups), [allGroups]);
   const scopedCount = scope === "installed" ? stats.installed : stats.total;
   const platform = filter.platformId ? PLATFORM_BY_ID[filter.platformId] : null;
-  const pageSize = density === "boxes" ? BOX_PAGE_SIZE : PAGE_SIZE;
+  const filtering = hasActiveFilter(filter);
+  // Rails summarize the whole collection; a filter or search switches them to the grid of results.
+  const mode = density === "rails" && filtering ? "comfortable" : density;
+  const pageSize = mode === "boxes" ? BOX_PAGE_SIZE : PAGE_SIZE;
   const pageCount = Math.max(1, Math.ceil(shown.length / pageSize));
   const requestedPage = criteriaChanged ? 1 : pageState.page;
   const page = Math.min(requestedPage, pageCount);
@@ -68,32 +71,38 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const rangeStart = shown.length ? (page - 1) * pageSize + 1 : 0;
   const rangeEnd = Math.min(page * pageSize, shown.length);
 
-  const filtering = hasActiveFilter(filter);
-  const featured = useMemo(() => (scope === "all" ? featuredGroup(allGroups) : undefined), [scope, allGroups]);
-  const showHero = scope === "all" && !filtering && page === 1;
+  const slides = useMemo(() => {
+    if (scope !== "all") return [];
+    const playing = nowPlayingGroups(allGroups).slice(0, 5);
+    if (playing.length) return playing;
+    const featured = featuredGroup(allGroups);
+    return featured ? [featured] : [];
+  }, [scope, allGroups]);
+  const showHero = scope === "all" && !filtering && page === 1 && slides.length > 0;
 
   const clearFilters = () => setFilter(CLEARED_FILTER);
 
   return (
     <>
-      <header className="mb-7 flex flex-wrap items-end justify-between gap-6">
-        <div className="grid gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-fog">Sua coleção</span>
-          <h1 className="text-gradient w-fit pb-1">{scope === "installed" ? "Instalados" : platform ? platform.name : "Biblioteca"}</h1>
-          <p className="text-sm text-fog" aria-live="polite">
-            {shown.length} de {scopedCount} jogos
-            {stats.duplicates > 0 && <span> · {stats.duplicates} em mais de uma loja</span>}
-            {isUpdating && <span className="updating text-aurora"> · Atualizando resultados…</span>}
-          </p>
-        </div>
-        <dl className="m-0 flex flex-wrap gap-3">
-          <StatTile icon={<Library size={12} aria-hidden />} label="Comprados" value={stats.owned} accent="bg-rose" />
-          <StatTile icon={<BadgeCheck size={12} aria-hidden />} label="Instalados" value={stats.installed} accent="bg-aurora" />
-          <StatTile icon={<Hourglass size={12} aria-hidden />} label="Backlog" value={stats.backlog} accent="bg-ember" />
-          <StatTile icon={<Timer size={12} aria-hidden />} label="Horas" value={stats.hours} accent="bg-orchid" />
+      {showHero ? <HeroCarousel slides={slides} groups={allGroups} /> : (
+        <header className="lib-head">
+          <span className="eyebrow">Sua coleção</span>
+          <h1 className="lib-title text-gradient">{scope === "installed" ? "Instalados" : platform ? platform.name : filtering ? "Resultados" : "Biblioteca"}</h1>
+        </header>
+      )}
+      <div className="lib-nums">
+        <dl>
+          <Num label="Comprados" value={stats.owned} color="var(--color-rose)" />
+          <Num label="Instalados" value={stats.installed} color="var(--color-aurora)" />
+          <Num label="Backlog" value={stats.backlog} color="var(--color-orchid)" />
+          <Num label="Horas" value={stats.hours} color="var(--color-ember)" />
         </dl>
-      </header>
-      {showHero && featured && <FeaturedHero group={featured} />}
+        <p aria-live="polite">
+          {shown.length} de {scopedCount} jogos
+          {stats.duplicates > 0 && <span> · {stats.duplicates} em mais de uma loja</span>}
+          {isUpdating && <span className="updating text-aurora"> · Atualizando resultados…</span>}
+        </p>
+      </div>
       <FilterBar lockInstalled={scope === "installed"} />
 
       {games.length === 0 ? (
@@ -123,30 +132,33 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
         </section>
       ) : (
         <>
-          <div className="result-toolbar" aria-busy={isUpdating}>
-            <p className="muted" aria-live="polite">
-              Exibindo {rangeStart}–{rangeEnd} de {shown.length} jogos
-              {isUpdating && <span className="updating"> · Atualizando…</span>}
-            </p>
-            <div className="flex items-center gap-1" role="group" aria-label="Densidade da grade">
-              <button type="button" className="btn ghost" aria-pressed={density === "comfortable"} title="Capas grandes" onClick={() => setDensity("comfortable")}><LayoutGrid size={14} aria-hidden /> Confortável</button>
-              <button type="button" className="btn ghost" aria-pressed={density === "compact"} title="Mais jogos por tela" onClick={() => setDensity("compact")}><Rows3 size={14} aria-hidden /> Compacta</button>
-              <button type="button" className="btn ghost" aria-pressed={density === "boxes"} title="Caixas de jogo em estante 3D" onClick={() => setDensity("boxes")}><Package size={14} aria-hidden /> Caixas</button>
+          {mode !== "rails" && (
+            <div className="result-toolbar" aria-busy={isUpdating}>
+              <p className="muted" aria-live="polite">
+                Exibindo {rangeStart}–{rangeEnd} de {shown.length} jogos
+                {isUpdating && <span className="updating"> · Atualizando…</span>}
+              </p>
+              {pageCount > 1 && (
+                <nav className="pagination" aria-label="Paginação da biblioteca">
+                  <button className="btn" type="button" onClick={() => setPageState((s) => ({ ...s, page: Math.max(1, s.page - 1) }))} disabled={page <= 1}>
+                    Anterior
+                  </button>
+                  <span aria-current="page">Página {page} de {pageCount}</span>
+                  <button className="btn" type="button" onClick={() => setPageState((s) => ({ ...s, page: Math.min(pageCount, s.page + 1) }))} disabled={page >= pageCount}>
+                    Próxima
+                  </button>
+                </nav>
+              )}
             </div>
-            <nav className="pagination" aria-label="Paginação da biblioteca">
-              <button className="btn" type="button" onClick={() => setPageState((s) => ({ ...s, page: Math.max(1, s.page - 1) }))} disabled={page <= 1}>
-                Anterior
-              </button>
-              <span aria-current="page">Página {page} de {pageCount}</span>
-              <button className="btn" type="button" onClick={() => setPageState((s) => ({ ...s, page: Math.min(pageCount, s.page + 1) }))} disabled={page >= pageCount}>
-                Próxima
-              </button>
-            </nav>
-          </div>
-          {density === "boxes" ? (
+          )}
+          {mode === "rails" ? (
+            <GameRails groups={shown} />
+          ) : mode === "boxes" ? (
             <BoxShelf groups={pageGames} busy={isUpdating} />
+          ) : mode === "list" ? (
+            <GameList groups={pageGames} busy={isUpdating} />
           ) : (
-            <div className="game-grid" data-density={density} aria-busy={isUpdating}>
+            <div className="game-grid" data-density={mode} aria-busy={isUpdating}>
               {pageGames.map((x, i) => <GameCard key={x.primary.id} game={x.primary} members={x.members} index={i} />)}
             </div>
           )}

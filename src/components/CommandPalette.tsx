@@ -49,6 +49,11 @@ export function CommandPalette() {
       { id: "keys", group: "Ações", label: "Atalhos do teclado", hint: "?", icon: <Keyboard size={17} />, keywords: "ajuda teclas atalhos help", run: () => useUi.getState().setShortcutsOpen(true) },
       { id: "dupes", group: "Ações", label: "Mostrar jogos em mais de uma loja", hint: "repetidos", icon: <Copy size={17} />, keywords: "duplicados unificados lojas repetido", run: () => go("library", { multiStoreOnly: true }) },
       { id: "loans", group: "Ações", label: "Mostrar jogos emprestados", hint: "empréstimos", icon: <HandCoins size={17} />, keywords: "emprestado emprestimo fisico midia amigo", run: () => go("library", { loanedOnly: true }) },
+      ...([["rails", "Trilhos"], ["comfortable", "Grade"], ["compact", "Grade compacta"], ["list", "Lista"], ["boxes", "Caixas 3D"]] as const).map(([d, label]) => ({
+        id: `mode:${d}`, group: "Exibição", label: `Mostrar como ${label}`, hint: "biblioteca", icon: <Gamepad2 size={17} />,
+        keywords: "modo densidade grade lista caixas trilhos capas exibir",
+        run: () => { useUi.getState().setDensity(d); if (useUi.getState().view !== "installed") go("library"); },
+      })),
       ...NAV_GROUPS.flatMap((g) => g.items.map((n) => ({
         id: `go:${n.view}`, group: "Ir para", label: n.label, hint: g.title, icon: n.icon, run: () => go(n.view),
         keywords: n.keywords ?? "",

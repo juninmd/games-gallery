@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 /** Opens a mounted native dialog and returns focus to the element that opened it. */
 export function useNativeDialog(open: boolean, onClose: () => void) {
@@ -8,7 +8,8 @@ export function useNativeDialog(open: boolean, onClose: () => void) {
   const backdropPress = useRef(false);
   onCloseRef.current = onClose;
 
-  useEffect(() => {
+  // Layout effect: the dialog is open in the same commit, so View Transitions capture it.
+  useLayoutEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     if (open) {

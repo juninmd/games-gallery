@@ -1,3 +1,4 @@
+import { Play } from "lucide-react";
 import { memo, useRef, type CSSProperties, type PointerEvent } from "react";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
@@ -6,13 +7,26 @@ import { StoreChips } from "./StoreChips";
 import { useUi } from "../state/ui";
 import { Cover } from "./Cover";
 import { EmulatorChip } from "./EmulatorChip";
+import { ambientFor, openGame } from "./shell/ambient";
+import { useLaunch } from "./useLaunch";
 
 const MAX_TILT = 9;
 const canTilt = () =>
   typeof window !== "undefined" && window.matchMedia("(hover: hover)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/** Play straight from the card, without opening the detail page. */
+function QuickPlay({ game }: { game: Game }) {
+  const { plan, play } = useLaunch(game);
+  if (plan.kind === "blocked") return null;
+  return (
+    <button type="button" className="quick-play" onClick={() => void play()} aria-label={`Jogar ${game.title}`} title="Jogar">
+      <Play size={16} className="fill-current" aria-hidden />
+    </button>
+  );
+}
+
 export const GameCard = memo(function GameCard({ game, members = [game], index = 0 }: { game: Game; members?: Game[]; index?: number }) {
-  const select = useUi((s) => s.select);
+  const setAmbient = useUi((s) => s.setAmbient);
   const tilt = useRef<HTMLDivElement>(null);
 
   // Writes CSS variables straight to the node: no React re-render per pointer move.
@@ -34,11 +48,15 @@ export const GameCard = memo(function GameCard({ game, members = [game], index =
     node.style.setProperty("--ry", "0deg");
   };
 
+  const playable = game.installed && game.owned;
+
   return (
+    <div className="game-card relative" onPointerEnter={() => setAmbient(ambientFor(game))}>
     <button
-      className="group relative grid animate-card-in gap-3 text-left focus-visible:outline-none"
+      className="group relative grid w-full animate-card-in gap-3 text-left focus-visible:outline-none"
       style={{ animationDelay: `${Math.min(index, 18) * 28}ms` } as CSSProperties}
-      onClick={() => select(game.id)}
+      onClick={() => openGame(game.id, tilt.current?.querySelector<HTMLElement>(".cover"))}
+      onFocus={() => setAmbient(ambientFor(game))}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
       aria-label={members.length > 1 ? `Abrir ${game.title}, em ${members.length} lojas` : `Abrir ${game.title}`}
@@ -82,5 +100,7 @@ export const GameCard = memo(function GameCard({ game, members = [game], index =
         <EmulatorChip game={game} />
       </div>
     </button>
+    {playable && <QuickPlay game={game} />}
+    </div>
   );
 });
