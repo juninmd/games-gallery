@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useUi } from "../../state/ui";
 
 /** Full-window color field that fades to the game in focus; the signature colors otherwise. */
-export function Ambient() {
+export function AmbientBackdrop() {
   const ambient = useUi((s) => s.ambient);
 
   useEffect(() => {
