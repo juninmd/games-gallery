@@ -6,7 +6,7 @@ import { GameDrawer } from "./components/GameDrawer";
 import { Toasts } from "./components/Overlays";
 import { ShortcutsHelp } from "./components/ShortcutsHelp";
 import { isCentral } from "./components/nav";
-import { Ambient } from "./components/shell/Ambient";
+import { AmbientBackdrop } from "./components/shell/AmbientBackdrop";
 import { CentralTabs } from "./components/shell/CentralTabs";
 import { Dock } from "./components/shell/Dock";
 import { Intro } from "./components/shell/Intro";
@@ -94,7 +94,7 @@ export function App() {
   return (
     <LazyMotion features={loadMotionFeatures} strict>
     <div className="app">
-      <Ambient />
+      <AmbientBackdrop />
       <main className="main">
         <TopBar />
         <div className="stage">
