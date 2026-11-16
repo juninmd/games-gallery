@@ -3,6 +3,7 @@ import { planLaunch } from "../domain/launch";
 import type { Game } from "../domain/types";
 import { launch } from "../platform/runtime";
 import { useLibrary } from "../state/library";
+import { useSessions } from "../state/sessions";
 import { useUi } from "../state/ui";
 
 /** Launch plan and last result for one game, shared by the drawer's action bar and its Jogar tab. */
@@ -17,6 +18,8 @@ export function useLaunch(game: Game) {
     const r = await launch(plan);
     if (!r.ok) return toast(r.error);
     setLast(r.detail);
+    const sessions = useSessions.getState();
+    if (r.pid !== undefined) sessions.started(game.id, r.pid); else sessions.opened(game.id);
     toast(plan.kind === "uri" ? "Aberto no launcher" : "Emulador iniciado");
   };
 

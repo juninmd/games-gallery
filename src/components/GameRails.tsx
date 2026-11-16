@@ -3,6 +3,8 @@ import { useMemo, useRef, type ReactNode } from "react";
 import { totalHours, type GameGroup } from "../domain/duplicates";
 import type { GameFilter } from "../domain/filter";
 import { STATUS_COLOR } from "../domain/status";
+import { recentGameIds } from "../domain/sessions";
+import { useSessions } from "../state/sessions";
 import { useUi } from "../state/ui";
 import { GameCard } from "./GameCard";
 
@@ -13,10 +15,13 @@ interface Rail { id: string; title: string; color: string; groups: GameGroup[]; 
 const physical = (g: GameGroup) => g.members.some((m) => m.providerId === "physical" || m.providerId === "roms");
 
 /** Themed shelves built from the library; each can open the full filtered grid. */
-export function buildRails(groups: GameGroup[]): Rail[] {
+export function buildRails(groups: GameGroup[], recentIds: string[] = []): Rail[] {
   const byHours = (a: GameGroup, b: GameGroup) => totalHours(b.members) - totalHours(a.members);
   const status = (s: GameGroup["primary"]["status"]) => groups.filter((g) => g.primary.status === s);
+  const byMember = new Map(groups.flatMap((g) => g.members.map((m) => [m.id, g] as const)));
+  const recent = [...new Set(recentIds.flatMap((id) => byMember.get(id) ?? []))];
   const rails: Rail[] = [
+    { id: "recent", title: "Jogados recentemente", color: "#7c9cff", groups: recent },
     { id: "playing", title: "Continue jogando", color: STATUS_COLOR.playing, groups: status("playing").sort(byHours), filter: { status: "playing" } },
     { id: "backlog", title: "Quero jogar a seguir", color: STATUS_COLOR.backlog, groups: status("backlog"), filter: { status: "backlog" } },
     { id: "installed", title: "Prontos para jogar", color: "#46f0c1", groups: groups.filter((g) => g.members.some((m) => m.installed)).sort(byHours), filter: { installedOnly: true } },
@@ -43,7 +48,7 @@ function RailRow({ rail, onSeeAll }: { rail: Rail; onSeeAll: () => void }) {
         <div className="rail-tools">
           {nav(-1, <ChevronLeft size={16} aria-hidden />, "Rolar para trás")}
           {nav(1, <ChevronRight size={16} aria-hidden />, "Rolar para frente")}
-          <button type="button" className="rail-all" onClick={onSeeAll}>Ver todos</button>
+          {(rail.filter || rail.sort) && <button type="button" className="rail-all" onClick={onSeeAll}>Ver todos</button>}
         </div>
       </header>
       <div ref={track} className="rail-track">
@@ -56,7 +61,9 @@ function RailRow({ rail, onSeeAll }: { rail: Rail; onSeeAll: () => void }) {
 export function GameRails({ groups }: { groups: GameGroup[] }) {
   const setFilter = useUi((s) => s.setFilter);
   const setDensity = useUi((s) => s.setDensity);
-  const rails = useMemo(() => buildRails(groups), [groups]);
+  const sessions = useSessions((s) => s.sessions);
+  const recentIds = useMemo(() => recentGameIds(sessions, RAIL_MAX), [sessions]);
+  const rails = useMemo(() => buildRails(groups, recentIds), [groups, recentIds]);
 
   return (
     <div className="rails">

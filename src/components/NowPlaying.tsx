@@ -4,6 +4,7 @@ import { groupGames, nowPlayingGroups, pickBacklog, totalHours } from "../domain
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
 import { Cover } from "./Cover";
+import { ResumeCard } from "./ResumeCard";
 
 /** The game in progress, or a nudge toward the backlog when nothing is. */
 export function NowPlaying() {
@@ -27,6 +28,7 @@ export function NowPlaying() {
         </span>
         Jogando agora
       </h2>
+      <ResumeCard groups={groups} />
       {playing.length === 0 ? (
         <p className="px-1 text-xs text-fog">Nada em andamento.</p>
       ) : (

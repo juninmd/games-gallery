@@ -150,6 +150,13 @@ export async function onEmulatorOutput(handler: (payload: { id: string; line: st
   return listen<{ id: string; line: string }>("emulator-output", (event) => handler(event.payload));
 }
 
+/** Fires when an emulator started by `launchEmulator` exits (installed app only). */
+export async function onEmulatorExit(handler: (payload: { pid: number }) => void): Promise<() => void> {
+  if (!isTauri()) return () => undefined;
+  const { listen } = await import("@tauri-apps/api/event");
+  return listen<{ pid: number }>("emulator-exit", (event) => handler(event.payload));
+}
+
 /** Libraries that live on a store server: the user signs in inside a throw-away native window. */
 export type WindowLoginStore = "battlenet" | "ea" | "ubisoft";
 
