@@ -13,6 +13,7 @@ import { Intro } from "./components/shell/Intro";
 import { TopBar } from "./components/shell/TopBar";
 import { useLibrary } from "./state/library";
 import { watchPriceAlerts } from "./state/alertWatcher";
+import { watchSessions } from "./state/sessions";
 import { useSecrets } from "./state/secrets";
 import { useUpdates } from "./state/updates";
 import { isTauri } from "./platform/runtime";
@@ -86,6 +87,7 @@ export function App() {
     void useSecrets.getState().hydrate().then(watchPriceAlerts);
     const library = useLibrary.getState();
     void library.refreshEmulators();
+    void watchSessions();
     if (!library.games.length) void library.detect();
     // Installed app only: look for a newer GitHub release a few seconds after the window opens.
     if (isTauri()) setTimeout(() => void useUpdates.getState().check({ auto: true }), 5000);

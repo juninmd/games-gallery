@@ -3,7 +3,7 @@ import type { LaunchPlan } from "../domain/launch";
 
 export const isTauri = () => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
-export type LaunchResult = { ok: true; detail: string } | { ok: false; error: string };
+export type LaunchResult = { ok: true; detail: string; pid?: number } | { ok: false; error: string };
 
 /** Store schemes the installed app is allowed to hand to the OS (mirrored in the Tauri capabilities). */
 const STORE_SCHEMES = new Set(["steam:", "goggalaxy:", "com.epicgames.launcher:", "uplay:", "battlenet:", "itch:"]);
@@ -42,7 +42,7 @@ export async function launch(plan: LaunchPlan): Promise<LaunchResult> {
   try {
     const { launchEmulator } = await import("./native");
     const pid = await launchEmulator(plan.exe, plan.args);
-    return { ok: true, detail: `${plan.preview} (PID ${pid})` };
+    return { ok: true, detail: `${plan.preview} (PID ${pid})`, pid };
   } catch (e) {
     return { ok: false, error: asError(e) };
   }

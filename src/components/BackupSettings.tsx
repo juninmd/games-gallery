@@ -3,6 +3,7 @@ import { exportBackup, parseBackup } from "../domain/backup";
 import { pickTextFile, saveTextFile } from "../platform/files";
 import { useLibrary } from "../state/library";
 import { usePriceAlerts } from "../state/priceAlerts";
+import { useSessions } from "../state/sessions";
 import { useUi } from "../state/ui";
 
 export function BackupSettings() {
@@ -12,7 +13,7 @@ export function BackupSettings() {
     const { games, scans, providers, emulators, settings } = useLibrary.getState();
     const day = new Date().toISOString().slice(0, 10);
     try {
-      if (await saveTextFile(`games-gallery-${day}.json`, exportBackup({ games, scans, providers, emulators, priceTargets: usePriceAlerts.getState().targets, settings }))) {
+      if (await saveTextFile(`games-gallery-${day}.json`, exportBackup({ games, scans, providers, emulators, priceTargets: usePriceAlerts.getState().targets, sessions: useSessions.getState().sessions, settings }))) {
         toast(`Backup exportado: ${games.length} jogos`);
       }
     } catch (e) {
@@ -30,6 +31,7 @@ export function BackupSettings() {
       if (!window.confirm(`Substituir a biblioteca atual por ${r.data.games.length} jogos do backup?${note}`)) return;
       useLibrary.getState().restore(r.data);
       if (r.data.priceTargets) usePriceAlerts.setState({ targets: r.data.priceTargets });
+      if (r.data.sessions) useSessions.getState().replace(r.data.sessions);
       toast(`Backup importado: ${r.data.games.length} jogos`);
     } catch (e) {
       toast(`Falha ao importar: ${String(e)}`);

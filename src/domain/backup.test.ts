@@ -137,3 +137,17 @@ describe("price targets in a backup", () => {
     expect(r.ok && r.data.priceTargets).toBeUndefined();
   });
 });
+
+describe("play sessions in a backup", () => {
+  it("round-trips sessions and drops malformed ones; an old backup keeps the current ones", () => {
+    const session = { gameId: "g1", start: "2026-11-01T20:00:00.000Z", minutes: 45, kind: "exec" as const };
+    const text = exportBackup({ ...data(), sessions: [session] });
+    expect(parseBackup(text)).toMatchObject({ ok: true, data: { sessions: [session] } });
+    const forged = JSON.parse(text);
+    forged.sessions = [session, { gameId: "g2", start: "ontem", kind: "exec" }, { gameId: "g3", start: session.start, kind: "shell" }];
+    const r = parseBackup(JSON.stringify(forged));
+    expect(r.ok && r.data.sessions).toEqual([session]);
+    const old = parseBackup(exportBackup(data()));
+    expect(old.ok && old.data.sessions).toBeUndefined();
+  });
+});

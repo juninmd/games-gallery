@@ -362,9 +362,26 @@ pub fn emulator_cancel(running: tauri::State<Running>, id: String) -> bool {
     }
 }
 
-/// Launches an emulator with an explicit argument vector (never a shell string).
+#[derive(Serialize, Clone)]
+struct EmulatorExit {
+    pid: u32,
+}
+
+/// Launches an emulator with an explicit argument vector (never a shell string) and emits
+/// `emulator-exit` when the process ends, so the UI can record the play session.
 #[tauri::command]
-pub fn emulator_launch(exe: String, args: Vec<String>) -> Result<u32, String> {
+pub fn emulator_launch(app: AppHandle, exe: String, args: Vec<String>) -> Result<u32, String> {
+    let mut child = spawn_emulator(&exe, &args)?;
+    let pid = child.id();
+    std::thread::spawn(move || {
+        // Reaping the child also avoids a zombie process on Unix.
+        let _ = child.wait();
+        let _ = app.emit("emulator-exit", EmulatorExit { pid });
+    });
+    Ok(pid)
+}
+
+fn spawn_emulator(exe: &str, args: &[String]) -> Result<std::process::Child, String> {
     let path = PathBuf::from(exe.trim());
     if !path.is_absolute() {
         return Err("o executável precisa ter caminho absoluto".into());
@@ -376,13 +393,12 @@ pub fn emulator_launch(exe: String, args: Vec<String>) -> Result<u32, String> {
         return Err("argumentos inválidos".into());
     }
     let mut cmd = Command::new(&path);
-    cmd.args(&args).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+    cmd.args(args).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
     if let Some(dir) = path.parent() {
         cmd.current_dir(dir);
     }
     hide_console(&mut cmd);
-    let child = cmd.spawn().map_err(|e| format!("falha ao executar {}: {e}", path.display()))?;
-    Ok(child.id())
+    cmd.spawn().map_err(|e| format!("falha ao executar {}: {e}", path.display()))
 }
 
 #[cfg(test)]
@@ -439,14 +455,14 @@ mod tests {
 
     #[test]
     fn launch_refuses_relative_or_missing_executables() {
-        assert!(emulator_launch("retroarch.exe".into(), vec![]).is_err());
-        assert!(emulator_launch("C:\\definitely\\missing.exe".into(), vec![]).is_err());
+        assert!(spawn_emulator("retroarch.exe", &[]).is_err());
+        assert!(spawn_emulator("C:\\definitely\\missing.exe", &[]).is_err());
         let dir = temp_dir("launch");
         let exe = dir.join("emu.exe");
         std::fs::write(&exe, b"not-a-real-binary").unwrap();
         // The executable exists, so the only failure is the OS refusing to run it.
-        let result = emulator_launch(exe.to_string_lossy().to_string(), vec!["--rom".into()]);
-        assert!(result.is_err() || result.unwrap() > 0);
+        let result = spawn_emulator(&exe.to_string_lossy(), &["--rom".into()]);
+        assert!(result.is_err() || result.unwrap().id() > 0);
         let _ = std::fs::remove_dir_all(dir);
     }
 }
