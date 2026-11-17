@@ -8,6 +8,7 @@ import { ratingEntry, useRatings } from "../state/ratings";
 import { useSecrets } from "../state/secrets";
 import { useUi } from "../state/ui";
 import { BeatEstimate } from "./BeatEstimate";
+import { canShowAchievements, SteamAchievements } from "./SteamAchievements";
 import { CollectionPanel } from "./CollectionPanel";
 import { DrawerActions } from "./DrawerActions";
 import { DrawerHero } from "./DrawerHero";
@@ -127,6 +128,7 @@ function HoursStepper({ game }: { game: Game }) {
 
 function Overview({ game }: { game: Game }) {
   const patchGame = useLibrary((s) => s.patchGame);
+  const steam = useSecrets((s) => canShowAchievements(game, s.steamId, s.steamKey));
   return (
     <div className="overview-grid grid gap-4">
       <StoresPanel game={game} />
@@ -135,6 +137,7 @@ function Overview({ game }: { game: Game }) {
       <Section title="Sua avaliação"><RatingStars game={game} /></Section>
       <Section title="Tempo de jogo"><HoursStepper game={game} /></Section>
       <Section title="Tempo para terminar"><BeatEstimate game={game} /></Section>
+      {steam && <Section title="Conquistas da Steam"><SteamAchievements game={game} /></Section>}
       <section className="glass grid gap-2 rounded-2xl p-4 game-notes">
         <label htmlFor="game-personal-notes" className="!text-[15px] font-display font-semibold !text-mist">Notas pessoais</label>
         <textarea

@@ -49,3 +49,10 @@ export function storeBrowseUrl(appIds: number[], dataRequest: Record<string, boo
   const input = { ids: appIds.map((appid) => ({ appid })), context: { language: "portuguese", country_code: country }, data_request: dataRequest };
   return `https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?${new URLSearchParams({ input_json: JSON.stringify(input) })}`;
 }
+
+/** `ISteamUserStats/GetPlayerAchievements`: needs the user's key and a public "Game details" privacy setting. */
+export function achievementsUrl(appId: string, steamId: string, key: string): string {
+  if (!/^\d{1,10}$/.test(appId) || !isValidSteamId(steamId) || !isValidSteamKey(key)) throw new Error("Steam ID, chave ou app inválidos.");
+  const qs = new URLSearchParams({ appid: appId, key: key.trim(), steamid: steamId.trim(), l: "portuguese", format: "json" });
+  return `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?${qs}`;
+}
