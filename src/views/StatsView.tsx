@@ -1,11 +1,14 @@
 import { useMemo } from "react";
 import { StoreChips } from "../components/StoreChips";
+import { backlogEstimate } from "../domain/backlogEstimate";
 import { groupGames, groupStats } from "../domain/duplicates";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
 import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from "../domain/status";
+import { yearSummary } from "../domain/sessionStats";
 import { type Bucket, computeStats } from "../domain/stats";
 import { useLibrary } from "../state/library";
+import { useSessions } from "../state/sessions";
 import { useUi } from "../state/ui";
 
 function Bars({ title, rows }: { title: string; rows: { key: string; label: string; value: number; color?: string; note?: string }[] }) {
@@ -27,6 +30,9 @@ function Bars({ title, rows }: { title: string; rows: { key: string; label: stri
   );
 }
 
+const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const hoursOf = (minutes: number) => Math.round((minutes / 60) * 10) / 10;
+
 const bucketRows = (b: Bucket[], name: (id: string) => string | undefined) =>
   b.slice(0, 8).map((x) => ({ key: x.id, label: name(x.id) ?? x.id, value: x.games, note: x.hours ? `· ${Math.round(x.hours)} h` : undefined }));
 
@@ -36,6 +42,11 @@ export function StatsView() {
   const s = useMemo(() => computeStats(games), [games]);
   const groups = useMemo(() => groupGames(games), [games]);
   const dup = useMemo(() => groupStats(groups), [groups]);
+  const sessions = useSessions((x) => x.sessions);
+  const year = new Date().getFullYear();
+  const wrapped = useMemo(() => yearSummary(sessions, year), [sessions, year]);
+  const estimate = useMemo(() => backlogEstimate(groups), [groups]);
+  const titleOf = (id: string) => games.find((g) => g.id === id)?.title ?? "Jogo removido";
   const shared = useMemo(() => groups.filter((x) => x.members.length > 1).sort((a, b) => b.members.length - a.members.length || a.primary.title.localeCompare(b.primary.title)).slice(0, 8), [groups]);
 
   return (
@@ -85,8 +96,31 @@ export function StatsView() {
           )}
         </section>
         <section className="panel">
+          <h3 aria-level={2}>Seu {year} em jogos</h3>
+          {!wrapped.sessions ? (
+            <p className="muted small">Nenhuma sessão registrada este ano. As sessões contam a partir do botão Jogar.</p>
+          ) : (
+            <>
+              <p><strong>{hoursOf(wrapped.minutes).toLocaleString("pt-BR")} h</strong> medidas em {wrapped.sessions} sessões, em {wrapped.daysPlayed} dias diferentes.</p>
+              {wrapped.longest?.minutes ? <p className="muted small">Maior sessão: {wrapped.longest.minutes} min em {titleOf(wrapped.longest.gameId)}.</p> : null}
+              <ol className="plain ranked">
+                {wrapped.top.map((t) => (
+                  <li key={t.gameId}><button className="linkish" onClick={() => select(t.gameId)}>{titleOf(t.gameId)}</button> <span className="muted small">{hoursOf(t.minutes)} h</span></li>
+                ))}
+              </ol>
+            </>
+          )}
+        </section>
+        {wrapped.minutes > 0 && <Bars title={`Horas por mês em ${year}`} rows={wrapped.months.map((m, i) => ({ key: String(i), label: MONTHS[i]!, value: hoursOf(m) }))} />}
+        <section className="panel">
           <h3 aria-level={2}>Backlog e disco</h3>
           <p><strong>{s.untouched}</strong> jogos comprados nunca foram jogados.</p>
+          {estimate.games > 0 && (
+            <p>
+              Para terminar o backlog e o que está jogando: <strong>~{estimate.remainingH.toLocaleString("pt-BR")} h</strong>
+              {estimate.withoutEstimate > 0 && <span className="muted small"> ({estimate.withoutEstimate} de {estimate.games} jogos sem estimativa)</span>}
+            </p>
+          )}
           <p><strong>{s.installedGb} GB</strong> ocupados por jogos instalados com tamanho conhecido.</p>
         </section>
       </div>

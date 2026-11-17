@@ -77,6 +77,8 @@ export interface Game {
   installed: boolean;
   sizeGb?: number;
   playtimeH: number;
+  /** Your estimate of hours to finish (manual: HowLongToBeat has no public API). Shared across stores. */
+  hoursToBeat?: number;
   rating?: number;
   romPath?: string;
   /** CRC32 of the ROM file (8 uppercase hex), computed on this machine. */
