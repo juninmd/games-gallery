@@ -170,3 +170,12 @@ export async function windowLoginLibrary(store: WindowLoginStore): Promise<Detec
   const games = await invoke<Array<{ storeId: string; title: string }>>(`${store}_library`);
   return games.map((g) => ({ storeId: safeStoreId(g.storeId), title: g.title, installed: false }));
 }
+
+export interface ShortcutEntry { name: string; exe: string; args: string[] }
+export interface ShortcutSummary { added: number; skipped: number; files: string[] }
+
+/** Adds non-Steam shortcuts to every local Steam account (Steam must be closed). */
+export async function steamAddShortcuts(entries: ShortcutEntry[]): Promise<ShortcutSummary> {
+  if (!isTauri()) throw new Error("Exportar para a Steam só funciona no app instalado.");
+  return invoke<ShortcutSummary>("steam_add_shortcuts", { entries });
+}

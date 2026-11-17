@@ -7,7 +7,7 @@ import { useSecrets } from "../state/secrets";
 
 type Result = { state: "loading" } | { state: "done"; data: AchievementSummary | null } | { state: "error" };
 
-/** In-memory per app session cache, so reopening the drawer does not refetch. */
+/** In-memory cache per account + app, so reopening the drawer does not refetch. */
 const cache = new Map<string, AchievementSummary | null>();
 const dateFmt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" });
 
@@ -19,17 +19,18 @@ export function SteamAchievements({ game }: { game: Game }) {
   const steamId = useSecrets((s) => s.steamId);
   const steamKey = useSecrets((s) => s.steamKey);
   const appId = game.storeId ?? "";
-  const [result, setResult] = useState<Result>(() => (cache.has(appId) ? { state: "done", data: cache.get(appId)! } : { state: "loading" }));
+  const cacheKey = `${steamId}:${appId}`;
+  const [result, setResult] = useState<Result>(() => (cache.has(cacheKey) ? { state: "done", data: cache.get(cacheKey)! } : { state: "loading" }));
 
   useEffect(() => {
-    if (cache.has(appId)) return setResult({ state: "done", data: cache.get(appId)! });
+    if (cache.has(cacheKey)) return setResult({ state: "done", data: cache.get(cacheKey)! });
     let alive = true;
     setResult({ state: "loading" });
     httpGetJson(achievementsUrl(appId, steamId, steamKey))
-      .then((json) => { const data = parseAchievements(json); cache.set(appId, data); if (alive) setResult({ state: "done", data }); })
+      .then((json) => { const data = parseAchievements(json); cache.set(cacheKey, data); if (alive) setResult({ state: "done", data }); })
       .catch(() => alive && setResult({ state: "error" }));
     return () => { alive = false; };
-  }, [appId, steamId, steamKey]);
+  }, [appId, cacheKey, steamId, steamKey]);
 
   if (result.state === "loading") return <p className="muted small" aria-live="polite">Carregando conquistas…</p>;
   if (result.state === "error") return <p className="muted small">Não foi possível ler as conquistas. Na Steam, deixe “Detalhes dos jogos” como público.</p>;

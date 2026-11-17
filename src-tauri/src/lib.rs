@@ -15,6 +15,7 @@ mod emulators;
 mod rom_hash;
 mod secrets;
 mod state_store;
+mod steam_shortcuts;
 
 /// Whether this build embeds the public key that signed updates are verified against. The release
 /// workflow merges it (and the update endpoint) into the Tauri config; a plain `tauri build` has none,
@@ -77,6 +78,7 @@ pub fn run() {
             state_store::state_read,
             state_store::state_write,
             state_store::state_remove,
+            steam_shortcuts::steam_add_shortcuts,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
