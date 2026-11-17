@@ -95,7 +95,7 @@ fn kv_field(text: &str, key: &str) -> Option<String> {
 
 // ---------------------------------------------------------------- Steam
 
-fn steam_roots() -> Vec<PathBuf> {
+pub(crate) fn steam_roots() -> Vec<PathBuf> {
     let mut roots: Vec<PathBuf> = Vec::new();
     if let Some(path) = reg_string(Hive::CurrentUser, "Software\\Valve\\Steam", "SteamPath") {
         roots.push(PathBuf::from(path.replace('/', "\\")));

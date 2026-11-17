@@ -1,6 +1,7 @@
 import { FolderSearch, FolderOpen, RefreshCw } from "lucide-react";
 import { BackupSettings } from "../components/BackupSettings";
 import { RomCheckSettings } from "../components/RomCheckSettings";
+import { SteamShortcutsSettings } from "../components/SteamShortcutsSettings";
 import { UpdatesPanel } from "../components/UpdatesPanel";
 import { EMULATORS } from "../domain/emulators";
 import { PLATFORMS } from "../domain/platforms";
@@ -72,6 +73,7 @@ export function SettingsView() {
       </section>
       <p className="muted small">Chaves da Steam, RAWG e testes de conexão ficam em <button className="link" onClick={() => go("connections")}>Conexões</button>.</p>
       <RomCheckSettings />
+      <SteamShortcutsSettings />
       <UpdatesPanel />
       <BackupSettings />
       <section className="panel narrow">

@@ -25,7 +25,7 @@ fn update(t: &[u32; 256], crc: u32, bytes: &[u8]) -> u32 {
     bytes.iter().fold(crc, |c, &b| t[((c ^ u32::from(b)) & 0xff) as usize] ^ (c >> 8))
 }
 
-fn crc32_reader(reader: impl Read) -> std::io::Result<u32> {
+pub(crate) fn crc32_reader(reader: impl Read) -> std::io::Result<u32> {
     let t = table();
     let mut reader = BufReader::with_capacity(BLOCK, reader);
     let mut buf = vec![0u8; BLOCK];
