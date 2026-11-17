@@ -28,6 +28,24 @@ export interface WishlistEntry {
   priority?: number;
   /** Absent when the store has no price (unreleased, free, region-locked). */
   price?: { currency: string; originalCents: number; finalCents: number; discountPercent: number };
+  release?: StoreRelease;
+}
+
+/** `release` of the browse payload; `display` says how precise the date is (`date_full`, `date_month`, …). */
+export interface StoreRelease {
+  /** Unix seconds; for unreleased games, the planned date at `display` precision. */
+  date?: number;
+  comingSoon: boolean;
+  display?: string;
+  message?: string;
+}
+
+function parseRelease(raw: unknown): StoreRelease | undefined {
+  if (!isObj(raw)) return undefined;
+  const date = int(raw["steam_release_date"]);
+  const display = str(raw["coming_soon_display"]);
+  const message = str(raw["custom_release_date_message"])?.trim().slice(0, 80);
+  return { date: date || undefined, comingSoon: raw["is_coming_soon"] === true, display: display && /^[a-z_]{1,32}$/.test(display) ? display : undefined, message };
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -228,8 +246,10 @@ export function parseWishlist(json: unknown): Array<{ appId: number; priority?: 
 }
 
 /** `IStoreBrowseService/GetItems` (with `include_basic_info`) -> name + price per app id. */
-export function parseStoreItems(json: unknown): Map<number, { title: string; price?: WishlistEntry["price"]; imageUrl?: string }> {
-  const out = new Map<number, { title: string; price?: WishlistEntry["price"]; imageUrl?: string }>();
+type StoreItemInfo = { title: string; price?: WishlistEntry["price"]; release?: StoreRelease };
+
+export function parseStoreItems(json: unknown): Map<number, StoreItemInfo> {
+  const out = new Map<number, StoreItemInfo>();
   const items = isObj(json) && isObj(json["response"]) ? arr(json["response"]["store_items"]) : [];
   for (const raw of items) {
     if (!isObj(raw) || raw["success"] !== 1) continue;
@@ -244,6 +264,7 @@ export function parseStoreItems(json: unknown): Map<number, { title: string; pri
     out.set(appId, {
       title,
       price: Number.isFinite(final) && Number.isFinite(original) && final >= 0 ? { currency: "", originalCents: original, finalCents: final, discountPercent: pct } : undefined,
+      release: parseRelease(raw["release"]),
     });
   }
   return out;
@@ -252,7 +273,7 @@ export function parseStoreItems(json: unknown): Map<number, { title: string; pri
 /** Wishlist ids + store data -> displayable entries, on-sale first. */
 export function buildWishlist(
   ids: Array<{ appId: number; priority?: number; addedAt?: number }>,
-  info: Map<number, { title: string; price?: WishlistEntry["price"] }>,
+  info: Map<number, StoreItemInfo>,
   currency: string,
 ): WishlistEntry[] {
   const entries = ids.map((w): WishlistEntry => {
@@ -266,6 +287,7 @@ export function buildWishlist(
       priority: w.priority,
       addedAt: w.addedAt,
       price,
+      release: found?.release,
     };
   });
   return entries.sort(

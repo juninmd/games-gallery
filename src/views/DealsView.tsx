@@ -1,6 +1,7 @@
 import { RefreshCw } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { DealCard } from "../components/DealCard";
+import { ReleaseCalendar } from "../components/ReleaseCalendar";
 import { dealInsights, opportunities, type DealInsight } from "../domain/dealInsights";
 import { formatMoney } from "../domain/deals";
 import { type Deal, type DealStore, liveDeals, sortDeals } from "../domain/deals";
@@ -48,6 +49,7 @@ function WishlistSection() {
       {ready && wishlist && !wishlist.items.length && !errors.wishlist && (
         <p className="empty">Wishlist vazia ou perfil privado. Em Steam → Perfil → Privacidade, deixe “Detalhes do jogo” público.</p>
       )}
+      {wishlist && <ReleaseCalendar items={wishlist.items} />}
       <div className="freebie-grid">
         {wishlist?.items.map((w) => (
           <DealCard

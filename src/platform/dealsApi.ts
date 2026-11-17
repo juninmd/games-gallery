@@ -32,7 +32,7 @@ export async function fetchWishlist(steamId: string, key: string, get: GetJson =
   const info = new Map<number, ReturnType<typeof parseStoreItems> extends Map<number, infer V> ? V : never>();
   for (let i = 0; i < ids.length; i += WISHLIST_CHUNK) {
     const chunk = ids.slice(i, i + WISHLIST_CHUNK).map((w) => w.appId);
-    for (const [appId, value] of parseStoreItems(await get(storeBrowseUrl(chunk, {}, STORE_COUNTRY)))) info.set(appId, value);
+    for (const [appId, value] of parseStoreItems(await get(storeBrowseUrl(chunk, { include_release: true }, STORE_COUNTRY)))) info.set(appId, value);
   }
   return buildWishlist(ids, info, STORE_CURRENCY);
 }
