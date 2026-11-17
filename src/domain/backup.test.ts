@@ -71,6 +71,10 @@ describe("parseBackup sanitizes games", () => {
     expect(r.ok && r.data.games.map((g) => g.id)).toEqual(["g1"]);
     expect(r.ok && r.dropped).toBe(7);
   });
+  it("drops a zero time-to-beat, which the UI stores as unset", () => {
+    const r = parse([game({ hoursToBeat: 0 }), game({ id: "g2", hoursToBeat: 30 })]);
+    expect(r.ok && r.data.games.map((g) => g.hoursToBeat)).toEqual([undefined, 30]);
+  });
   it("strips unknown fields and unsafe values", () => {
     const r = parse([{ ...game(), evil: "x", __proto__: { polluted: true }, storeId: "a b;rm", coverUrl: "javascript:alert(1)", emulatorId: "constructor", rating: 99, playtimeH: -4, year: "2020" }]);
     expect(r.ok).toBe(true);

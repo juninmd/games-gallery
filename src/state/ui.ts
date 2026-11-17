@@ -9,6 +9,7 @@ interface Toast {
 }
 
 const DENSITY_KEY = "games-gallery:density";
+const TV_KEY = "games-gallery:tv-mode";
 /** How the library lays out games: themed rails, a grid (two sizes), a table-like list or 3D boxes. */
 export type Density = "rails" | "comfortable" | "compact" | "list" | "boxes";
 export const DENSITIES: readonly Density[] = ["rails", "comfortable", "compact", "list", "boxes"];
@@ -21,6 +22,9 @@ const readDensity = (): Density => {
 
 interface UiState {
   view: View;
+  /** Bigger type and focus rings for the couch (controller navigation works either way). */
+  tvMode: boolean;
+  setTvMode: (on: boolean) => void;
   density: Density;
   shortcutsOpen: boolean;
   setDensity: (density: Density) => void;
@@ -46,6 +50,11 @@ let toastSeq = 0;
 export const useUi = create<UiState>((set) => ({
   view: "library",
   density: readDensity(),
+  tvMode: (() => { try { return localStorage.getItem(TV_KEY) === "1"; } catch { return false; } })(),
+  setTvMode: (tvMode) => {
+    try { localStorage.setItem(TV_KEY, tvMode ? "1" : "0"); } catch { /* storage unavailable: keep in memory */ }
+    set({ tvMode });
+  },
   shortcutsOpen: false,
   setDensity: (density) => {
     try { localStorage.setItem(DENSITY_KEY, density); } catch { /* storage unavailable: keep in memory */ }

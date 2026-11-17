@@ -12,6 +12,7 @@ const SHORTCUTS: [string[], string][] = [
   [["?"], "Mostrar esta ajuda"],
   [["Esc"], "Fechar a janela ou o painel aberto"],
   [["←", "→"], "Trocar de aba no painel do jogo"],
+  [["🎮"], "Controle: direcional move, A abre, B volta, Start abre a paleta"],
 ];
 
 /** Press ? anywhere outside a text field to see the keyboard shortcuts. */

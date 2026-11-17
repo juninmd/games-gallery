@@ -34,6 +34,8 @@ export function SettingsView() {
   const { settings, setSettings, reset, detect, refreshEmulators } = useLibrary();
   const toast = useUi((s) => s.toast);
   const go = useUi((s) => s.go);
+  const tvMode = useUi((s) => s.tvMode);
+  const setTvMode = useUi((s) => s.setTvMode);
 
   const chooseEmulatorsDir = async () => {
     const dir = await pickDirectory("Onde estão os emuladores instalados");
@@ -46,6 +48,14 @@ export function SettingsView() {
   return (
     <>
       <header className="page-head"><div><h1>Ajustes</h1></div></header>
+      <section className="panel narrow">
+        <h3 aria-level={2}>Modo TV</h3>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={tvMode} onChange={(e) => setTvMode(e.target.checked)} />
+          Letras maiores e foco bem visível para jogar no sofá
+        </label>
+        <p className="muted small">Com um controle conectado: direcional/analógico move o foco, A abre, B volta e Start abre a paleta. Funciona com ou sem o modo TV.</p>
+      </section>
       <section className="panel narrow">
         <h3 aria-level={2}>Pastas</h3>
         <label>Pasta de ROMs / ISOs<input value={settings.romsDir} onChange={(e) => setSettings({ romsDir: e.target.value })} placeholder="D:\ROMs" /></label>
