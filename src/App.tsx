@@ -18,6 +18,7 @@ import { useSecrets } from "./state/secrets";
 import { useUpdates } from "./state/updates";
 import { isTauri } from "./platform/runtime";
 import { useUi, type View } from "./state/ui";
+import { useGamepad } from "./components/useGamepad";
 import { GameBrowser } from "./views/GameBrowser";
 
 // Animation features load after first paint so they stay out of the entry chunk.
@@ -62,6 +63,9 @@ class ViewLoadBoundary extends Component<{ onRetry: () => void; children: ReactN
 
 function CurrentView() {
   const view = useUi((s) => s.view);
+  const tvMode = useUi((s) => s.tvMode);
+  useGamepad();
+  useEffect(() => { document.documentElement.classList.toggle("tv-mode", tvMode); }, [tvMode]);
   const [attempt, setAttempt] = useState(0);
   const loader = loaders[view];
   const LazyView = useMemo(() => loader ? lazy(loader) : null, [loader, attempt]);

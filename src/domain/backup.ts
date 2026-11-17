@@ -92,7 +92,7 @@ export function sanitizeGame(raw: unknown, profile: "backup" | "storage" = "back
     coverUrl: coverUrl?.startsWith("https://") ? coverUrl : undefined,
     sizeGb: number(raw["sizeGb"], 0, 100_000),
     playtimeH: number(raw["playtimeH"], 0, 1_000_000) ?? 0,
-    hoursToBeat: number(raw["hoursToBeat"], 0, 10_000),
+    hoursToBeat: number(raw["hoursToBeat"], 1, 10_000),
     rating: number(raw["rating"], 1, 5),
     romPath: text(raw["romPath"], 2000),
     romCrc32: typeof raw["romCrc32"] === "string" && CRC32.test(raw["romCrc32"]) ? raw["romCrc32"] : undefined,
