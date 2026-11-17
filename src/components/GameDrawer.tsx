@@ -7,6 +7,7 @@ import { useLibrary } from "../state/library";
 import { ratingEntry, useRatings } from "../state/ratings";
 import { useSecrets } from "../state/secrets";
 import { useUi } from "../state/ui";
+import { BeatEstimate } from "./BeatEstimate";
 import { CollectionPanel } from "./CollectionPanel";
 import { DrawerActions } from "./DrawerActions";
 import { DrawerHero } from "./DrawerHero";
@@ -133,6 +134,7 @@ function Overview({ game }: { game: Game }) {
       <Section title="Coleção"><CollectionPanel game={game} /></Section>
       <Section title="Sua avaliação"><RatingStars game={game} /></Section>
       <Section title="Tempo de jogo"><HoursStepper game={game} /></Section>
+      <Section title="Tempo para terminar"><BeatEstimate game={game} /></Section>
       <section className="glass grid gap-2 rounded-2xl p-4 game-notes">
         <label htmlFor="game-personal-notes" className="!text-[15px] font-display font-semibold !text-mist">Notas pessoais</label>
         <textarea
