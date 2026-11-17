@@ -14,6 +14,7 @@ mod emulator_install;
 mod emulators;
 mod rom_hash;
 mod secrets;
+mod state_store;
 
 /// Whether this build embeds the public key that signed updates are verified against. The release
 /// workflow merges it (and the update endpoint) into the Tauri config; a plain `tauri build` has none,
@@ -73,6 +74,9 @@ pub fn run() {
             emulators::emulator_launch,
             covers::cover_cached,
             rom_hash::rom_crc32,
+            state_store::state_read,
+            state_store::state_write,
+            state_store::state_remove,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { appendSession, minutesToHours, sanitizeSessions, sessionMinutes, type PlaySession } from "../domain/sessions";
 import { onEmulatorExit } from "../platform/native";
+import { appStorage } from "../platform/stateStorage";
 import { useLibrary } from "./library";
 
 interface Running {
@@ -46,6 +47,7 @@ export const useSessions = create<SessionsState>()(
     }),
     {
       name: "games-gallery:sessions:v1",
+      storage: appStorage(),
       version: 1,
       partialize: ({ sessions }) => ({ sessions }),
       merge: (persisted, current) => ({
