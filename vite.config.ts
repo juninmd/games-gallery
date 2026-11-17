@@ -28,6 +28,7 @@ export default defineConfig({
       "/proxy/psblog": proxy("https://blog.playstation.com", "/proxy/psblog"),
       "/proxy/gogcatalog": proxy("https://catalog.gog.com", "/proxy/gogcatalog"),
       "/proxy/github": proxy("https://api.github.com", "/proxy/github"),
+      "/proxy/sgdb": proxy("https://www.steamgriddb.com", "/proxy/sgdb"),
     },
   },
   test: { environment: "node", include: ["src/**/*.test.ts"], testTimeout: 20_000 },

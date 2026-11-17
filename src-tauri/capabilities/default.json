@@ -20,6 +20,7 @@
         { "url": "https://store.steampowered.com/*" },
         { "url": "https://api.steampowered.com/*" },
         { "url": "https://api.rawg.io/*" },
+        { "url": "https://www.steamgriddb.com/api/v2/*" },
         { "url": "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions*" },
         { "url": "https://blog.playstation.com/feed/*" },
         { "url": "https://catalog.gog.com/v1/catalog*" },

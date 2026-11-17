@@ -1,7 +1,7 @@
 import { isTauri } from "./runtime";
 
 /** API keys go to the OS credential store through allow-listed Rust commands; the browser has none. */
-export type VaultName = "steamKey" | "rawgKey";
+export type VaultName = "steamKey" | "rawgKey" | "sgdbKey";
 
 export const vaultAvailable = () => isTauri();
 

@@ -6,6 +6,7 @@ mod detect_ubisoft;
 mod detect_xbox;
 mod account_login;
 mod account_ubisoft;
+mod covers;
 mod emulators;
 mod secrets;
 
@@ -65,6 +66,7 @@ pub fn run() {
             emulators::emulator_uninstall,
             emulators::emulator_cancel,
             emulators::emulator_launch,
+            covers::cover_cached,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
