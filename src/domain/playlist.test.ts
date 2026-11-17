@@ -24,6 +24,9 @@ describe("buildPlaylists", () => {
       }],
     });
   });
+  it("writes a hashed ROM's CRC in RetroArch's `XXXXXXXX|crc` form", () => {
+    expect(JSON.parse(buildPlaylists([g({ romCrc32: "01ACE2AB" })])[0]!.text).items[0].crc32).toBe("01ACE2AB|crc");
+  });
   it("doubles backslashes in the serialized text, as the format requires", () => {
     expect(buildPlaylists([g({})])[0]?.text).toContain('"D:\\\\ROMs\\\\gba\\\\Game.gba"');
   });

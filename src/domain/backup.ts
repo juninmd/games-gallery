@@ -4,6 +4,7 @@ import { PLATFORM_BY_ID } from "./platforms";
 import { sanitizeTargets, type PriceTargets } from "./priceAlerts";
 import { PROVIDER_BY_ID } from "./providers";
 import { sanitizeSessions, type PlaySession } from "./sessions";
+import { CRC32 } from "./dat";
 import { STATUS_ORDER } from "./status";
 import type { Game } from "./types";
 
@@ -93,6 +94,8 @@ export function sanitizeGame(raw: unknown, profile: "backup" | "storage" = "back
     playtimeH: number(raw["playtimeH"], 0, 1_000_000) ?? 0,
     rating: number(raw["rating"], 1, 5),
     romPath: text(raw["romPath"], 2000),
+    romCrc32: typeof raw["romCrc32"] === "string" && CRC32.test(raw["romCrc32"]) ? raw["romCrc32"] : undefined,
+    datName: text(raw["datName"], 300),
     emulatorId: emulatorId && has(EMULATOR_BY_ID, emulatorId) ? emulatorId : undefined,
     notes: text(raw["notes"], 5000),
     separate: raw["separate"] === true ? true : undefined,

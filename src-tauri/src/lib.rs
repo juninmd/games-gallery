@@ -12,6 +12,7 @@ mod account_ubisoft;
 mod covers;
 mod emulator_install;
 mod emulators;
+mod rom_hash;
 mod secrets;
 
 /// Whether this build embeds the public key that signed updates are verified against. The release
@@ -71,6 +72,7 @@ pub fn run() {
             emulator_install::emulator_cancel,
             emulators::emulator_launch,
             covers::cover_cached,
+            rom_hash::rom_crc32,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

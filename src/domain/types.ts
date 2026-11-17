@@ -79,6 +79,10 @@ export interface Game {
   playtimeH: number;
   rating?: number;
   romPath?: string;
+  /** CRC32 of the ROM file (8 uppercase hex), computed on this machine. */
+  romCrc32?: string;
+  /** Game name from the user's DAT when `romCrc32` matched an entry. */
+  datName?: string;
   emulatorId?: string;
   notes?: string;
   /** The user said this copy is not the same game as its same-title siblings in other stores. */

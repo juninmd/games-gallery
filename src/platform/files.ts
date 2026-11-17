@@ -3,6 +3,12 @@ import { isTauri } from "./runtime";
 
 const TOO_BIG = "Arquivo grande demais para ser um backup.";
 const FILTERS = [{ name: "Backup JSON", extensions: ["json"] }];
+/** What can be picked: a backup (JSON) or a DAT (Logiqx XML, larger). */
+const PICK: Record<"backup" | "dat", { filters: { name: string; extensions: string[] }[]; accept: string; max: number; tooBig: string }> = {
+  backup: { filters: FILTERS, accept: ".json,application/json", max: MAX_BACKUP_BYTES, tooBig: TOO_BIG },
+  dat: { filters: [{ name: "DAT (No-Intro, Redump)", extensions: ["dat", "xml"] }], accept: ".dat,.xml", max: 64 * 1024 * 1024, tooBig: "Arquivo grande demais para um DAT (máx. 64 MB)." },
+};
+type PickKind = keyof typeof PICK;
 
 /** Returns false when the user cancels. */
 export async function saveTextFile(defaultName: string, text: string): Promise<boolean> {
@@ -24,11 +30,11 @@ export async function saveTextFile(defaultName: string, text: string): Promise<b
   return true;
 }
 
-function pickInBrowser(): Promise<string | null> {
+function pickInBrowser(kind: PickKind): Promise<string | null> {
   return new Promise((resolve, reject) => {
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".json,application/json";
+    input.accept = PICK[kind].accept;
     input.hidden = true;
     document.body.appendChild(input);
     const done = (v: string | null) => {
@@ -40,7 +46,7 @@ function pickInBrowser(): Promise<string | null> {
       const file = input.files?.[0];
       // Size is checked before reading so a huge file never reaches memory as a string.
       try {
-        if (file && file.size > MAX_BACKUP_BYTES) throw new Error(TOO_BIG);
+        if (file && file.size > PICK[kind].max) throw new Error(PICK[kind].tooBig);
         done(file ? await file.text() : null);
       } catch (e) {
         input.remove();
@@ -52,13 +58,13 @@ function pickInBrowser(): Promise<string | null> {
 }
 
 /** Returns null when the user cancels; rejects when the file is over the backup size limit. */
-export async function pickTextFile(): Promise<string | null> {
-  if (!isTauri()) return pickInBrowser();
+export async function pickTextFile(kind: PickKind = "backup"): Promise<string | null> {
+  if (!isTauri()) return pickInBrowser(kind);
   const { open } = await import("@tauri-apps/plugin-dialog");
   const { readTextFile, stat } = await import("@tauri-apps/plugin-fs");
-  const path = await open({ multiple: false, directory: false, filters: FILTERS });
+  const path = await open({ multiple: false, directory: false, filters: PICK[kind].filters });
   if (typeof path !== "string") return null;
   // Check the size before reading: readTextFile loads the whole file into memory.
-  if ((await stat(path)).size > MAX_BACKUP_BYTES) throw new Error(TOO_BIG);
+  if ((await stat(path)).size > PICK[kind].max) throw new Error(PICK[kind].tooBig);
   return readTextFile(path);
 }

@@ -52,10 +52,15 @@ function EmulationFields({ game }: { game: Game }) {
         <input
           value={game.romPath ?? ""}
           placeholder={`${settings.romsDir}/${game.platformId}/jogo.zip`}
-          onChange={(e) => patchGame(game.id, { romPath: e.target.value })}
+          onChange={(e) => patchGame(game.id, { romPath: e.target.value, romCrc32: undefined, datName: undefined })}
           onBlur={() => !game.romPath && toast("Defina o caminho da ROM para poder jogar")}
         />
       </label>
+      {game.romCrc32 && (
+        <p className={`note ${game.datName ? "ok" : ""}`}>
+          CRC32 {game.romCrc32}: {game.datName ? `confere com o DAT (${game.datName})` : "não está no DAT carregado"}
+        </p>
+      )}
     </div>
   );
 }
