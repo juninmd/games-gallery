@@ -13,6 +13,7 @@ import type { AmazonDevice } from "../domain/amazonAccount";
 import { importAmazonAccount } from "../platform/amazonAccount";
 import { importEpicAccount } from "../platform/epicAccount";
 import { openStore } from "../platform/runtime";
+import { appStorage } from "../platform/stateStorage";
 import { fetchOwnedGames, isValidSteamId, isValidSteamKey } from "../platform/steamApi";
 import { useSecrets } from "./secrets";
 import { useTasks } from "./tasks";
@@ -276,6 +277,7 @@ export const useLibrary = create<LibraryState>()(
     }),
     {
       name: "games-gallery:v1",
+      storage: appStorage(),
       version: 4,
       migrate: migrateLibrary,
       partialize: ({ games, scans, providers, emulators, emulatorPaths, settings }) => ({ games, scans, providers, emulators, emulatorPaths, settings }),
@@ -283,3 +285,9 @@ export const useLibrary = create<LibraryState>()(
     },
   ),
 );
+
+/** Runs once the saved library is loaded (immediately in the browser, after the disk read in the app). */
+export function whenHydrated(run: () => void): void {
+  if (useLibrary.persist.hasHydrated()) return run();
+  const off = useLibrary.persist.onFinishHydration(() => { off(); run(); });
+}

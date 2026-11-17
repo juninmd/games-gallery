@@ -11,7 +11,7 @@ import { CentralTabs } from "./components/shell/CentralTabs";
 import { Dock } from "./components/shell/Dock";
 import { Intro } from "./components/shell/Intro";
 import { TopBar } from "./components/shell/TopBar";
-import { useLibrary } from "./state/library";
+import { useLibrary, whenHydrated } from "./state/library";
 import { watchPriceAlerts } from "./state/alertWatcher";
 import { watchSessions } from "./state/sessions";
 import { useSecrets } from "./state/secrets";
@@ -89,10 +89,13 @@ export function App() {
     if (booted) return;
     booted = true;
     void useSecrets.getState().hydrate().then(watchPriceAlerts);
-    const library = useLibrary.getState();
-    void library.refreshEmulators();
+    // The library loads from disk asynchronously in the app: only detect once it is known to be empty.
+    whenHydrated(() => {
+      const library = useLibrary.getState();
+      void library.refreshEmulators();
+      if (!library.games.length) void library.detect();
+    });
     void watchSessions();
-    if (!library.games.length) void library.detect();
     // Installed app only: look for a newer GitHub release a few seconds after the window opens.
     if (isTauri()) setTimeout(() => void useUpdates.getState().check({ auto: true }), 5000);
   }, []);
