@@ -163,3 +163,16 @@ describe("endingSoon", () => {
     expect(at("not a date")).toBeUndefined();
   });
 });
+
+describe("parseStoreItems release", () => {
+  it("reads the planned date and precision, ignoring malformed values", () => {
+    const info = parseStoreItems({ response: { store_items: [
+      { success: 1, appid: 1, name: "Soon", release: { steam_release_date: 1794898800, is_coming_soon: true, coming_soon_display: "date_full" } },
+      { success: 1, appid: 2, name: "Out", release: { steam_release_date: 1645744078 } },
+      { success: 1, appid: 3, name: "Bad", release: { steam_release_date: -5, coming_soon_display: "<script>" } },
+    ] } });
+    expect(info.get(1)?.release).toEqual({ date: 1794898800, comingSoon: true, display: "date_full", message: undefined });
+    expect(info.get(2)?.release?.comingSoon).toBe(false);
+    expect(info.get(3)?.release).toMatchObject({ date: undefined, display: undefined });
+  });
+});
