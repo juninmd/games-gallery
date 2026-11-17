@@ -1,6 +1,6 @@
 //! Windows "Add/Remove Programs" entries, shared by the launcher scanners that need real titles.
 
-use crate::detect::{reg_string, reg_subkeys, Hive};
+use crate::detect::{reg_string, reg_subkeys, DetectedGame, Hive, ProviderDetection};
 use std::path::{Path, PathBuf};
 
 const UNINSTALL_PATHS: [&str; 2] = [
@@ -53,6 +53,31 @@ pub(crate) fn existing_dir(p: &str) -> Option<PathBuf> {
 pub(crate) fn folder_name(dir: &str) -> Option<String> {
     let name = dir.trim().trim_end_matches(['\\', '/']).rsplit(['\\', '/']).next()?.trim();
     (!name.is_empty()).then(|| name.to_string())
+}
+
+/// Rockstar Games Launcher: one registry subkey per installed title.
+pub fn scan_rockstar() -> ProviderDetection {
+    let path = "SOFTWARE\\WOW6432Node\\Rockstar Games";
+    let subkeys = reg_subkeys(Hive::LocalMachine, path);
+    if subkeys.is_empty() {
+        return ProviderDetection::unavailable("rockstar", "registro do Windows", "Rockstar Games Launcher não está instalado.");
+    }
+    let mut games = Vec::new();
+    for name in subkeys {
+        let Some(dir) = reg_string(Hive::LocalMachine, &format!("{path}\\{name}"), "InstallFolder") else { continue };
+        games.push(DetectedGame {
+            store_id: name.clone(),
+            title: name,
+            size_gb: None,
+            installed: true,
+            install_path: Some(dir),
+            playtime_h: None,
+        });
+    }
+    if games.is_empty() {
+        return ProviderDetection::unavailable("rockstar", "registro do Windows", "Não há jogos da Rockstar com pasta de instalação registrada.");
+    }
+    ProviderDetection::from_games("rockstar", "registro do Windows", games, None)
 }
 
 #[cfg(test)]

@@ -1,12 +1,16 @@
 pub mod detect;
 mod detect_battlenet;
 mod detect_ea;
+mod detect_epic;
 mod detect_registry;
+mod detect_sqlite;
 mod detect_ubisoft;
 mod detect_xbox;
+mod account_ea;
 mod account_login;
 mod account_ubisoft;
 mod covers;
+mod emulator_install;
 mod emulators;
 mod secrets;
 
@@ -35,7 +39,7 @@ fn update_signing_ready(app: tauri::AppHandle) -> bool {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .manage(emulators::Running::default())
+        .manage(emulator_install::Running::default())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_dialog::init())
@@ -55,16 +59,16 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             detect::detect_libraries,
             account_login::battlenet_library,
-            account_login::ea_library,
+            account_ea::ea_library,
             account_ubisoft::ubisoft_library,
             secrets::secret_set,
             secrets::secret_get,
             secrets::secret_delete,
             update_signing_ready,
             emulators::detect_emulators,
-            emulators::emulator_install,
-            emulators::emulator_uninstall,
-            emulators::emulator_cancel,
+            emulator_install::emulator_install,
+            emulator_install::emulator_uninstall,
+            emulator_install::emulator_cancel,
             emulators::emulator_launch,
             covers::cover_cached,
         ])

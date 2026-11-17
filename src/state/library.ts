@@ -1,55 +1,30 @@
 import { applyShared } from "../domain/duplicates";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { sanitizeGame, sanitizeScans, type BackupData } from "../domain/backup";
+import type { BackupData } from "../domain/backup";
 import { combineDetections, detectionSummary, importItemsFrom, mergeDetections } from "../domain/detect";
-import { EMULATOR_BY_ID, EMULATORS } from "../domain/emulators";
-import { commandsFor, hostOs } from "../domain/install";
 import { PROVIDER_BY_ID } from "../domain/providers";
 import { planStoreImport } from "../domain/scan/plan";
 import type { ImportItem } from "../domain/scan/plan";
 import { applyImport } from "../domain/scan/plan";
 import type { Game, ProviderDetection, ProviderState } from "../domain/types";
-import {
-  detectEmulators,
-  detectLibraries,
-  emulatorCancel,
-  emulatorInstall,
-  emulatorUninstall,
-  nativeAvailable,
-  windowLoginLibrary,
-  type WindowLoginStore,
-  onEmulatorOutput,
-  type InstallRequest,
-} from "../platform/native";
+import { detectLibraries, nativeAvailable, windowLoginLibrary, type WindowLoginStore } from "../platform/native";
 import type { AmazonDevice } from "../domain/amazonAccount";
 import { importAmazonAccount } from "../platform/amazonAccount";
 import { importEpicAccount } from "../platform/epicAccount";
-import { isTauri, openStore } from "../platform/runtime";
+import { openStore } from "../platform/runtime";
 import { fetchOwnedGames, isValidSteamId, isValidSteamKey } from "../platform/steamApi";
 import { useSecrets } from "./secrets";
 import { useTasks } from "./tasks";
 import { useUi } from "./ui";
+import { emulatorActions } from "./libraryEmulators";
+import { initialLibrary, mergeLibrary, migrateLibrary, type ScanRecord, type Settings } from "./libraryPersistence";
 
 export type { ProviderState } from "../domain/types";
+export type { ScanRecord } from "./libraryPersistence";
 
-interface Settings {
-  romsDir: string;
-  emulatorsDir: string;
-}
 
-/** Record of a finished scan; the folder itself is not kept (access is re-granted on each pick). */
-export interface ScanRecord {
-  id: string;
-  kind: "roms" | "games";
-  name: string;
-  path?: string;
-  at: string;
-  added: number;
-  linked: number;
-}
-
-interface LibraryState {
+export interface LibraryState {
   games: Game[];
   scans: ScanRecord[];
   providers: Record<string, ProviderState>;
@@ -83,76 +58,12 @@ interface LibraryState {
 const toast = (msg: string) => useUi.getState().toast(msg);
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-const initial = () => ({
-  games: [] as Game[],
-  scans: [] as ScanRecord[],
-  providers: {} as Record<string, ProviderState>,
-  emulators: {} as Record<string, boolean>,
-  emulatorPaths: {} as Record<string, string>,
-  settings: { romsDir: "", emulatorsDir: "" } as Settings,
-});
 
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
-const has = (rec: object, key: string) => Object.prototype.hasOwnProperty.call(rec, key);
-
-/** Invalid roots and nonempty all-invalid arrays fall back; an explicit [] remains an intentional empty library. */
-function persistedGames(raw: unknown): Game[] | undefined {
-  if (!Array.isArray(raw)) return undefined;
-  const seen = new Set<string>();
-  const games = raw.flatMap((item): Game[] => {
-    const game = sanitizeGame(item, "storage");
-    if (!game || seen.has(game.id)) return [];
-    seen.add(game.id);
-    return [game];
-  });
-  return raw.length > 0 && games.length === 0 ? undefined : games;
-}
-
-function persistedProviders(raw: Record<string, unknown>): Record<string, ProviderState> {
-  const providers: Record<string, ProviderState> = {};
-  for (const [id, value] of Object.entries(raw)) {
-    if (!has(PROVIDER_BY_ID, id) || !isObj(value) || typeof value["connected"] !== "boolean") continue;
-    const lastSync = typeof value["lastSync"] === "string" && value["lastSync"].length <= 60 ? value["lastSync"] : undefined;
-    const source = typeof value["source"] === "string" && value["source"].length <= 200 ? value["source"] : undefined;
-    const note = typeof value["note"] === "string" && value["note"].length <= 500 ? value["note"] : undefined;
-    providers[id] = { connected: value["connected"], lastSync, source, note };
-  }
-  return providers;
-}
-
-function persistedEmulators(raw: Record<string, unknown>): Record<string, boolean> {
-  const emulators: Record<string, boolean> = {};
-  for (const [id, installed] of Object.entries(raw)) {
-    if (has(EMULATOR_BY_ID, id) && typeof installed === "boolean") emulators[id] = installed;
-  }
-  return emulators;
-}
-
-function persistedPaths(raw: unknown): Record<string, string> {
-  const paths: Record<string, string> = {};
-  if (!isObj(raw)) return paths;
-  for (const [id, value] of Object.entries(raw)) {
-    if (has(EMULATOR_BY_ID, id) && typeof value === "string" && value.length <= 4000) paths[id] = value;
-  }
-  return paths;
-}
-
-function persistedSettings(raw: unknown): Partial<Settings> {
-  if (!isObj(raw)) return {};
-  const settings: Partial<Settings> = {};
-  for (const key of ["romsDir", "emulatorsDir"] as const) {
-    const value = raw[key];
-    if (typeof value === "string") settings[key] = value;
-  }
-  return settings;
-}
-
-const MANAGER_FOR_OS = { windows: "winget", macos: "brew", linux: "flatpak" } as const;
 
 export const useLibrary = create<LibraryState>()(
   persist(
     (set, get) => ({
-      ...initial(),
+      ...initialLibrary(),
 
       patchGame: (id, patch) => set((s) => ({ games: applyShared(s.games, id, patch) })),
       addGame: (game) => set((s) => ({ games: [game, ...s.games] })),
@@ -343,107 +254,8 @@ export const useLibrary = create<LibraryState>()(
         toast(result.ok ? `Desinstalação aberta no ${provider.name}` : result.error);
       },
 
-      installEmulator: async (id) => {
-        const emulator = EMULATOR_BY_ID[id];
-        if (!emulator) return;
-        if (!isTauri()) {
-          toast("Instalar emulador pelo gerenciador de pacotes só funciona no app instalado.");
-          return;
-        }
-        const taskKey = `emu:${id}`;
-        if (useTasks.getState().tasks[taskKey]) return;
-        const preferred = MANAGER_FOR_OS[hostOs(navigator.userAgent)];
-        const commands = commandsFor(emulator.install, hostOs(navigator.userAgent));
-        const chosen = commands.find((c) => c.manager === preferred) ?? commands[0];
-        if (!chosen) {
-          toast(`${emulator.name} não tem pacote verificado; baixe pela página oficial.`);
-          return;
-        }
-        if (!window.confirm(`Instalar ${emulator.name} com ${chosen.label}? O comando roda de verdade no seu sistema.`)) return;
-        const request: InstallRequest = { id, manager: chosen.manager, package: chosen.package, bucket: chosen.bucket, cask: chosen.cask };
-        const tasks = useTasks.getState();
-        tasks.start(taskKey, `Instalando ${emulator.name} (${chosen.label})`);
-        let lines = 0;
-        const unlisten = await onEmulatorOutput((payload) => {
-          if (payload.id !== id) return;
-          lines += 1;
-          useTasks.getState().update(taskKey, { progress: Math.min(92, 10 + lines * 3), detail: payload.line });
-        });
-        try {
-          tasks.update(taskKey, { progress: 5, detail: chosen.command });
-          const outcome = await emulatorInstall(request);
-          if (outcome.code !== 0) {
-            toast(`${emulator.name}: ${chosen.label} terminou com código ${outcome.code}. Veja as linhas acima.`);
-            return;
-          }
-          tasks.update(taskKey, { progress: 96, detail: "Conferindo o executável no disco…" });
-          await get().refreshEmulators();
-          const found = get().emulatorPaths[id];
-          toast(found ? `${emulator.name} instalado em ${found}` : `${emulator.name}: o gerenciador terminou, mas o executável não foi encontrado; confira o caminho em Ajustes.`);
-        } catch (e) {
-          toast(`${emulator.name}: ${errorText(e)}`);
-        } finally {
-          unlisten();
-          useTasks.getState().done(taskKey);
-        }
-      },
+      ...emulatorActions(set, get),
 
-      uninstallEmulator: async (id) => {
-        const emulator = EMULATOR_BY_ID[id];
-        if (!emulator) return;
-        const taskKey = `emu:${id}`;
-        if (useTasks.getState().tasks[taskKey]) return;
-        const preferred = MANAGER_FOR_OS[hostOs(navigator.userAgent)];
-        const commands = commandsFor(emulator.install, hostOs(navigator.userAgent));
-        const chosen = commands.find((c) => c.manager === preferred) ?? commands[0];
-        if (!isTauri() || !chosen) {
-          set((s) => ({ emulators: { ...s.emulators, [id]: false }, emulatorPaths: Object.fromEntries(Object.entries(s.emulatorPaths).filter(([key]) => key !== id)) }));
-          toast(`${emulator.name} marcado como não instalado`);
-          return;
-        }
-        const tasks = useTasks.getState();
-        if (!window.confirm(`Remover ${emulator.name} com ${chosen.label}?`)) return;
-        tasks.start(taskKey, `Removendo ${emulator.name} (${chosen.label})`);
-        const unlisten = await onEmulatorOutput((payload) => {
-          if (payload.id === id) useTasks.getState().update(taskKey, { detail: payload.line });
-        });
-        try {
-          const outcome = await emulatorUninstall({ id, manager: chosen.manager, package: chosen.package, cask: chosen.cask });
-          if (outcome.code !== 0) {
-            toast(`${emulator.name}: remoção terminou com código ${outcome.code}.`);
-            return;
-          }
-          await get().refreshEmulators();
-          toast(`${emulator.name} removido`);
-        } catch (e) {
-          toast(`${emulator.name}: ${errorText(e)}`);
-        } finally {
-          unlisten();
-          useTasks.getState().done(taskKey);
-        }
-      },
-
-      cancelEmulator: async (id) => {
-        useTasks.getState().cancel(`emu:${id}`);
-        const killed = await emulatorCancel(id).catch(() => false);
-        toast(killed ? "Instalação cancelada" : "Não há instalação em andamento");
-      },
-
-      refreshEmulators: async () => {
-        if (!nativeAvailable()) return;
-        try {
-          const paths = await detectEmulators(
-            EMULATORS.map((e) => ({ id: e.id, exe: e.exe })),
-            [get().settings.emulatorsDir],
-          );
-          set(() => ({
-            emulatorPaths: paths,
-            emulators: Object.fromEntries(EMULATORS.map((e) => [e.id, !!paths[e.id]])),
-          }));
-        } catch (e) {
-          toast(`Não foi possível conferir os emuladores: ${errorText(e)}`);
-        }
-      },
 
       setSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
       restore: (data) => {
@@ -459,49 +271,15 @@ export const useLibrary = create<LibraryState>()(
       },
       reset: () => {
         useTasks.getState().cancelAll();
-        set(initial());
+        set(initialLibrary());
       },
     }),
     {
       name: "games-gallery:v1",
       version: 4,
-      /**
-       * v4 removes the prototype demo data: the seed games, the fake "connected" providers and the
-       * emulators that were only marked as installed. Real data is re-detected from disk.
-       */
-      migrate: (persisted, version) => {
-        const state = isObj(persisted) ? persisted : {};
-        const defaults = initial();
-        if (version < 4) {
-          return {
-            ...defaults,
-            scans: Array.isArray(state["scans"]) ? sanitizeScans(state["scans"], "storage") : [],
-            settings: { ...defaults.settings, ...persistedSettings(state["settings"]) },
-          };
-        }
-        return {
-          games: persistedGames(state["games"]) ?? defaults.games,
-          scans: Array.isArray(state["scans"]) ? sanitizeScans(state["scans"], "storage") : [],
-          providers: isObj(state["providers"]) ? persistedProviders(state["providers"]) : defaults.providers,
-          emulators: isObj(state["emulators"]) ? persistedEmulators(state["emulators"]) : defaults.emulators,
-          emulatorPaths: persistedPaths(state["emulatorPaths"]),
-          settings: { ...defaults.settings, ...persistedSettings(state["settings"]) },
-        };
-      },
+      migrate: migrateLibrary,
       partialize: ({ games, scans, providers, emulators, emulatorPaths, settings }) => ({ games, scans, providers, emulators, emulatorPaths, settings }),
-      merge: (persisted, current) => {
-        const state = isObj(persisted) ? persisted : {};
-        const games = persistedGames(state["games"]);
-        return {
-          ...current,
-          ...(games !== undefined ? { games } : {}),
-          ...(Array.isArray(state["scans"]) ? { scans: sanitizeScans(state["scans"], "storage") } : {}),
-          ...(isObj(state["providers"]) ? { providers: persistedProviders(state["providers"]) } : {}),
-          ...(isObj(state["emulators"]) ? { emulators: persistedEmulators(state["emulators"]) } : {}),
-          emulatorPaths: persistedPaths(state["emulatorPaths"]),
-          settings: { ...current.settings, ...persistedSettings(state["settings"]) },
-        };
-      },
+      merge: (persisted, current) => mergeLibrary(persisted, current),
     },
   ),
 );

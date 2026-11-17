@@ -239,12 +239,12 @@ Na tela **Conexões**, o botão **Testar** faz a mesma verificação com as suas
 
 ```
 src/domain/     tipos, catálogos (platforms, providers, emulators), launch.ts, filter.ts, gameFactory.ts, detect.ts
-src/state/      zustand: library (persistido), ui (navegação/filtros), tasks (jobs reais), secrets (chaves)
+src/state/      zustand: library (+ libraryPersistence, libraryEmulators), ui (navegação/filtros), tasks (jobs reais), secrets (chaves)
 src/components/ Cover, GameCard, GameDrawer, LaunchPanel, FilterBar, ...
 src/views/      uma view por tela
 src/platform/   runtime.ts, native.ts (invoke), folders.ts, http.ts, steamApi.ts, dealsApi.ts, epicAccount.ts, probes.ts, updates.ts
 scripts/release/ regras de versão e notas (lib.mjs), plan/stamp/check-title usados pelo CI
-src-tauri/      detect*.rs (bibliotecas locais: Steam/Epic/GOG, ea, battlenet, ubisoft), emulators.rs (detecção/instalação/execução), plugins
+src-tauri/      detect*.rs (bibliotecas locais: Steam, epic, sqlite, registry, ea, battlenet, ubisoft, xbox), account_*.rs (logins), emulators.rs (detecção/execução), emulator_install.rs (gerenciadores de pacote), covers.rs, plugins
 ```
 
 ## Decisões de segurança
