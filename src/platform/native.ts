@@ -150,6 +150,12 @@ export async function onEmulatorOutput(handler: (payload: { id: string; line: st
   return listen<{ id: string; line: string }>("emulator-output", (event) => handler(event.payload));
 }
 
+/** CRC32 of a ROM file (8 uppercase hex), streamed by Rust. */
+export async function romCrc32(path: string): Promise<string> {
+  if (!isTauri()) throw new Error("Calcular o CRC32 só funciona no app instalado.");
+  return invoke<string>("rom_crc32", { path });
+}
+
 /** Fires when an emulator started by `launchEmulator` exits (installed app only). */
 export async function onEmulatorExit(handler: (payload: { pid: number }) => void): Promise<() => void> {
   if (!isTauri()) return () => undefined;

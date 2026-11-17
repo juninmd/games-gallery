@@ -15,8 +15,8 @@ const nativePath = (p: string) => (WINDOWS_PATH.test(p) ? p.replace(/\//g, "\\")
 
 /**
  * One RetroArch JSON playlist (.lpl) per platform with at least one launchable ROM.
- * Core and CRC are `DETECT`: RetroArch then asks for a core, and netplay is limited
- * until the content is hashed (documented in docs.libretro.com, "roms-playlists-thumbnails").
+ * Core is `DETECT`; CRC is the one computed on this machine (`XXXXXXXX|crc`) or `DETECT`, in which
+ * case netplay is limited until RetroArch hashes the content (documented in docs.libretro.com, "roms-playlists-thumbnails").
  */
 export function buildPlaylists(games: Game[]): PlaylistFile[] {
   const byPlatform = new Map<string, Game[]>();
@@ -35,7 +35,7 @@ export function buildPlaylists(games: Game[]): PlaylistFile[] {
         label: g.title,
         core_path: "DETECT",
         core_name: "DETECT",
-        crc32: "DETECT",
+        crc32: g.romCrc32 ? `${g.romCrc32}|crc` : "DETECT",
         db_name: dbName,
       }));
     return { name: dbName, text: JSON.stringify({ version: "1.0", items }, null, 2), count: items.length };
