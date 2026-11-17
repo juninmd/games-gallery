@@ -2,6 +2,7 @@ import { AmazonAccountSettings } from "../components/AmazonAccountSettings";
 import { EpicAccountSettings } from "../components/EpicAccountSettings";
 import { ProbeList } from "../components/ProbeList";
 import { WindowLoginSettings } from "../components/WindowLoginSettings";
+import { CoverSourceSettings } from "../components/CoverSourceSettings";
 import { RatingSourcesSettings } from "../components/RatingSourcesSettings";
 import { SteamSettings } from "../components/SteamSettings";
 import { PROVIDERS } from "../domain/providers";
@@ -64,6 +65,7 @@ export function ConnectionsView() {
       <WindowLoginSettings />
       <SteamReviewsToggle />
       <RatingSourcesSettings />
+      <CoverSourceSettings />
       <LocalSources />
     </>
   );

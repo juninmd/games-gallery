@@ -204,6 +204,7 @@ Nada de biblioteca de demonstração: o app lê o que existe no computador e o q
 - **Jogos repetidos entre lojas:** o mesmo título PC em lojas diferentes vira um único cartão com o selo "N lojas" e a lista de lojas no rodapé. O drawer mostra "Em N lojas" (instalado, na conta, horas) e permite trocar para a cópia de cada loja para jogar ou instalar por ela; a cópia instalada vence como principal. Nada muda no que é salvo: cada loja continua sendo um registro e a unificação é feita na leitura (título normalizado; a mesma loja listada duas vezes não é unida). O filtro "Em mais de uma loja" e o painel "Repetidos entre lojas" nas Estatísticas mostram só esses jogos. Status, nota e anotações valem para todas as cópias que você tem; horas, instalação e ids continuam por loja (o drawer soma as horas). Se dois jogos diferentes tiverem o mesmo nome, "Não é o mesmo" separa a cópia e "Unificar de novo" desfaz. "Quero jogar" e a busca (Ctrl+K) também mostram um jogo só, e buscar por "epic" ou "gog" acha os jogos da loja.
 - **Promoções cruzadas com a biblioteca:** cada oferta mostra em quais lojas você já tem o jogo, se ele está na wishlist (Steam ou do app) e onde o mesmo título está mais barato (só na mesma moeda). A seção "Para você" lista a wishlist em promoção que você não tem em nenhuma loja.
 - **Paleta Ctrl+K:** além de telas e jogos (um resultado por título, com as lojas), ela tem as ações "Detectar bibliotecas agora" e "Mostrar jogos em mais de uma loja".
+- **Capas offline e SteamGridDB:** no app instalado, cada capa é baixada uma vez (só de CDNs da allow-list, até 8 MB, tipo `image/*`, sem seguir redirecionamento) para a pasta de cache do app e servida pelo protocolo `asset:`, que só enxerga `$APPCACHE/covers`. Com a chave gratuita do SteamGridDB (Conexões, "Capas"), "Buscar capas que faltam" preenche até 100 jogos por vez (pelo app id da Steam, senão pelo título), e o drawer tem o botão para um jogo só. A chave fica no cofre do sistema.
 - **Tempo de jogo por sessão:** jogo em emulador conta o tempo de verdade: o app marca o início ao abrir o processo e o fim quando ele fecha, soma às horas do jogo (sessão acima de 12 h é limitada, para não contar janela esquecida). Jogo aberto pela loja (Steam, Epic…) registra só quando foi aberto, porque o launcher é dono do processo. As sessões ficam só neste computador e entram no backup JSON. A prateleira "Jogados recentemente" e o "Retomar" do painel de perfil usam esses dados.
 - **Densidade da grade e atalhos:** a biblioteca alterna entre capas "Confortável", "Compacta" (8 por linha, só o título) e "Caixas", e a escolha é lembrada neste computador. A tecla `?` (ou a paleta) mostra os atalhos do teclado.
 - **Ofertas acabando:** promoções que terminam em até três dias ganham a etiqueta "Acaba em menos de 24 h" ou "Acaba em N dias", calculada pelo tempo restante (não depende do fuso).
@@ -248,19 +249,19 @@ src-tauri/      detect*.rs (bibliotecas locais: Steam/Epic/GOG, ea, battlenet, u
 
 ## Decisões de segurança
 
-- **Chaves de API no cofre do sistema:** `src-tauri/src/secrets.rs` expõe `secret_set/get/delete` só para os nomes `steamKey` e `rawgKey` (allow-list), com limite de tamanho e sem caracteres de controle. O `localStorage` guarda apenas o SteamID64 (público) e o interruptor do Steam Reviews.
+- **Chaves de API no cofre do sistema:** `src-tauri/src/secrets.rs` expõe `secret_set/get/delete` só para os nomes `steamKey`, `rawgKey` e `sgdbKey` (allow-list), com limite de tamanho e sem caracteres de controle. O `localStorage` guarda apenas o SteamID64 (público) e o interruptor do Steam Reviews.
 - O launch de emulador é um **array de argumentos** (`args: ["-batch", "--", "{rom}"]`), nunca uma string de shell: um caminho como `a & calc.exe` vira um único argv (testes em `launch.test.ts` e `emulators.rs`).
 - `storeId` é validado (`/^[\w.-]+$/`) antes de entrar em URI de loja; o Tauri só abre os esquemas da allow-list.
 - Os comandos nativos validam gerenciador e pacote (`valid_token`) e exigem executável existente em caminho absoluto.
 - A permissão de abertura do Tauri usa somente a lista explícita de URLs e esquemas; `opener:default` não é concedido, pois também permite URLs HTTP/HTTPS fora dessa lista.
-- CSP restringe imagens a `self`, Steam CDN e libretro.
+- CSP restringe imagens a `self`, CDNs das lojas, libretro, SteamGridDB e o protocolo `asset:` (escopo `$APPCACHE/covers/*`).
 - Atualizações: só aceita release publicada, estável (`vX.Y.Z`) e com link deste repositório; o instalador só é aplicado com assinatura minisign válida, e o app só abre páginas de release deste repositório.
 - O app **não baixa nem distribui BIOS, firmware, chaves ou ROMs**; o usuário fornece os dele.
 - A leitura é somente leitura: `galaxy-2.0.db`, `butler.db` e `GameInstallInfo.sqlite` são abertos com `SQLITE_OPEN_READ_ONLY`.
 
 ## Fase 2 (não feito)
 
-1. Persistência em SQLite no backend; cache local de capas; fonte de capas com chave própria (IGDB, SteamGridDB ou ScreenScraper) — o hotlink atual é só para o protótipo.
+1. Persistência em SQLite no backend; IGDB ou ScreenScraper como fontes extras de capa.
 2. Identificação das ROMs por hash (CRC32/serial contra No-Intro/Redump, como o RetroArch); hoje o scan usa pasta + extensão.
 3. Validar `exe`/`args` de cada emulador contra a build instalada (hoje o catálogo é heurístico e o caminho real vem da detecção).
 4. Playnite (LiteDB) e validar o login da Ubisoft com uma conta real (hoje só há testes com respostas simuladas).

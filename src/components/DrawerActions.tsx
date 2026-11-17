@@ -1,7 +1,9 @@
-import { Download, Play, Trash2 } from "lucide-react";
+import { Download, ImageDown, Play, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Game } from "../domain/types";
+import { fetchCoverFor } from "../state/covers";
 import { useLibrary } from "../state/library";
+import { useSecrets } from "../state/secrets";
 import { useUi } from "../state/ui";
 import type { LaunchState } from "./useLaunch";
 
@@ -13,6 +15,7 @@ export function DrawerActions({ game, launch }: { game: Game; launch: LaunchStat
   const removeGame = useLibrary((s) => s.removeGame);
   const select = useUi((s) => s.select);
   const toast = useUi((s) => s.toast);
+  const sgdbKey = useSecrets((s) => s.sgdbKey);
   const { plan, play } = launch;
   const [confirming, setConfirming] = useState(false);
   const isPc = game.platformId === "pc";
@@ -29,6 +32,12 @@ export function DrawerActions({ game, launch }: { game: Game; launch: LaunchStat
     if (!window.confirm(`Desinstalar ${game.title}? A loja abre o próprio fluxo: nada é apagado pelo app.`)) return;
     await uninstallGame(game.id);
   };
+
+  const findCover = () =>
+    fetchCoverFor(game.id).then(
+      (changed) => toast(changed ? "Capa do SteamGridDB aplicada" : "Nenhuma capa nova no SteamGridDB"),
+      (e: unknown) => toast(e instanceof Error ? e.message : String(e)),
+    );
 
   return (
     <footer className="sticky bottom-0 z-10 mt-auto grid gap-3 border-t border-white/10 bg-ink-900/85 px-6 py-4 backdrop-blur-xl sm:px-10">
@@ -58,6 +67,11 @@ export function DrawerActions({ game, launch }: { game: Game; launch: LaunchStat
         {game.installed && (
           <button type="button" className="icon-btn !size-12 !rounded-2xl" onClick={() => void askUninstall()} aria-label="Desinstalar" title="Desinstalar">
             <Download size={17} className="rotate-180" aria-hidden />
+          </button>
+        )}
+        {sgdbKey && (
+          <button type="button" className="icon-btn !size-12 !rounded-2xl" onClick={() => void findCover()} aria-label="Buscar capa no SteamGridDB" title="Buscar capa no SteamGridDB">
+            <ImageDown size={17} aria-hidden />
           </button>
         )}
         <button

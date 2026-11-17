@@ -10,12 +10,15 @@ import { type VaultName, vaultAvailable, vaultDelete, vaultGet, vaultSet } from 
  */
 interface SecretsState {
   rawgKey: string;
+  /** SteamGridDB API key (covers). */
+  sgdbKey: string;
   /** Not a secret: whether the public Steam review score is queried (it needs no key). */
   steamReviews: boolean;
   steamId: string;
   steamKey: string;
   hydrated: boolean;
   setRawgKey: (key: string) => Promise<void>;
+  setSgdbKey: (key: string) => Promise<void>;
   setSteamReviews: (on: boolean) => void;
   setSteam: (patch: { steamId?: string; steamKey?: string }) => Promise<void>;
   /** Loads keys from the vault and moves any legacy plaintext keys into it. Call once at boot. */
@@ -35,6 +38,7 @@ export const useSecrets = create<SecretsState>()(
   persist(
     (set, get) => ({
       rawgKey: "",
+      sgdbKey: "",
       steamReviews: true,
       steamId: "",
       steamKey: "",
@@ -43,6 +47,11 @@ export const useSecrets = create<SecretsState>()(
         const rawgKey = key.trim();
         set({ rawgKey });
         await store("rawgKey", rawgKey);
+      },
+      setSgdbKey: async (key) => {
+        const sgdbKey = key.trim();
+        set({ sgdbKey });
+        await store("sgdbKey", sgdbKey);
       },
       setSteamReviews: (steamReviews) => set({ steamReviews }),
       setSteam: async (patch) => {
@@ -61,16 +70,16 @@ export const useSecrets = create<SecretsState>()(
           const { rawgKey: legacyRawg, steamKey: legacySteam } = get();
           if (legacyRawg) await vaultSet("rawgKey", legacyRawg);
           if (legacySteam) await vaultSet("steamKey", legacySteam);
-          const [rawgKey, steamKey] = await Promise.all([vaultGet("rawgKey"), vaultGet("steamKey")]);
-          set({ rawgKey: rawgKey ?? "", steamKey: steamKey ?? "", hydrated: true });
+          const [rawgKey, steamKey, sgdbKey] = await Promise.all([vaultGet("rawgKey"), vaultGet("steamKey"), vaultGet("sgdbKey")]);
+          set({ rawgKey: rawgKey ?? "", steamKey: steamKey ?? "", sgdbKey: sgdbKey ?? "", hydrated: true });
         } catch {
           // Vault unreachable: keep what is in memory, retry on the next boot.
           set({ hydrated: true });
         }
       },
       clear: async () => {
-        set({ rawgKey: "", steamId: "", steamKey: "", steamReviews: true });
-        if (vaultAvailable()) await Promise.allSettled([vaultDelete("rawgKey"), vaultDelete("steamKey")]);
+        set({ rawgKey: "", sgdbKey: "", steamId: "", steamKey: "", steamReviews: true });
+        if (vaultAvailable()) await Promise.allSettled([vaultDelete("rawgKey"), vaultDelete("steamKey"), vaultDelete("sgdbKey")]);
       },
     }),
     {

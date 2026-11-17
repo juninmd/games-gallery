@@ -4,7 +4,7 @@
 use keyring::Entry;
 
 const SERVICE: &str = "games-gallery";
-const ALLOWED: [&str; 2] = ["steamKey", "rawgKey"];
+const ALLOWED: [&str; 3] = ["steamKey", "rawgKey", "sgdbKey"];
 const MAX_LEN: usize = 256;
 
 fn entry(name: &str) -> Result<Entry, String> {

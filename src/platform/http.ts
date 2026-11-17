@@ -9,6 +9,7 @@ export const DEV_PROXY: Record<string, string> = {
   "https://blog.playstation.com": "/proxy/psblog",
   "https://catalog.gog.com": "/proxy/gogcatalog",
   "https://api.github.com": "/proxy/github",
+  "https://www.steamgriddb.com": "/proxy/sgdb",
 };
 const REQUEST_DEADLINE_MS = 30_000;
 const JSON_MAX_BYTES = 4 * 1024 * 1024;
