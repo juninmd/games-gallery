@@ -18,7 +18,7 @@ export function ReleaseCalendar({ items }: { items: WishlistEntry[] }) {
             <ul className="m-0 grid list-none gap-1.5 p-0">
               {g.items.map(({ entry, when }) => (
                 <li key={entry.appId} className="flex items-baseline justify-between gap-3 text-sm">
-                  <button type="button" onClick={() => void openExternal(entry.url)} className="truncate text-left text-fog hover:text-mist">{entry.title}</button>
+                  <button type="button" onClick={() => void openExternal(entry.url)} aria-label={`Abrir na loja: ${entry.title} (${when})`} className="truncate text-left text-fog hover:text-mist">{entry.title}</button>
                   <span className="muted small shrink-0 tabular-nums">{when}</span>
                 </li>
               ))}
