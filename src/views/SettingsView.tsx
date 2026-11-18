@@ -25,7 +25,8 @@ const REAL = [
 ];
 
 const LIMITED = [
-  "PSN, Xbox Live, Nintendo, humble e Xbox app: exigem login no serviço; ficam como cadastro manual",
+  "PSN: só os jogos jogados de PS4/PS5 (NPSSO em Conexões, fluxo não oficial); comprados não jogados, PS3 e Vita ficam de fora",
+  "Xbox Live, Nintendo, humble e Xbox app: exigem login no serviço; ficam como cadastro manual",
   "Ubisoft: o cache de posse é criptografado; os comprados vêm do login em Conexões (ainda não validado com conta real)",
   "Playnite: banco LiteDB, não lido",
   "Resgate de jogos grátis continua sendo feito por você na loja; o app só mostra a oferta",
