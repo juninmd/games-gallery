@@ -24,6 +24,17 @@ export interface Opts {
 const slug = (s: string) =>
   s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
+/** Short stable hash (FNV-1a, base 36) for titles the slug cannot represent. */
+const hash = (s: string) => {
+  let h = 0x811c9dc5;
+  for (const ch of s) h = Math.imul(h ^ ch.codePointAt(0)!, 0x01000193) >>> 0;
+  return h.toString(36);
+};
+
+/** Ids stay readable; a title that folds to nothing (CJK, emoji) would otherwise give every such game the same id. */
+export const gameId = (platformId: string, providerId: string, title: string) =>
+  slug(title) ? slug(`${providerId}-${platformId}-${title}`) : `${slug(`${providerId}-${platformId}`)}-${hash(title.trim())}`;
+
 /** Builds a library entry from values the user typed; ids stay stable per provider/platform/title. */
 export function game(
   platformId: string,
@@ -36,7 +47,7 @@ export function game(
   const status = o.s ?? "backlog";
   const owned = status !== "wishlist";
   return {
-    id: slug(`${providerId}-${platformId}-${title}`),
+    id: gameId(platformId, providerId, title),
     title,
     platformId,
     providerId,
