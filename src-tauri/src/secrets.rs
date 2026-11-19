@@ -4,8 +4,9 @@
 use keyring::Entry;
 
 const SERVICE: &str = "games-gallery";
-const ALLOWED: [&str; 3] = ["steamKey", "rawgKey", "sgdbKey"];
-const MAX_LEN: usize = 256;
+const ALLOWED: [&str; 4] = ["steamKey", "steamToken", "rawgKey", "sgdbKey"];
+// The Steam access token is a JWT, longer than the API keys.
+const MAX_LEN: usize = 1024;
 
 fn entry(name: &str) -> Result<Entry, String> {
     if !ALLOWED.contains(&name) {
@@ -61,6 +62,7 @@ mod tests {
             assert!(entry(bad).is_err(), "{bad:?}");
         }
         assert!(entry("steamKey").is_ok());
+        assert!(entry("steamToken").is_ok());
     }
 
     #[test]

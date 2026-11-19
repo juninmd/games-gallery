@@ -26,6 +26,9 @@ export async function fetchOwnedGames(steamId: string, key: string): Promise<Det
     steamid: id,
     include_appinfo: "1",
     include_played_free_games: "1",
+    // Free licenses (free-to-play activations, giveaways) and freshly activated apps not yet store-vetted.
+    include_free_sub: "1",
+    skip_unvetted_apps: "0",
     format: "json",
   });
   const json = (await httpGetJson(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?${qs}`)) as OwnedGamesResponse;

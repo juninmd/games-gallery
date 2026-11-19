@@ -3,24 +3,28 @@ import { useEffect, useState } from "react";
 import { useLibrary } from "../state/library";
 import { useSecrets } from "../state/secrets";
 import { isValidSteamId, isValidSteamKey } from "../platform/steamApi";
+import { isValidSteamToken, STEAM_TOKEN_HELP_URL, STEAM_TOKEN_MAX } from "../platform/steamFamily";
 import { useUi } from "../state/ui";
+import { openExternal } from "../platform/runtime";
 
 /**
  * Steam Web API credentials. The local manifests already prove what is installed; the API adds the
  * rest of the account (owned but not installed) plus total playtime.
  */
 export function SteamSettings() {
-  const { steamId, steamKey, setSteam } = useSecrets();
+  const { steamId, steamKey, steamToken, setSteam, setSteamToken } = useSecrets();
   const syncSteamApi = useLibrary((s) => s.syncSteamApi);
   const toast = useUi((s) => s.toast);
   const [id, setId] = useState(steamId);
   const [key, setKey] = useState(steamKey);
+  const [token, setToken] = useState(steamToken);
 
-  useEffect(() => { setId(steamId); setKey(steamKey); }, [steamId, steamKey]);
+  useEffect(() => { setId(steamId); setKey(steamKey); setToken(steamToken); }, [steamId, steamKey, steamToken]);
 
   const idOk = !id.trim() || isValidSteamId(id);
   const keyOk = !key.trim() || isValidSteamKey(key);
-  const ready = isValidSteamId(id) && isValidSteamKey(key);
+  const tokenOk = !token.trim() || isValidSteamToken(token);
+  const ready = isValidSteamId(id) && isValidSteamKey(key) && tokenOk;
 
   return (
     <section className="panel narrow">
@@ -39,11 +43,21 @@ export function SteamSettings() {
         <input type="password" autoComplete="off" value={key} maxLength={32} placeholder="32 caracteres hexadecimais" onChange={(e) => setKey(e.target.value)} aria-invalid={!keyOk} />
       </label>
       {!keyOk && <p className="warn-text small">A chave tem 32 caracteres hexadecimais (A-F, 0-9).</p>}
+      <label>
+        Token de acesso (Família Steam, opcional)
+        <input type="password" autoComplete="off" value={token} maxLength={STEAM_TOKEN_MAX} placeholder="eyJ…" onChange={(e) => setToken(e.target.value)} aria-invalid={!tokenOk} aria-describedby="steam-token-help" />
+      </label>
+      <p id="steam-token-help" className="muted small">
+        Para incluir os jogos compartilhados da família: logado na Steam, abra{" "}
+        <button type="button" className="link" onClick={() => void openExternal(STEAM_TOKEN_HELP_URL)}>ajaxgetasyncconfig</button> e copie o valor de{" "}
+        <code>webapi_token</code>. Ele expira em cerca de 24 h; não compartilhe.
+      </p>
+      {!tokenOk && <p className="warn-text small">O token é um JWT (três partes separadas por ponto).</p>}
       <div className="actions">
         <button
           className="btn"
           disabled={!ready}
-          onClick={() => { void setSteam({ steamId: id, steamKey: key }).then(() => toast("Credenciais da Steam salvas no cofre do sistema"), () => toast("Não foi possível salvar no cofre do sistema")); }}
+          onClick={() => { void Promise.all([setSteam({ steamId: id, steamKey: key }), setSteamToken(token)]).then(() => toast("Credenciais da Steam salvas no cofre do sistema"), () => toast("Não foi possível salvar no cofre do sistema")); }}
         >
           <Save size={14} aria-hidden /> Salvar
         </button>

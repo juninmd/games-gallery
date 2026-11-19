@@ -15,6 +15,7 @@ import { importEpicAccount } from "../platform/epicAccount";
 import { openStore } from "../platform/runtime";
 import { appStorage } from "../platform/stateStorage";
 import { fetchOwnedGames, isValidSteamId, isValidSteamKey } from "../platform/steamApi";
+import { fetchFamilySharedGames, isValidSteamToken, tagFamilyGames } from "../platform/steamFamily";
 import { useSecrets } from "./secrets";
 import { useTasks } from "./tasks";
 import { useUi } from "./ui";
@@ -173,7 +174,7 @@ export const useLibrary = create<LibraryState>()(
         }
       },
       syncSteamApi: async () => {
-        const { steamId, steamKey } = useSecrets.getState();
+        const { steamId, steamKey, steamToken } = useSecrets.getState();
         if (!isValidSteamId(steamId) || !isValidSteamKey(steamKey)) {
           toast("Informe o SteamID64 e a chave da Steam Web API em Ajustes.");
           return;
@@ -186,16 +187,23 @@ export const useLibrary = create<LibraryState>()(
           tasks.update(key, { progress: 60, detail: `${remote.length} jogos na conta` });
           const local = nativeAvailable() ? (await detectLibraries()).filter((d) => d.providerId === "steam") : [];
           const localGames = local.flatMap((d) => d.games);
-          const merged = mergeDetections(localGames, remote);
+          const owned = mergeDetections(localGames, remote);
+          // Family sharing is optional and its token expires: a failure must not drop the owned sync.
+          const ownedIds = new Set(owned.map((o) => o.storeId));
+          const family = isValidSteamToken(steamToken)
+            ? await fetchFamilySharedGames(steamId, steamToken).then((f) => f.filter((g) => !ownedIds.has(g.storeId)), (e) => { toast(`Família Steam: ${errorText(e)}`); return []; })
+            : [];
+          const merged = [...owned, ...family];
           const detection: ProviderDetection = {
             providerId: "steam",
-            source: "Steam Web API + appmanifest",
+            source: family.length ? "Steam Web API + Família Steam + appmanifest" : "Steam Web API + appmanifest",
             available: true,
             games: merged,
           };
           // The Web API lists the whole account: only the local manifests keep `installed` true.
           const items = planStoreImport("steam", detection.games, get().games).filter((i) => i.kind !== "same");
           if (items.length) get().importItems(items, { kind: "games", name: "Steam Web API" });
+          if (family.length) set((s) => ({ games: tagFamilyGames(s.games, family) }));
           set((s) => ({
             providers: {
               ...s.providers,
@@ -203,7 +211,8 @@ export const useLibrary = create<LibraryState>()(
             },
           }));
           tasks.update(key, { progress: 100 });
-          toast(`Steam: ${merged.length} jogos na conta (${merged.filter((g) => g.installed).length} instalados).`);
+          const familyNote = family.length ? `, ${family.length} da Família Steam` : "";
+          toast(`Steam: ${owned.length} jogos na conta (${owned.filter((g) => g.installed).length} instalados${familyNote}).`);
         } catch (e) {
           toast(`Steam Web API: ${errorText(e)}`);
         } finally {

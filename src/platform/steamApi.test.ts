@@ -43,6 +43,9 @@ describe("fetchOwnedGames", () => {
     expect(url.startsWith("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?")).toBe(true);
     expect(url).toContain(`steamid=${STEAM_ID}`);
     expect(url).toContain("include_appinfo=1");
+    // Without these, freshly activated free licenses and unvetted apps never reach the catalog.
+    expect(url).toContain("include_free_sub=1");
+    expect(url).toContain("skip_unvetted_apps=0");
   });
 
   it("skips entries without an appid or name", async () => {
