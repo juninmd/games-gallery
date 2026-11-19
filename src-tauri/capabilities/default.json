@@ -50,6 +50,8 @@
         { "url": "https://amazon.com/ap/signin*" },
         { "url": "https://store.steampowered.com/*" },
         { "url": "https://blog.playstation.com/*" },
+        { "url": "https://www.playstation.com/" },
+        { "url": "https://ca.account.sony.com/api/v1/ssocookie" },
         { "url": "https://store.playstation.com/*" },
         { "url": "https://ares-emu.net/" },
         { "url": "https://ares-emu.net/download" },

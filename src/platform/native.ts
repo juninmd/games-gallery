@@ -179,3 +179,9 @@ export async function steamAddShortcuts(entries: ShortcutEntry[]): Promise<Short
   if (!isTauri()) throw new Error("Exportar para a Steam só funciona no app instalado.");
   return invoke<ShortcutSummary>("steam_add_shortcuts", { entries });
 }
+
+/** PSN played games (PS4/PS5). The NPSSO goes to Rust once and is never stored. */
+export async function psnLibrary(npsso: string): Promise<DetectedEntry[]> {
+  const games = await invoke<Array<{ storeId: string; title: string; platformId: string; playtimeH: number }>>("psn_library", { npsso });
+  return games.map((g) => ({ storeId: safeStoreId(g.storeId), title: g.title, installed: false, platformId: g.platformId, playtimeH: g.playtimeH }));
+}

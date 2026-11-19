@@ -1,5 +1,6 @@
 import { AmazonAccountSettings } from "../components/AmazonAccountSettings";
 import { EpicAccountSettings } from "../components/EpicAccountSettings";
+import { PsnAccountSettings } from "../components/PsnAccountSettings";
 import { ProbeList } from "../components/ProbeList";
 import { WindowLoginSettings } from "../components/WindowLoginSettings";
 import { CoverSourceSettings } from "../components/CoverSourceSettings";
@@ -62,6 +63,7 @@ export function ConnectionsView() {
       <SteamSettings />
       <EpicAccountSettings />
       <AmazonAccountSettings />
+      <PsnAccountSettings />
       <WindowLoginSettings />
       <SteamReviewsToggle />
       <RatingSourcesSettings />

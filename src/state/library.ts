@@ -20,6 +20,7 @@ import { useSecrets } from "./secrets";
 import { useTasks } from "./tasks";
 import { useUi } from "./ui";
 import { emulatorActions } from "./libraryEmulators";
+import { psnActions } from "./libraryPsn";
 import { initialLibrary, mergeLibrary, migrateLibrary, type ScanRecord, type Settings } from "./libraryPersistence";
 
 export type { ProviderState } from "../domain/types";
@@ -45,6 +46,7 @@ export interface LibraryState {
   syncEpicAccount: (code: string) => Promise<void>;
   syncAmazonAccount: (pastedUrl: string, device: AmazonDevice) => Promise<void>;
   syncWindowLogin: (store: WindowLoginStore) => Promise<void>;
+  syncPsnAccount: (npsso: string) => Promise<void>;
   installGame: (id: string) => Promise<void>;
   uninstallGame: (id: string) => Promise<void>;
   installEmulator: (id: string) => Promise<void>;
@@ -265,6 +267,7 @@ export const useLibrary = create<LibraryState>()(
       },
 
       ...emulatorActions(set, get),
+      ...psnActions(set, get),
 
 
       setSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),

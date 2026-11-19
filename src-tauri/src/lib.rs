@@ -8,6 +8,7 @@ mod detect_ubisoft;
 mod detect_xbox;
 mod account_ea;
 mod account_login;
+mod account_psn;
 mod account_ubisoft;
 mod covers;
 mod emulator_install;
@@ -64,6 +65,7 @@ pub fn run() {
             account_login::battlenet_library,
             account_ea::ea_library,
             account_ubisoft::ubisoft_library,
+            account_psn::psn_library,
             secrets::secret_set,
             secrets::secret_get,
             secrets::secret_delete,

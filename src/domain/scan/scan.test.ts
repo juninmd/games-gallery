@@ -222,4 +222,11 @@ describe("review regressions", () => {
     const [kept] = planStoreImport("ubisoft", [{ storeId: "9999", title: "Fake Racer", installed: true }], [{ ...owned, installed: true, storeId: "4321" }]);
     expect(kept!.patch).not.toHaveProperty("storeId");
   });
+
+  it("files console-store games under their own platform, PC stores under pc", () => {
+    const [ps5] = planStoreImport("psn", [{ storeId: "PPSA01234_00", title: "Fake Quest", installed: false, platformId: "ps5", playtimeH: 3 }], []);
+    expect(ps5).toMatchObject({ kind: "new", platformId: "ps5", game: { id: "psn-ps5-fake-quest", platformId: "ps5", playtimeH: 3 } });
+    const [pc] = planStoreImport("epic", [{ storeId: "a", title: "Fake Quest", installed: false }], []);
+    expect(pc).toMatchObject({ platformId: "pc", game: { platformId: "pc" } });
+  });
 });

@@ -103,6 +103,8 @@ export interface DetectedEntry {
   installed: boolean;
   installPath?: string;
   playtimeH?: number;
+  /** Console stores know the platform; PC stores leave it out ("pc"). */
+  platformId?: string;
 }
 
 /** Result of scanning one provider on this machine. */
