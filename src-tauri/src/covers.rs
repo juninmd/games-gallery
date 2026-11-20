@@ -73,9 +73,7 @@ pub async fn cover_cached(app: AppHandle, url: String) -> Result<String, String>
     }
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     // Write then rename, so a half-written file is never served as a cache hit.
-    let tmp = path.with_extension("part");
-    std::fs::write(&tmp, &bytes).map_err(|e| e.to_string())?;
-    std::fs::rename(&tmp, &path).map_err(|e| e.to_string())?;
+    crate::atomic_write::write_atomic(&path, &bytes).map_err(|e| e.to_string())?;
     Ok(path.to_string_lossy().into_owned())
 }
 
