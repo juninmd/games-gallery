@@ -1,5 +1,5 @@
 import { Save } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useDraft } from "./useDraft";
 import { useSecrets } from "../state/secrets";
 import { useUi } from "../state/ui";
 
@@ -23,12 +23,11 @@ export function RatingSourcesSettings() {
   const rawgKey = useSecrets((s) => s.rawgKey);
   const setRawgKey = useSecrets((s) => s.setRawgKey);
   const toast = useUi((s) => s.toast);
-  const [draft, setDraft] = useState(rawgKey);
-  useEffect(() => setDraft(rawgKey), [rawgKey]);
+  const [draft, setDraft, resetDraft] = useDraft(rawgKey);
 
   const save = () =>
     setRawgKey(draft).then(
-      () => toast(draft.trim() ? "Chave do RAWG salva no cofre do sistema" : "Chave do RAWG removida"),
+      () => { resetDraft(); toast(draft.trim() ? "Chave do RAWG salva no cofre do sistema" : "Chave do RAWG removida"); },
       () => toast("Não foi possível salvar no cofre do sistema"),
     );
 

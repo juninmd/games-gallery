@@ -1,24 +1,24 @@
 import { ImageDown, Save } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SGDB_KEY } from "../platform/steamGridDb";
 import { fetchMissingCovers, MAX_COVERS_PER_RUN, missingCovers } from "../state/covers";
 import { useLibrary } from "../state/library";
 import { useSecrets } from "../state/secrets";
 import { useUi } from "../state/ui";
+import { useDraft } from "./useDraft";
 
 export function CoverSourceSettings() {
   const sgdbKey = useSecrets((s) => s.sgdbKey);
   const setSgdbKey = useSecrets((s) => s.setSgdbKey);
   const missing = useLibrary((s) => missingCovers(s.games).length);
   const toast = useUi((s) => s.toast);
-  const [draft, setDraft] = useState(sgdbKey);
+  const [draft, setDraft, resetDraft] = useDraft(sgdbKey);
   const [busy, setBusy] = useState(false);
-  useEffect(() => setDraft(sgdbKey), [sgdbKey]);
   const valid = !draft.trim() || SGDB_KEY.test(draft.trim());
 
   const save = () =>
     setSgdbKey(draft).then(
-      () => toast(draft.trim() ? "Chave do SteamGridDB salva no cofre do sistema" : "Chave do SteamGridDB removida"),
+      () => { resetDraft(); toast(draft.trim() ? "Chave do SteamGridDB salva no cofre do sistema" : "Chave do SteamGridDB removida"); },
       () => toast("Não foi possível salvar no cofre do sistema"),
     );
 

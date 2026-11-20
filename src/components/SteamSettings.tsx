@@ -1,5 +1,5 @@
 import { RefreshCw, Save } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useDraft } from "./useDraft";
 import { useLibrary } from "../state/library";
 import { useSecrets } from "../state/secrets";
 import { isValidSteamId, isValidSteamKey } from "../platform/steamApi";
@@ -15,11 +15,9 @@ export function SteamSettings() {
   const { steamId, steamKey, steamToken, setSteam, setSteamToken } = useSecrets();
   const syncSteamApi = useLibrary((s) => s.syncSteamApi);
   const toast = useUi((s) => s.toast);
-  const [id, setId] = useState(steamId);
-  const [key, setKey] = useState(steamKey);
-  const [token, setToken] = useState(steamToken);
-
-  useEffect(() => { setId(steamId); setKey(steamKey); setToken(steamToken); }, [steamId, steamKey, steamToken]);
+  const [id, setId, resetId] = useDraft(steamId);
+  const [key, setKey, resetKey] = useDraft(steamKey);
+  const [token, setToken, resetToken] = useDraft(steamToken);
 
   const idOk = !id.trim() || isValidSteamId(id);
   const keyOk = !key.trim() || isValidSteamKey(key);
@@ -57,7 +55,7 @@ export function SteamSettings() {
         <button
           className="btn"
           disabled={!ready}
-          onClick={() => { void Promise.all([setSteam({ steamId: id, steamKey: key }), setSteamToken(token)]).then(() => toast("Credenciais da Steam salvas no cofre do sistema"), () => toast("Não foi possível salvar no cofre do sistema")); }}
+          onClick={() => { void Promise.all([setSteam({ steamId: id, steamKey: key }), setSteamToken(token)]).then(() => { resetId(); resetKey(); resetToken(); toast("Credenciais da Steam salvas no cofre do sistema"); }, () => toast("Não foi possível salvar no cofre do sistema")); }}
         >
           <Save size={14} aria-hidden /> Salvar
         </button>
