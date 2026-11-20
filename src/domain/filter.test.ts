@@ -9,6 +9,11 @@ const games = [
 ];
 
 describe("filterGames", () => {
+  it("sorts titles alphabetically ignoring case and accents", () => {
+    const titles = ["Zelda", "éclair", "banana", "Apple", "Eclipse"].map((t) => game("pc", "steam", t, 2000, "RPG"));
+    expect(filterGames(titles, EMPTY_FILTER).map((g) => g.title)).toEqual(["Apple", "banana", "éclair", "Eclipse", "Zelda"]);
+  });
+
   it("matches titles ignoring case and accents", () => {
     expect(filterGames(games, { ...EMPTY_FILTER, query: "pokemon" })).toHaveLength(1);
     expect(filterGames(games, { ...EMPTY_FILTER, query: "POKÉMON" })).toHaveLength(1);

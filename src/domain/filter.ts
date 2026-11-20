@@ -56,8 +56,11 @@ export function createGameQueryMatcher(query: string): (game: Game) => boolean {
     (byStore && fold(PROVIDER_BY_ID[game.providerId]?.name ?? "").startsWith(q));
 }
 
+// localeCompare with options builds a collator on every call: ~40x slower when sorting thousands of titles.
+const titleCollator = new Intl.Collator("pt-BR", { sensitivity: "base" });
+
 const SORTERS: Record<SortKey, (a: Game, b: Game) => number> = {
-  title: (a, b) => a.title.localeCompare(b.title, "pt-BR", { sensitivity: "base" }),
+  title: (a, b) => titleCollator.compare(a.title, b.title),
   year: (a, b) => b.year - a.year,
   playtime: (a, b) => b.playtimeH - a.playtimeH,
   rating: (a, b) => (b.rating ?? 0) - (a.rating ?? 0),
