@@ -1,5 +1,5 @@
 import { LazyMotion, MotionConfig } from "motion/react";
-import { Component, lazy, Suspense, useEffect, useMemo, useState, type ErrorInfo, type ReactNode } from "react";
+import { Component, lazy, Suspense, useEffect, useMemo, useRef, useState, type ErrorInfo, type ReactNode } from "react";
 import { AddGameModal } from "./components/AddGameModal";
 import { CommandPalette } from "./components/CommandPalette";
 import { GameDrawer } from "./components/GameDrawer";
@@ -11,6 +11,7 @@ import { CentralTabs } from "./components/shell/CentralTabs";
 import { Dock } from "./components/shell/Dock";
 import { Intro } from "./components/shell/Intro";
 import { TopBar } from "./components/shell/TopBar";
+import { useViewFocus } from "./components/shell/useViewFocus";
 import { useLibrary, whenHydrated } from "./state/library";
 import { watchPriceAlerts } from "./state/alertWatcher";
 import { watchSessions } from "./state/sessions";
@@ -83,6 +84,8 @@ function CurrentView() {
 
 export function App() {
   const view = useUi((s) => s.view);
+  const stage = useRef<HTMLDivElement>(null);
+  useViewFocus(view, stage);
 
   // Real data on first paint: executables on disk, then the launchers' libraries when empty.
   useEffect(() => {
@@ -108,7 +111,7 @@ export function App() {
       <AmbientBackdrop />
       <main className="main">
         <TopBar />
-        <div className="stage">
+        <div className="stage" ref={stage}>
           {isCentral(view) && <CentralTabs />}
           <div className="view-enter" key={view}><CurrentView /></div>
         </div>

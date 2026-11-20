@@ -49,3 +49,7 @@ export const DOCK_GROUPS: DockItem[][] = [
   ],
 ];
 export const DOCK_ITEMS: DockItem[] = DOCK_GROUPS.flat();
+
+const VIEW_LABELS = Object.fromEntries(NAV_GROUPS.flatMap((g) => g.items).map((n) => [n.view, n.label])) as Record<View, string>;
+/** Window title per screen, so a screen reader and the taskbar announce where the user landed. */
+export const viewTitle = (view: View) => `${VIEW_LABELS[view]} · Games Gallery`;
