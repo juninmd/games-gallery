@@ -17,9 +17,8 @@ export function useViewFocus(view: View, stage: RefObject<HTMLElement | null>) {
     const focusHeading = () => {
       const h1 = root.querySelector("h1");
       if (!h1) return false;
-      const firstH1 = h1;
-      firstH1.tabIndex = -1;
-      firstH1.focus({ preventScroll: true });
+      h1.tabIndex = -1;
+      h1.focus({ preventScroll: true });
       return true;
     };
     if (focusHeading()) return;
