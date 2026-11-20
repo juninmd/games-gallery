@@ -1,6 +1,6 @@
 import { AnimatePresence, m } from "motion/react";
 import { Dices, Info, Pause, Play, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { pickBacklog, totalHours, type GameGroup } from "../domain/duplicates";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import type { Game } from "../domain/types";
@@ -46,10 +46,17 @@ export function HeroCarousel({ slides, groups }: { slides: GameGroup[]; groups: 
 
   useEffect(() => { setAmbient(ambientFor(game)); }, [game, setAmbient]);
 
+  // The dot's CSS bar only pauses, so a pause must resume the timer with what is left, not a fresh ROTATE_MS.
+  const left = useRef(ROTATE_MS);
+  useEffect(() => { left.current = ROTATE_MS; }, [index]);
   useEffect(() => {
     if (!rotates || paused || stopped) return;
-    const t = setTimeout(() => setIndex((i) => (i + 1) % slides.length), ROTATE_MS);
-    return () => clearTimeout(t);
+    const start = performance.now();
+    const t = setTimeout(() => setIndex((i) => (i + 1) % slides.length), left.current);
+    return () => {
+      clearTimeout(t);
+      left.current = Math.max(0, left.current - (performance.now() - start));
+    };
   }, [index, paused, stopped, rotates, slides.length]);
 
   const pickRandom = () => {
