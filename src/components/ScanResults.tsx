@@ -1,5 +1,5 @@
 import { Download } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { EMULATOR_BY_ID } from "../domain/emulators";
 import type { ImportItem } from "../domain/scan/plan";
 import { useLibrary } from "../state/library";
@@ -71,9 +71,6 @@ export function ScanResults({ title, items, notes, onImport, onCancel }: Props) 
     }
     return next;
   });
-  useEffect(() => {
-    if (page >= pageCount) setPage(pageCount - 1);
-  }, [page, pageCount]);
   const changes = selected.filter((i) => i.kind !== "same").length;
   const count = (k: ImportItem["kind"]) => items.filter((i) => i.kind === k).length;
 
