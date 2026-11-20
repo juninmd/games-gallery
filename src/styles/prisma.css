@@ -178,7 +178,7 @@ body::before { display: none; }
 .hero-dots button { display: grid; align-items: center; width: 36px; height: 24px; }
 .hero-dots button i { display: block; height: 4px; border-radius: 4px; background: rgb(255 255 255 / 20%); overflow: hidden; }
 .hero-dots button i::after { content: ""; display: block; width: 0; height: 100%; background: var(--text); }
-.hero-dots button[aria-current="true"] i::after { animation: fill-x var(--ms) linear forwards; }
+.hero-dots button:not(.is-paused) i::after { animation: fill-x var(--ms) linear forwards; }
 .hero-dots button.is-paused i::after { animation-play-state: paused; }
 .hero-dots .hero-toggle { width: 24px; place-items: center; border-radius: 50%; color: var(--text); background: rgb(255 255 255 / 12%); }
 .hero-dots .hero-toggle:hover { background: rgb(255 255 255 / 22%); }
@@ -317,7 +317,7 @@ body::before { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   :root { transition: none; }
-  .ambient-field, .hero-backdrop > *, .hero-cover .cover, .hero-title span, .dock, .intro, .omni-chip, .game-row, .drawer[open] { animation: none !important; }
+  .ambient-field, .hero-backdrop > *, .hero-cover .cover, .hero-dots, .hero-dots button i::after, .hero-title span, .hero-title span, .dock, .intro, .omni-chip, .game-row, .drawer[open] { animation: none !important; }
   .dock-item, .dock-icon { transition: none; }
 }
 
