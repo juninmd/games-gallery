@@ -42,9 +42,7 @@ fn write(dir: &Path, key: &str, value: &str) -> Result<(), String> {
     }
     let path = file_for(dir, key)?;
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
-    let tmp = path.with_extension("part");
-    std::fs::write(&tmp, value).map_err(|e| e.to_string())?;
-    std::fs::rename(&tmp, &path).map_err(|e| e.to_string())
+    crate::atomic_write::write_atomic(&path, value.as_bytes()).map_err(|e| e.to_string())
 }
 
 fn remove(dir: &Path, key: &str) -> Result<(), String> {
@@ -91,7 +89,7 @@ mod tests {
         write(&dir, key, "{\"a\":1}").unwrap();
         write(&dir, key, "{\"a\":2}").unwrap();
         assert_eq!(read(&dir, key).unwrap().as_deref(), Some("{\"a\":2}"));
-        assert!(!dir.join("test_v1.part").exists());
+        assert!(std::fs::read_dir(&dir).unwrap().all(|e| e.unwrap().path().extension().is_some_and(|x| x != "part")));
         remove(&dir, key).unwrap();
         remove(&dir, key).unwrap();
         assert_eq!(read(&dir, key).unwrap(), None);

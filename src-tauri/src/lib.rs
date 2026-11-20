@@ -10,6 +10,7 @@ mod account_ea;
 mod account_login;
 mod account_psn;
 mod account_ubisoft;
+mod atomic_write;
 mod covers;
 mod emulator_install;
 mod emulators;
