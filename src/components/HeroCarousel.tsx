@@ -1,5 +1,5 @@
 import { AnimatePresence, m } from "motion/react";
-import { Dices, Info, Play, Sparkles } from "lucide-react";
+import { Dices, Info, Pause, Play, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { pickBacklog, totalHours, type GameGroup } from "../domain/duplicates";
 import { PLATFORM_BY_ID } from "../domain/platforms";
@@ -24,7 +24,7 @@ function PlayButton({ game }: { game: Game }) {
 
 /**
  * The library's stage: what you are playing, one game at a time, rotating on its own
- * (paused on hover, focus and reduced motion). Falls back to the most played game.
+ * (paused on hover, focus and reduced motion; a button stops it for good, WCAG 2.2.2). Falls back to the most played game.
  */
 export function HeroCarousel({ slides, groups }: { slides: GameGroup[]; groups: GameGroup[] }) {
   const setAmbient = useUi((s) => s.setAmbient);
@@ -32,6 +32,8 @@ export function HeroCarousel({ slides, groups }: { slides: GameGroup[]; groups: 
   const go = useUi((s) => s.go);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [stopped, setStopped] = useState(false);
+  const rotates = slides.length > 1 && !prefersReducedMotion();
   const current = slides[index % slides.length]!;
   const { primary, members } = current;
   // The primary may lack art that another store has.
@@ -44,10 +46,10 @@ export function HeroCarousel({ slides, groups }: { slides: GameGroup[]; groups: 
   useEffect(() => { setAmbient(ambientFor(game)); }, [game, setAmbient]);
 
   useEffect(() => {
-    if (slides.length < 2 || paused || prefersReducedMotion()) return;
+    if (!rotates || paused || stopped) return;
     const t = setTimeout(() => setIndex((i) => (i + 1) % slides.length), ROTATE_MS);
     return () => clearTimeout(t);
-  }, [index, paused, slides.length]);
+  }, [index, paused, stopped, rotates, slides.length]);
 
   const pickRandom = () => {
     const pick = pickBacklog(groups);
@@ -146,12 +148,17 @@ export function HeroCarousel({ slides, groups }: { slides: GameGroup[]; groups: 
               aria-label={s.primary.title}
               aria-current={i === index % slides.length ? "true" : undefined}
               onClick={() => setIndex(i)}
-              className={paused ? "is-paused" : ""}
+              className={paused || stopped ? "is-paused" : ""}
               style={{ "--ms": `${ROTATE_MS}ms` } as React.CSSProperties}
             >
               <i />
             </button>
           ))}
+          {rotates && (
+            <button type="button" className="hero-toggle" onClick={() => setStopped((v) => !v)} aria-label={stopped ? "Retomar rotação dos destaques" : "Pausar rotação dos destaques"}>
+              {stopped ? <Play size={12} className="fill-current" aria-hidden /> : <Pause size={12} className="fill-current" aria-hidden />}
+            </button>
+          )}
         </div>
       )}
     </section>

@@ -1,4 +1,4 @@
-import { LazyMotion } from "motion/react";
+import { LazyMotion, MotionConfig } from "motion/react";
 import { Component, lazy, Suspense, useEffect, useMemo, useState, type ErrorInfo, type ReactNode } from "react";
 import { AddGameModal } from "./components/AddGameModal";
 import { CommandPalette } from "./components/CommandPalette";
@@ -101,6 +101,8 @@ export function App() {
   }, []);
 
   return (
+    // "user": springs and layout animations honor the OS reduced-motion setting, like the CSS.
+    <MotionConfig reducedMotion="user">
     <LazyMotion features={loadMotionFeatures} strict>
     <div className="app">
       <AmbientBackdrop />
@@ -120,5 +122,6 @@ export function App() {
       <Intro />
     </div>
     </LazyMotion>
+    </MotionConfig>
   );
 }

@@ -173,11 +173,15 @@ body::before { display: none; }
 .hero-cover { justify-self: center; width: min(240px, 70%); transform-style: preserve-3d; transform: rotateY(-14deg); }
 .hero-cover .cover { box-shadow: 30px 40px 80px -20px #000, 0 0 0 1px rgb(255 255 255 / 15%); animation: hero-float 7s ease-in-out infinite; }
 @keyframes hero-float { 50% { transform: translateY(-10px) rotateX(3deg); } }
-.hero-dots { position: absolute; left: clamp(24px, 4vw, 56px); bottom: 24px; display: flex; gap: 8px; }
-.hero-dots button { width: 36px; height: 4px; border-radius: 4px; background: rgb(255 255 255 / 20%); overflow: hidden; }
-.hero-dots button i { display: block; width: 0; height: 100%; background: var(--text); }
-.hero-dots button[aria-current="true"] i { animation: fill-x var(--ms) linear forwards; }
-.hero-dots button.is-paused i { animation-play-state: paused; }
+.hero-dots { position: absolute; left: clamp(24px, 4vw, 56px); bottom: 14px; display: flex; align-items: center; gap: 8px; }
+/* 24px-tall hit area around a 4px track (WCAG 2.5.8 target size). */
+.hero-dots button { display: grid; align-items: center; width: 36px; height: 24px; }
+.hero-dots button i { display: block; height: 4px; border-radius: 4px; background: rgb(255 255 255 / 20%); overflow: hidden; }
+.hero-dots button i::after { content: ""; display: block; width: 0; height: 100%; background: var(--text); }
+.hero-dots button[aria-current="true"] i::after { animation: fill-x var(--ms) linear forwards; }
+.hero-dots button.is-paused i::after { animation-play-state: paused; }
+.hero-dots .hero-toggle { width: 24px; place-items: center; border-radius: 50%; color: var(--text); background: rgb(255 255 255 / 12%); }
+.hero-dots .hero-toggle:hover { background: rgb(255 255 255 / 22%); }
 @keyframes fill-x { to { width: 100%; } }
 @media (max-width: 760px) {
   .hero { grid-template-columns: 1fr; }
