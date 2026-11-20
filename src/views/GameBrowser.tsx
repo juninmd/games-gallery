@@ -1,5 +1,4 @@
-import { useDeferredValue, useMemo, useState } from "react";
-import { BoxShelf } from "../components/box/BoxShelf";
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from "react";
 import { CountUp } from "../components/CountUp";
 import { FilterBar } from "../components/FilterBar";
 import { GameCard } from "../components/GameCard";
@@ -10,6 +9,9 @@ import { featuredGroup, filterGameGroups, groupGames, groupStats, nowPlayingGrou
 import { CLEARED_FILTER, hasActiveFilter } from "../domain/filter";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { useLibrary } from "../state/library";
+
+// 3D boxes (and their brand artwork) are an opt-in layout: keep them out of the entry chunk.
+const BoxShelf = lazy(() => import("../components/box/BoxShelf").then((m) => ({ default: m.BoxShelf })));
 import { useUi } from "../state/ui";
 
 const PAGE_SIZE = 60;
@@ -154,7 +156,9 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
           {mode === "rails" ? (
             <GameRails groups={shown} />
           ) : mode === "boxes" ? (
-            <BoxShelf groups={pageGames} busy={isUpdating} />
+            <Suspense fallback={<p className="empty" role="status">Carregando caixas…</p>}>
+              <BoxShelf groups={pageGames} busy={isUpdating} />
+            </Suspense>
           ) : mode === "list" ? (
             <GameList groups={pageGames} busy={isUpdating} />
           ) : (
