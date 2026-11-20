@@ -155,7 +155,7 @@ export function HeroCarousel({ slides, groups }: { slides: GameGroup[]; groups: 
             </button>
           ))}
           {rotates && (
-            <button type="button" className="hero-toggle" onClick={() => { setStopped((v) => !v); setPaused(false); }} onFocus={(e) => e.stopPropagation()} aria-label={stopped ? "Retomar rotação dos destaques" : "Pausar rotação dos destaques"}>
+            <button type="button" className="hero-toggle" onClick={() => setStopped((v) => !v)} aria-label={stopped ? "Retomar rotação dos destaques" : "Pausar rotação dos destaques"}>
               {stopped ? <Play size={12} className="fill-current" aria-hidden /> : <Pause size={12} className="fill-current" aria-hidden />}
             </button>
           )}
