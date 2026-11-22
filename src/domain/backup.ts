@@ -47,6 +47,12 @@ export function exportBackup(data: BackupData, now = new Date()): string {
   return JSON.stringify({ app: BACKUP_APP, version: BACKUP_VERSION, exportedAt: now.toISOString(), ...data }, null, 2);
 }
 
+/** Suggested file name, dated by the user's local calendar day (toISOString would use UTC). */
+export function backupFileName(now = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${BACKUP_APP}-${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.json`;
+}
+
 /** Catalog lookups are plain objects: "constructor" or "__proto__" must not count as ids. */
 const has = (rec: object, key: string) => Object.prototype.hasOwnProperty.call(rec, key);
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);

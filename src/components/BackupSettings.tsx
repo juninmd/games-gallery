@@ -1,5 +1,5 @@
 import { Download, Upload } from "lucide-react";
-import { exportBackup, parseBackup } from "../domain/backup";
+import { backupFileName, exportBackup, parseBackup } from "../domain/backup";
 import { pickTextFile, saveTextFile } from "../platform/files";
 import { useLibrary } from "../state/library";
 import { usePriceAlerts } from "../state/priceAlerts";
@@ -11,9 +11,8 @@ export function BackupSettings() {
 
   const onExport = async () => {
     const { games, scans, providers, emulators, settings } = useLibrary.getState();
-    const day = new Date().toISOString().slice(0, 10);
     try {
-      if (await saveTextFile(`games-gallery-${day}.json`, exportBackup({ games, scans, providers, emulators, priceTargets: usePriceAlerts.getState().targets, sessions: useSessions.getState().sessions, settings }))) {
+      if (await saveTextFile(backupFileName(), exportBackup({ games, scans, providers, emulators, priceTargets: usePriceAlerts.getState().targets, sessions: useSessions.getState().sessions, settings }))) {
         toast(`Backup exportado: ${games.length} jogos`);
       }
     } catch (e) {

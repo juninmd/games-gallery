@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BACKUP_VERSION, MAX_BACKUP_BYTES, exportBackup, parseBackup, type BackupData } from "./backup";
+import { BACKUP_VERSION, MAX_BACKUP_BYTES, backupFileName, exportBackup, parseBackup, type BackupData } from "./backup";
 import type { Game } from "./types";
 
 const game = (over: Partial<Game> = {}): Game => ({
@@ -153,5 +153,18 @@ describe("play sessions in a backup", () => {
     expect(r.ok && r.data.sessions).toEqual([session]);
     const old = parseBackup(exportBackup(data()));
     expect(old.ok && old.data.sessions).toBeUndefined();
+  });
+});
+
+describe("backupFileName", () => {
+  it("uses the local day, not the UTC one, late in the evening west of UTC", () => {
+    const tz = process.env.TZ;
+    process.env.TZ = "America/Sao_Paulo";
+    try {
+      // 22:30 on Nov 22 in São Paulo is already Nov 23 in UTC.
+      expect(backupFileName(new Date("2026-11-23T01:30:00Z"))).toBe("games-gallery-2026-11-22.json");
+    } finally {
+      process.env.TZ = tz;
+    }
   });
 });
