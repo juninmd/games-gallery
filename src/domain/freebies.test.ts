@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { decodeEntities, monthPt, settle, splitGames, windowChanged, findPsPlusMonth, freebieToGame, parseEpicFree, parseFeed, psPlusFreebies, safeUrl, LINK_HOSTS } from "./freebies";
+import { decodeEntities, monthPt, settle, splitGames, windowChanged, findPsPlusMonth, freebieToGame, parseEpicFree, parseFeed, psPlusFreebies, LINK_HOSTS } from "./freebies";
+import { safeUrl } from "./safeUrl";
 import type { Game } from "./types";
 
 const images = [

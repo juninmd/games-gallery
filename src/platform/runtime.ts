@@ -1,4 +1,5 @@
-import { LINK_HOSTS, safeUrl } from "../domain/freebies";
+import { LINK_HOSTS } from "../domain/freebies";
+import { safeUrl } from "../domain/safeUrl";
 import type { LaunchPlan } from "../domain/launch";
 
 export const isTauri = () => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;

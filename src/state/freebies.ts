@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { LINK_HOSTS, safeUrl, type Freebie, type PsPlusMonth, windowChanged } from "../domain/freebies";
+import { safeUrl } from "../domain/safeUrl";
+import { LINK_HOSTS, type Freebie, type PsPlusMonth, windowChanged } from "../domain/freebies";
 import { fetchEpicFree, fetchPsPlusMonth } from "../platform/freebiesApi";
 
 export const EPIC_TTL_MS = 6 * 60 * 60 * 1000;
