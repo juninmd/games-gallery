@@ -1,5 +1,7 @@
 /** Store promotions and the Steam wishlist: pure parsers over payloads checked against the live endpoints. */
 
+import { safeUrl } from "./safeUrl";
+
 export type DealStore = "steam" | "gog" | "epic";
 
 export interface Deal {
@@ -69,16 +71,6 @@ export const DEAL_IMAGE_HOSTS = new Set([
 ]);
 export const DEAL_LINK_HOSTS = new Set(["store.steampowered.com", "www.gog.com", "store.epicgames.com"]);
 
-function safeHttps(url: string | undefined, hosts: Set<string>): string | undefined {
-  if (!url) return undefined;
-  try {
-    const u = new URL(url);
-    return u.protocol === "https:" && !u.username && !u.password && hosts.has(u.host) ? u.toString() : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 const SLUG = /^[a-z0-9][a-z0-9_-]{0,120}$/;
 
 export function formatMoney(cents: number, currency: string): string {
@@ -119,7 +111,7 @@ export function parseSteamSpecials(json: unknown): Deal[] {
       store: "steam",
       title,
       url: `https://store.steampowered.com/app/${appId}`,
-      imageUrl: safeHttps(str(raw["large_capsule_image"]) ?? str(raw["header_image"]), DEAL_IMAGE_HOSTS),
+      imageUrl: safeUrl(str(raw["large_capsule_image"]) ?? str(raw["header_image"]), DEAL_IMAGE_HOSTS),
       currency,
       originalCents: original,
       finalCents: final,
@@ -148,13 +140,13 @@ export function parseGogDeals(json: unknown): Deal[] {
     if (!id || !/^\d{1,20}$/.test(id) || !title || !currency || !CURRENCY.test(currency) || original === undefined || price === undefined) continue;
     if (price >= original || seen.has(id)) continue;
     seen.add(id);
-    const link = safeHttps(str(raw["storeLink"]), DEAL_LINK_HOSTS);
+    const link = safeUrl(str(raw["storeLink"]), DEAL_LINK_HOSTS);
     out.push({
       id: `gog:${id}`,
       store: "gog",
       title,
       url: link ?? "https://www.gog.com/en/games?discounted=true",
-      imageUrl: safeHttps(str(raw["coverHorizontal"]) ?? str(raw["coverVertical"]), DEAL_IMAGE_HOSTS),
+      imageUrl: safeUrl(str(raw["coverHorizontal"]) ?? str(raw["coverVertical"]), DEAL_IMAGE_HOSTS),
       currency,
       originalCents: original,
       finalCents: price,
@@ -192,7 +184,7 @@ export function parseEpicDeals(json: unknown): Deal[] {
       store: "epic",
       title,
       url: slug ? `https://store.epicgames.com/pt-BR/p/${slug}` : "https://store.epicgames.com/pt-BR/browse?sortBy=relevancy&sortDir=DESC&priceTier=tierDiscouted",
-      imageUrl: safeHttps(image?.url, DEAL_IMAGE_HOSTS),
+      imageUrl: safeUrl(image?.url, DEAL_IMAGE_HOSTS),
       currency,
       originalCents: original,
       finalCents: final,

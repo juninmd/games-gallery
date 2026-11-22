@@ -1,4 +1,5 @@
 import { fold, slug } from "./scan/fold";
+import { safeUrl } from "./safeUrl";
 import type { Game } from "./types";
 
 export type FreebieStore = "epic" | "psplus";
@@ -35,16 +36,6 @@ const SLUG = /^[a-z0-9][a-z0-9-]{0,120}$/;
 const IMAGE_HOSTS = new Set(["cdn1.epicgames.com"]);
 export const LINK_HOSTS = new Set(["store.epicgames.com", "blog.playstation.com", "store.playstation.com", "store.steampowered.com", "www.gog.com", "www.epicgames.com", "amazon.com", "www.playstation.com", "ca.account.sony.com"]);
 
-export function safeUrl(url: string | undefined, hosts: Set<string>): string | undefined {
-  if (!url) return undefined;
-  try {
-    const u = new URL(url);
-    return u.protocol === "https:" && !u.username && !u.password && hosts.has(u.host) ? u.toString() : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 function epicPageSlug(el: Record<string, unknown>): string | undefined {
   const mapping = (v: unknown) => arr(v).flatMap((m) => (isObj(m) && m["pageType"] === "productHome" && str(m["pageSlug"]) ? [m["pageSlug"] as string] : []))[0];
   const ns = isObj(el["catalogNs"]) ? el["catalogNs"]["mappings"] : undefined;
@@ -64,6 +55,10 @@ function formatPrice(total: unknown): string | undefined {
     return undefined;
   }
 }
+
+/** Offers available now first, then by start date. */
+const byStatusThenStart = (a: Freebie, b: Freebie) =>
+  Number(a.status === "upcoming") - Number(b.status === "upcoming") || (a.startsAt ?? "").localeCompare(b.startsAt ?? "");
 
 /**
  * Epic `freeGamesPromotions` payload -> offers that are 100% off, current or upcoming.
@@ -106,7 +101,7 @@ export function parseEpicFree(json: unknown): Freebie[] {
       originalPrice: isObj(el["price"]) ? formatPrice(el["price"]["totalPrice"]) : undefined,
     });
   }
-  return out.sort((a, b) => Number(a.status === "upcoming") - Number(b.status === "upcoming") || (a.startsAt ?? "").localeCompare(b.startsAt ?? ""));
+  return out.sort(byStatusThenStart);
 }
 
 const time = (iso?: string) => (iso ? Date.parse(iso) : Number.NaN);
@@ -119,7 +114,7 @@ export function settle(items: Freebie[], now = Date.now()): Freebie[] {
       if (time(f.endsAt) <= now) return [];
       return [{ ...f, status: time(f.startsAt) > now ? "upcoming" : "now" }];
     })
-    .sort((a, b) => Number(a.status === "upcoming") - Number(b.status === "upcoming") || (a.startsAt ?? "").localeCompare(b.startsAt ?? ""));
+    .sort(byStatusThenStart);
 }
 
 /** True when an offer window closed or opened since the data was fetched, whatever the cache TTL says. */
