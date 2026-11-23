@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { EMPTY_FILTER, type GameFilter } from "../domain/filter";
 
-export type View = "library" | "installed" | "board" | "platforms" | "providers" | "freebies" | "deals" | "connections" | "folders" | "emulators" | "stats" | "settings";
+export const VIEWS = ["library", "installed", "board", "platforms", "providers", "freebies", "deals", "connections", "folders", "emulators", "stats", "settings"] as const;
+export type View = (typeof VIEWS)[number];
 
 interface Toast {
   id: number;
@@ -11,6 +12,8 @@ interface Toast {
 const DENSITY_KEY = "games-gallery:density";
 const TV_KEY = "games-gallery:tv-mode";
 const HERO_KEY = "games-gallery:hero-stopped";
+const THEME_KEY = "games-gallery:theme";
+export type Theme = "dark" | "light";
 /** How the library lays out games: themed rails, a grid (two sizes), a table-like list or 3D boxes. */
 export type Density = "rails" | "comfortable" | "compact" | "list" | "boxes";
 export const DENSITIES: readonly Density[] = ["rails", "comfortable", "compact", "list", "boxes"];
@@ -26,6 +29,9 @@ interface UiState {
   /** Bigger type and focus rings for the couch (controller navigation works either way). */
   tvMode: boolean;
   setTvMode: (on: boolean) => void;
+  /** Dark is the signature look; light is opt-in. */
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
   /** The user stopped the hero rotation; kept across remounts and launches. */
   heroStopped: boolean;
   setHeroStopped: (on: boolean) => void;
@@ -58,6 +64,11 @@ export const useUi = create<UiState>((set) => ({
   setTvMode: (tvMode) => {
     try { localStorage.setItem(TV_KEY, tvMode ? "1" : "0"); } catch { /* storage unavailable: keep in memory */ }
     set({ tvMode });
+  },
+  theme: (() => { try { return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark"; } catch { return "dark"; } })(),
+  setTheme: (theme) => {
+    try { localStorage.setItem(THEME_KEY, theme); } catch { /* storage unavailable: keep in memory */ }
+    set({ theme });
   },
   heroStopped: (() => { try { return localStorage.getItem(HERO_KEY) === "1"; } catch { return false; } })(),
   setHeroStopped: (heroStopped) => {

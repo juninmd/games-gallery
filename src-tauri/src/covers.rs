@@ -6,7 +6,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest;
 
-const MAX_BYTES: usize = 8 * 1024 * 1024;
+pub(crate) const MAX_BYTES: usize = 8 * 1024 * 1024;
 /// Same image hosts the CSP allows, plus SteamGridDB's CDN.
 const HOSTS: [&str; 9] = [
     "cdn.cloudflare.steamstatic.com",
@@ -26,8 +26,13 @@ fn allowed(url: &url::Url) -> bool {
 
 /// FNV-1a: a stable file name per URL; collisions only cost a wrong cover, never a path escape.
 fn file_name(url: &str) -> String {
+    hashed_name(url.as_bytes())
+}
+
+/// Hex FNV-1a of `bytes` plus `.img`: never carries a path part.
+pub(crate) fn hashed_name(bytes: &[u8]) -> String {
     let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
-    for byte in url.bytes() {
+    for &byte in bytes {
         hash ^= u64::from(byte);
         hash = hash.wrapping_mul(0x0100_0000_01b3);
     }

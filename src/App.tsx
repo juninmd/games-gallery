@@ -5,12 +5,18 @@ import { CommandPalette } from "./components/CommandPalette";
 import { GameDrawer } from "./components/GameDrawer";
 import { Toasts } from "./components/Overlays";
 import { ShortcutsHelp } from "./components/ShortcutsHelp";
+import { LoadError, SkeletonGrid } from "./components/states";
 import { isCentral } from "./components/nav";
 import { AmbientBackdrop } from "./components/shell/AmbientBackdrop";
 import { CentralTabs } from "./components/shell/CentralTabs";
+import { DropImport } from "./components/shell/DropImport";
 import { Dock } from "./components/shell/Dock";
 import { Intro } from "./components/shell/Intro";
+import { OfflineBanner } from "./components/shell/OfflineBanner";
+import { TitleBar } from "./components/shell/TitleBar";
 import { TopBar } from "./components/shell/TopBar";
+import { useShellLayout } from "./components/shell/useShellLayout";
+import { useUrlState } from "./components/shell/useUrlState";
 import { useViewFocus } from "./components/shell/useViewFocus";
 import { useLibrary, whenHydrated } from "./state/library";
 import { watchPriceAlerts } from "./state/alertWatcher";
@@ -54,10 +60,7 @@ class ViewLoadBoundary extends Component<{ onRetry: () => void; children: ReactN
   }
 
   render() {
-    if (this.state.failed) return <section className="empty" role="alert">
-      <p>Não foi possível carregar esta tela.</p>
-      <button className="btn" onClick={this.props.onRetry}>Tentar novamente</button>
-    </section>;
+    if (this.state.failed) return <LoadError title="Não foi possível carregar esta tela." reason="Verifique se o app foi atualizado e tente de novo." onRetry={this.props.onRetry} />;
     return this.props.children;
   }
 }
@@ -65,8 +68,10 @@ class ViewLoadBoundary extends Component<{ onRetry: () => void; children: ReactN
 function CurrentView() {
   const view = useUi((s) => s.view);
   const tvMode = useUi((s) => s.tvMode);
+  const theme = useUi((s) => s.theme);
   useGamepad();
   useEffect(() => { document.documentElement.classList.toggle("tv-mode", tvMode); }, [tvMode]);
+  useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
   const [attempt, setAttempt] = useState(0);
   const loader = loaders[view];
   const LazyView = useMemo(() => loader ? lazy(loader) : null, [loader, attempt]);
@@ -76,7 +81,7 @@ function CurrentView() {
   if (!LazyView) return null;
 
   return <ViewLoadBoundary key={`${view}:${attempt}`} onRetry={() => setAttempt((n) => n + 1)}>
-    <Suspense fallback={<p className="empty" role="status">Carregando tela…</p>}>
+    <Suspense fallback={<SkeletonGrid count={8} label="Carregando tela…" />}>
       <LazyView />
     </Suspense>
   </ViewLoadBoundary>;
@@ -85,6 +90,8 @@ function CurrentView() {
 export function App() {
   const view = useUi((s) => s.view);
   const stage = useRef<HTMLDivElement>(null);
+  const layout = useShellLayout();
+  useUrlState();
   useViewFocus(view, stage);
 
   // Real data on first paint: executables on disk, then the launchers' libraries when empty.
@@ -107,10 +114,12 @@ export function App() {
     // "user": springs and layout animations honor the OS reduced-motion setting, like the CSS.
     <MotionConfig reducedMotion="user">
     <LazyMotion features={loadMotionFeatures} strict>
-    <div className="app">
+    <div className="app" data-layout={layout} data-frame={isTauri() ? "custom" : undefined}>
       <AmbientBackdrop />
+      <TitleBar />
       <main className="main">
         <TopBar />
+        <OfflineBanner />
         <div className="stage" ref={stage}>
           {isCentral(view) && <CentralTabs />}
           <div className="view-enter" key={view}><CurrentView /></div>
@@ -122,6 +131,7 @@ export function App() {
       <CommandPalette />
       <ShortcutsHelp />
       <Toasts />
+      <DropImport />
       <Intro />
     </div>
     </LazyMotion>

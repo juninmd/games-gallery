@@ -39,6 +39,8 @@ export function SettingsView() {
   const go = useUi((s) => s.go);
   const tvMode = useUi((s) => s.tvMode);
   const setTvMode = useUi((s) => s.setTvMode);
+  const theme = useUi((s) => s.theme);
+  const setTheme = useUi((s) => s.setTheme);
 
   const chooseEmulatorsDir = async () => {
     const dir = await pickDirectory("Onde estão os emuladores instalados");
@@ -58,6 +60,13 @@ export function SettingsView() {
           Letras maiores e foco bem visível para jogar no sofá
         </label>
         <p className="muted small">Com um controle conectado: direcional/analógico move o foco, A abre, B volta e Start abre a paleta. Funciona com ou sem o modo TV.</p>
+      </section>
+      <section className="panel narrow">
+        <h3 aria-level={2}>Tema</h3>
+        <div className="flex gap-4" role="radiogroup" aria-label="Tema">
+          <label className="flex items-center gap-2"><input type="radio" name="theme" checked={theme === "dark"} onChange={() => setTheme("dark")} /> Escuro</label>
+          <label className="flex items-center gap-2"><input type="radio" name="theme" checked={theme === "light"} onChange={() => setTheme("light")} /> Claro</label>
+        </div>
       </section>
       <section className="panel narrow">
         <h3 aria-level={2}>Pastas</h3>

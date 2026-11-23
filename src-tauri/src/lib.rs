@@ -11,6 +11,7 @@ mod account_login;
 mod account_psn;
 mod account_ubisoft;
 mod atomic_write;
+mod cover_import;
 mod covers;
 mod emulator_install;
 mod emulators;
@@ -77,6 +78,7 @@ pub fn run() {
             emulator_install::emulator_cancel,
             emulators::emulator_launch,
             covers::cover_cached,
+            cover_import::cover_import,
             rom_hash::rom_crc32,
             state_store::state_read,
             state_store::state_write,

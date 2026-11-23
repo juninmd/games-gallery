@@ -1,13 +1,14 @@
 import { m } from "motion/react";
 import { Box, LayoutGrid, List, Rows3, SlidersHorizontal, StretchHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, type ReactNode } from "react";
-import { tagCounts } from "../domain/collection";
+import { facetsBy } from "../domain/facets";
 import { CLEARED_FILTER, hasActiveFilter, type SortKey } from "../domain/filter";
-import { FAMILY_LABEL, PLATFORMS } from "../domain/platforms";
+import { PLATFORM_BY_ID } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
-import { STATUS_LABEL, STATUS_ORDER } from "../domain/status";
+import { STATUS_COLOR, STATUS_LABEL } from "../domain/status";
 import type { PlayStatus } from "../domain/types";
 import { useLibrary } from "../state/library";
+import { FacetList } from "./FacetList";
 import { DENSITIES, useUi, type Density } from "../state/ui";
 
 const SORTS: [SortKey, string][] = [
@@ -55,7 +56,9 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
   const toggleProvider = (id: string) =>
     setFilter({ providerIds: filter.providerIds.includes(id) ? filter.providerIds.filter((x) => x !== id) : [...filter.providerIds, id] });
 
-  const tags = useMemo(() => tagCounts(games), [games]);
+  const platformFacets = useMemo(() => facetsBy(games, (g) => [g.platformId], (id) => PLATFORM_BY_ID[id]?.name ?? id), [games]);
+  const statusFacets = useMemo(() => facetsBy(games, (g) => [g.status], (id) => STATUS_LABEL[id as PlayStatus] ?? id), [games]);
+  const tagFacets = useMemo(() => facetsBy(games, (g) => g.tags ?? [], (t) => t), [games]);
   const loaned = useMemo(() => games.some((g) => g.loan), [games]);
   const extra = [filter.platformId, filter.status, filter.tag, filter.ownedOnly, filter.multiStoreOnly, filter.loanedOnly, !lockInstalled && filter.installedOnly].filter(Boolean).length;
 
@@ -96,31 +99,9 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
 
       <div id="library-filters" popover="auto" className="filters-panel" aria-label="Mais filtros">
         <div className="filters-grid">
-          <label>Plataforma
-            <select aria-label="Plataforma" value={filter.platformId ?? ""} onChange={(e) => setFilter({ platformId: e.target.value || null })}>
-              <option value="">Todas as plataformas</option>
-              {(Object.keys(FAMILY_LABEL) as (keyof typeof FAMILY_LABEL)[]).map((fam) => (
-                <optgroup key={fam} label={FAMILY_LABEL[fam]}>
-                  {PLATFORMS.filter((p) => p.family === fam).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </optgroup>
-              ))}
-            </select>
-          </label>
-          <label>Status
-            <select aria-label="Status" value={filter.status ?? ""} onChange={(e) => setFilter({ status: (e.target.value || null) as PlayStatus | null })}>
-              <option value="">Qualquer status</option>
-              {STATUS_ORDER.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
-            </select>
-          </label>
-          {(tags.length > 0 || filter.tag) && (
-            <label>Tag
-              <select aria-label="Tag" value={filter.tag ?? ""} onChange={(e) => setFilter({ tag: e.target.value || null })}>
-                <option value="">Qualquer tag</option>
-                {filter.tag && !tags.some(([t]) => t === filter.tag) && <option value={filter.tag}>{filter.tag}</option>}
-                {tags.map(([t, n]) => <option key={t} value={t}>{t} ({n})</option>)}
-              </select>
-            </label>
-          )}
+          <FacetList title="Plataforma" facets={platformFacets} selected={filter.platformId} onSelect={(platformId) => setFilter({ platformId })} colorOf={(id) => PLATFORM_BY_ID[id]?.color} />
+          <FacetList title="Status" facets={statusFacets} selected={filter.status} onSelect={(status) => setFilter({ status: status as PlayStatus | null })} colorOf={(id) => STATUS_COLOR[id as PlayStatus]} />
+          <FacetList title="Tag" facets={tagFacets} selected={filter.tag} onSelect={(tag) => setFilter({ tag })} />
         </div>
         <div className="filters-toggles">
           {!lockInstalled && (

@@ -1,3 +1,4 @@
+import { reportRequest } from "./netStatus";
 import { isTauri } from "./runtime";
 
 /** Hosts the app may call; also mirrored in `src-tauri/capabilities/default.json` and vite.config.ts. */
@@ -33,10 +34,15 @@ async function bounded<T>(work: (signal: AbortSignal) => Promise<T>): Promise<T>
     timer = setTimeout(() => { timedOut = true; controller.abort(); reject(timeoutError()); }, REQUEST_DEADLINE_MS);
   });
   try {
-    return await Promise.race([work(controller.signal), timeout]);
+    const result = await Promise.race([work(controller.signal), timeout]);
+    reportRequest(true);
+    return result;
   } catch (e) {
-    if (timedOut) throw timeoutError();
-    if (e instanceof Error && (/^HTTP \d+$/.test(e.message) || e.message === "Resposta excede o limite permitido" || e.message === "Tempo limite da solicitação excedido")) throw e;
+    if (timedOut) { reportRequest(false); throw timeoutError(); }
+    // A status code or an oversized body means a server answered: the network is up.
+    const answered = e instanceof Error && (/^HTTP \d+$/.test(e.message) || e.message === "Resposta excede o limite permitido");
+    reportRequest(answered);
+    if (answered || (e instanceof Error && e.message === "Tempo limite da solicitação excedido")) throw e;
     throw new Error("Solicitação de rede falhou");
   } finally {
     if (timer !== undefined) clearTimeout(timer);
