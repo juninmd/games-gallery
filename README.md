@@ -37,18 +37,29 @@ O modo **Caixas** mostra cada jogo como a embalagem de varejo da plataforma (est
 
 ### Interface Prisma
 
-Sem barra lateral: o conteúdo ocupa a janela inteira e o fundo assume as cores do jogo em foco (cor da plataforma + um tom derivado do título), com transição suave.
+O conteúdo ocupa a janela inteira e o fundo assume as cores do jogo em foco (cor da plataforma + um tom derivado do título), com transição suave.
 
 - **Barra de comando (topo):** logo, **busca inteligente**, adicionar jogo, paleta de comandos e o anel de nível. Palavras como `ps2`, `zerado`, `steam`, `instalado`, `emprestado`, `duplicado` ou `#tag` viram filtros removíveis ao apertar espaço (`src/domain/searchTokens.ts`); o resto busca título, gênero e tags. Backspace no campo vazio desfaz o último filtro e devolve a palavra.
 - **Perfil:** o anel abre um painel com nível e XP (1 h jogada = 1 XP, jogo zerado = 20, nota dada = 2; ver `src/domain/profile.ts`), barra de status da coleção, % zerados, GB em disco, **Jogando agora** com "Sortear do backlog", tarefas em andamento e o aviso de nova versão.
-- **Dock flutuante (rodapé):** Biblioteca, Instalados, Quero jogar, Plataformas, Promoções, Jogos grátis, Estatísticas e **Central**. Os ícones crescem sob o cursor, uma pílula desliza até a tela ativa e as teclas `1`–`8` trocam de tela. A troca usa View Transitions.
+- **Navegação responsiva:** Biblioteca, Instalados, Quero jogar, Plataformas, Promoções, Jogos grátis, Estatísticas e **Central**. Com a janela a partir de 768 px é uma barra lateral cujos ícones crescem sob o cursor; abaixo disso vira abas no rodapé, com rótulo e respeito à safe-area. Uma pílula desliza até a tela ativa, as teclas `1`–`8` trocam de tela e a troca usa View Transitions.
+- **Janela sem moldura nativa (desktop):** barra de título própria (arrastar, minimizar, maximizar, fechar) e redimensionamento pelas bordas e cantos, igual em Windows, macOS e Linux.
+- **Arrastar e soltar (desktop):** solte ROMs em qualquer tela para importá-las; com um jogo aberto, solte uma imagem PNG/JPEG/WebP para trocar a capa. O drop é lido pelo lado nativo, que confere os bytes da imagem antes de copiá-la para o cache de capas.
+- **Estados de carregamento e erro:** esqueleto do tamanho dos cards enquanto a biblioteca ou uma tela carrega, e erro com o motivo e **Tentar de novo**. Depois de 2 falhas de rede seguidas aparece um aviso de "sem conexão" e os dados salvos continuam na tela.
+- **Tema:** escuro por padrão; claro em Ajustes → Tema.
 - **Central:** Conexões, Provedores, Pastas, Emuladores e Ajustes juntos, com abas.
-- **Biblioteca:** destaque em carrossel (o que você está jogando, girando sozinho, pausando ao passar o mouse ou focar e com botão para parar de vez; animações respeitam "reduzir movimento" do sistema), números animados e uma barra fixa com o modo de exibição (**Trilhos**, **Grade**, **Compacta**, **Lista**, **Caixas**; `G` alterna), lojas, ordenação e o painel **Filtros** (plataforma, status, tag, só instalados, só comprados, em mais de uma loja, emprestados). Trilhos agrupam continue jogando, backlog, prontos para jogar, mais jogados, zerados com nota alta, físico/retrô, em mais de uma loja e wishlist; "Ver todos" abre a grade filtrada.
-- **Cards:** tilt 3D com brilho, botão de jogar direto no card quando o jogo está instalado e a capa "voa" até a página do jogo.
+- **Biblioteca:** destaque em carrossel (o que você está jogando, girando sozinho, pausando ao passar o mouse ou focar e com botão para parar de vez; animações respeitam "reduzir movimento" do sistema), números animados e uma barra fixa com o modo de exibição (**Trilhos**, **Grade**, **Compacta**, **Lista**, **Caixas**; `G` alterna), lojas, ordenação e o painel **Filtros** (listas de plataforma, status e tag com miniatura da capa e contagem, com busca quando passam de 8 itens; só instalados, só comprados, em mais de uma loja, emprestados). A tela e os filtros ficam na URL (`?platform=snes&status=playing`). Trilhos agrupam continue jogando, backlog, prontos para jogar, mais jogados, zerados com nota alta, físico/retrô, em mais de uma loja e wishlist; "Ver todos" abre a grade filtrada.
+- **Cards:** tilt 3D com brilho, cor de destaque própria de cada jogo, horas jogadas com um mini-gráfico dos últimos 14 dias, botão de jogar direto no card quando o jogo está instalado e a capa "voa" até a página do jogo.
 - **Paleta de comandos (`Ctrl`/`⌘` + `K`):** telas, ações, modos de exibição e qualquer título.
 - Zerar um jogo (no detalhe ou no quadro "Quero jogar") solta confete. Tudo respeita `prefers-reduced-motion`.
 
 ![Biblioteca](docs/ui/prisma-library.png)
+
+| | Escuro | Claro |
+|---|---|---|
+| 1280 px | ![Biblioteca escura, 1280 px](docs/screenshots/library-dark-1280.png) | ![Biblioteca clara, 1280 px](docs/screenshots/library-light-1280.png) |
+| 760 px | ![Biblioteca escura, 760 px](docs/screenshots/library-dark-760.png) | ![Biblioteca clara, 760 px](docs/screenshots/library-light-760.png) |
+
+Os prints acima são gerados com `pnpm shots` (Playwright, biblioteca fictícia, sem rede), nos dois temas e nas larguras 760 e 1280 px.
 ![Busca inteligente](docs/ui/prisma-search.png)
 ![Lista](docs/ui/prisma-list.png)
 ![Central](docs/ui/prisma-central.png)

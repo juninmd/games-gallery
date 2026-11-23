@@ -145,3 +145,19 @@ describe("bounded HTTP requests", () => {
     expect(activeListeners).toBe(0);
   });
 });
+
+describe("offline detection from requests", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("goes offline after two network failures and back online when any server answers", async () => {
+    const { offlineNow } = await import("./netStatus");
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
+    await expect(httpGetJson("https://api.rawg.io/a")).rejects.toThrow("Solicitação de rede falhou");
+    expect(offlineNow()).toBe(false);
+    await expect(httpGetJson("https://api.rawg.io/a")).rejects.toThrow();
+    expect(offlineNow()).toBe(true);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("", { status: 503 })));
+    await expect(httpGetJson("https://api.rawg.io/a")).rejects.toThrow("HTTP 503");
+    expect(offlineNow()).toBe(false);
+  });
+});

@@ -9,6 +9,8 @@ import { featuredGroup, filterGameGroups, groupGames, groupStats, nowPlayingGrou
 import { CLEARED_FILTER, hasActiveFilter } from "../domain/filter";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { useLibrary } from "../state/library";
+import { useLibraryHydrated } from "../state/hydration";
+import { SkeletonGrid } from "../components/states";
 
 // 3D boxes (and their brand artwork) are an opt-in layout: keep them out of the entry chunk.
 const BoxShelf = lazy(() => import("../components/box/BoxShelf").then((m) => ({ default: m.BoxShelf })));
@@ -37,6 +39,7 @@ interface PageState {
 export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
   const games = useLibrary((s) => s.games);
   const detect = useLibrary((s) => s.detect);
+  const hydrated = useLibraryHydrated();
   const filter = useUi((s) => s.filter);
   const setFilter = useUi((s) => s.setFilter);
   const setAddOpen = useUi((s) => s.setAddOpen);
@@ -107,7 +110,9 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
       </div>
       <FilterBar lockInstalled={scope === "installed"} />
 
-      {games.length === 0 ? (
+      {!hydrated ? (
+        <SkeletonGrid label="Carregando sua biblioteca…" />
+      ) : games.length === 0 ? (
         <section className="discovery-empty" aria-labelledby="empty-library-title">
           <h2 id="empty-library-title">Sua biblioteca ainda está vazia</h2>
           <p>O app lê as bibliotecas dos launchers instalados no seu PC (Steam, Epic, GOG, itch.io…) e as pastas de ROMs que você escolher. Para listar também o que você comprou e não instalou, entre nas suas contas em Conexões.</p>
@@ -156,7 +161,7 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
           {mode === "rails" ? (
             <GameRails groups={shown} />
           ) : mode === "boxes" ? (
-            <Suspense fallback={<p className="empty" role="status">Carregando caixas…</p>}>
+            <Suspense fallback={<SkeletonGrid count={8} label="Carregando caixas…" />}>
               <BoxShelf groups={pageGames} busy={isUpdating} />
             </Suspense>
           ) : mode === "list" ? (

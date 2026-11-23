@@ -7,6 +7,7 @@ import { useUi, type View } from "../../state/ui";
 import { useUpdates } from "../../state/updates";
 import { CENTRAL_VIEWS, DOCK_GROUPS, DOCK_ITEMS, isCentral } from "../nav";
 import { prefersReducedMotion, withViewTransition } from "./ambient";
+import { useShellLayout } from "./useShellLayout";
 
 const isTyping = (el: EventTarget | null) =>
   el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
@@ -14,7 +15,7 @@ const isTyping = (el: EventTarget | null) =>
 /** The Central reopens on the system screen used last. */
 let lastCentral: View = "connections";
 
-/** Floating dock: magnifies under the pointer (macOS style), a sliding pill marks the screen, keys 1–8 jump. */
+/** Navigation: a side rail that magnifies under the pointer from 768px, tabs at the bottom below; keys 1–8 jump. */
 export function Dock() {
   const view = useUi((s) => s.view);
   const go = useUi((s) => s.go);
@@ -22,6 +23,7 @@ export function Dock() {
   const alertCount = usePriceAlerts((s) => s.hits.length);
   const updateReady = useUpdates((s) => s.phase === "available");
   const ref = useRef<HTMLElement>(null);
+  const layout = useShellLayout();
 
   if (isCentral(view)) lastCentral = view;
 
@@ -54,17 +56,17 @@ export function Dock() {
 
   // Writes the scale straight to each icon: no React render per pointer move.
   const magnify = (e: PointerEvent<HTMLElement>) => {
-    if (e.pointerType !== "mouse" || prefersReducedMotion()) return;
+    if (e.pointerType !== "mouse" || layout !== "sidebar" || prefersReducedMotion()) return;
     for (const b of ref.current?.querySelectorAll<HTMLElement>(".dock-item") ?? []) {
       const r = b.getBoundingClientRect();
-      const d = Math.abs(e.clientX - (r.left + r.width / 2));
+      const d = Math.abs(e.clientY - (r.top + r.height / 2));
       b.style.setProperty("--s", Math.max(1, 1.45 - d / 150).toFixed(3));
     }
   };
   const settle = () => ref.current?.querySelectorAll<HTMLElement>(".dock-item").forEach((b) => b.style.setProperty("--s", "1"));
 
   return (
-    <div className="dock-wrap">
+    <div className="dock-wrap" data-layout={layout}>
       <nav ref={ref} className="dock" aria-label="Navegação principal" onPointerMove={magnify} onPointerLeave={settle}>
         {DOCK_GROUPS.map((group, gi) => (
           <Fragment key={gi}>
@@ -88,6 +90,7 @@ export function Dock() {
                   {count !== undefined && count > 0 && <span className="dock-count">{count > 99 ? "99+" : count}</span>}
                   {item.view === "connections" && updateReady && <span className="dock-dot" title="Nova versão disponível" />}
                   <span className="dock-label" aria-hidden>{item.label}<kbd>{index}</kbd></span>
+                  {layout === "tabs" && <span className="dock-caption" aria-hidden>{item.label}</span>}
                 </button>
               );
             })}

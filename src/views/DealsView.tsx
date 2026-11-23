@@ -1,6 +1,7 @@
 import { RefreshCw } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { DealCard } from "../components/DealCard";
+import { LoadError } from "../components/states";
 import { ReleaseCalendar } from "../components/ReleaseCalendar";
 import { dealInsights, opportunities, type DealInsight } from "../domain/dealInsights";
 import { formatMoney } from "../domain/deals";
@@ -45,7 +46,7 @@ function WishlistSection() {
         <p className="empty">Informe o SteamID64 em <button className="link" onClick={() => go("connections")}>Conexões</button> para ver a wishlist.</p>
       )}
       {ready && <p className="muted small">Atualizado em {stamp(wishlist?.fetchedAt)}. Os detalhes de jogos do perfil precisam estar públicos.</p>}
-      {errors.wishlist && <p className="note warn" role="alert">Não foi possível ler a wishlist: {errors.wishlist}</p>}
+      {errors.wishlist && <LoadError title="Não foi possível ler a wishlist." reason={errors.wishlist} onRetry={() => void refreshWishlist(true)} />}
       {ready && wishlist && !wishlist.items.length && !errors.wishlist && (
         <p className="empty">Wishlist vazia ou perfil privado. Em Steam → Perfil → Privacidade, deixe “Detalhes do jogo” público.</p>
       )}
@@ -92,7 +93,7 @@ function StoreSection({ store, insights }: { store: (typeof STORES)[number]; ins
         </button>
       </div>
       <p className="muted small">Atualizado em {stamp(slot?.fetchedAt)}. {store.source} Fonte não oficial; pode mudar.</p>
-      {errors[store.id] && <p className="note warn" role="alert">Não foi possível ler {store.name}: {errors[store.id]}</p>}
+      {errors[store.id] && <LoadError title={`Não foi possível ler ${store.name}.`} reason={errors[store.id]} onRetry={() => void refreshDeals(store.id, true)} />}
       {slot && !items.length && !errors[store.id] && <p className="empty">Nenhuma promoção encontrada agora.</p>}
       <div className="freebie-grid">
         {items.map((d) => <DealCard key={d.id} {...d} note={until(d.endsAt)} owned={isOwned(d)} insight={insights.get(d.id)} />)}

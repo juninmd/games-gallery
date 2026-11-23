@@ -7,7 +7,8 @@ const memo = new Map<string, Promise<string>>();
  * protocol, so it works offline. Browser, or any failure: the original URL.
  */
 export function cachedCoverSrc(url: string): Promise<string> {
-  if (!isTauri()) return Promise.resolve(url);
+  // Local art (a dropped file) is already in the cache folder.
+  if (!isTauri() || !url.startsWith("https://")) return Promise.resolve(url);
   let hit = memo.get(url);
   if (!hit) {
     hit = (async () => {
@@ -17,4 +18,10 @@ export function cachedCoverSrc(url: string): Promise<string> {
     memo.set(url, hit);
   }
   return hit;
+}
+
+/** Copies a dropped image into the cover cache (the native side checks it is a real image) and returns its URL. */
+export async function importCoverFile(path: string): Promise<string> {
+  const { convertFileSrc, invoke } = await import("@tauri-apps/api/core");
+  return convertFileSrc(await invoke<string>("cover_import", { path }));
 }

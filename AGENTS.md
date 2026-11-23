@@ -18,6 +18,7 @@ Games Gallery: desktop app (Tauri 2) that catalogs PC and console games, with co
 - Test: `pnpm test` (add `VITE_CHECK_COVERS=1` to also check cover URLs)
 - Smoke: `pnpm smoke` (typecheck + test + `smoke:live` + `smoke:native`)
 - Build: `pnpm build` (`tsc --noEmit && vite build`)
+- README screenshots: `pnpm shots` (builds, serves `dist`, Playwright writes `docs/screenshots/`)
 
 ## Structure
 

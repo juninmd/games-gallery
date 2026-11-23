@@ -1,5 +1,7 @@
 import { Play } from "lucide-react";
-import { memo, useRef, type CSSProperties, type PointerEvent } from "react";
+import { memo, useMemo, useRef, type CSSProperties, type PointerEvent } from "react";
+import { totalHours } from "../domain/duplicates";
+import { mergeRows } from "../domain/playChart";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
 import type { Game } from "../domain/types";
@@ -7,7 +9,9 @@ import { StoreChips } from "./StoreChips";
 import { useUi } from "../state/ui";
 import { Cover } from "./Cover";
 import { EmulatorChip } from "./EmulatorChip";
-import { ambientFor, openGame } from "./shell/ambient";
+import { ambientFor, openGame, titleHue } from "./shell/ambient";
+import { usePlayRows } from "../state/playRows";
+import { CardStats } from "./CardStats";
 import { useLaunch } from "./useLaunch";
 
 const MAX_TILT = 9;
@@ -28,6 +32,9 @@ function QuickPlay({ game }: { game: Game }) {
 export const GameCard = memo(function GameCard({ game, members = [game], index = 0 }: { game: Game; members?: Game[]; index?: number }) {
   const setAmbient = useUi((s) => s.setAmbient);
   const tilt = useRef<HTMLDivElement>(null);
+  const rows = usePlayRows();
+  const row = useMemo(() => mergeRows(members.map((m) => rows.get(m.id))), [members, rows]);
+  const hours = totalHours(members);
 
   // Writes CSS variables straight to the node: no React re-render per pointer move.
   const onMove = (e: PointerEvent<HTMLButtonElement>) => {
@@ -51,7 +58,7 @@ export const GameCard = memo(function GameCard({ game, members = [game], index =
   const playable = game.installed && game.owned;
 
   return (
-    <div className="game-card relative" onPointerEnter={() => setAmbient(ambientFor(game))}>
+    <div className="game-card relative" style={{ "--accent": `hsl(${titleHue(game.title)} 80% 62%)` } as CSSProperties} onPointerEnter={() => setAmbient(ambientFor(game))}>
     <button
       className="group relative grid w-full animate-card-in gap-3 text-left focus-visible:outline-none"
       style={{ animationDelay: `${Math.min(index, 18) * 28}ms` } as CSSProperties}
@@ -72,7 +79,7 @@ export const GameCard = memo(function GameCard({ game, members = [game], index =
         />
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-[18px] opacity-0 ring-1 ring-inset ring-rose/70 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 group-focus-visible:ring-2"
+          className="pointer-events-none absolute inset-0 rounded-[18px] opacity-0 ring-1 ring-inset ring-(--accent) transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 group-focus-visible:ring-2"
         />
         {members.length > 1 && (
           <span className="absolute bottom-2.5 right-2.5 rounded-full bg-ink-950/80 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-mist shadow-lg ring-1 ring-white/20 backdrop-blur">
@@ -98,6 +105,7 @@ export const GameCard = memo(function GameCard({ game, members = [game], index =
           </span>
         )}
         <EmulatorChip game={game} />
+        <CardStats hours={hours} row={row} />
       </div>
     </button>
     {playable && <QuickPlay game={game} />}
