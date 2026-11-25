@@ -24,5 +24,3 @@
 /* Compact inline fields sized to their content. */
 .hours-field, .price-field { width: 6.5rem; }
 .beat-field { max-width: 12rem; }
-/* Empty stars disappear on the glass panels with Sonido's surface-hover fill. */
-.sn-star__empty { fill: color-mix(in srgb, var(--sn-color-text) 22%, transparent); }
