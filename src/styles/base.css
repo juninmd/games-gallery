@@ -43,9 +43,6 @@ html.tv-mode :focus-visible { outline-width: 4px; outline-offset: 4px; box-shado
 .stats dd { margin: 0; font-size: 20px; font-weight: 700; }
 .head-tools { display: flex; gap: 12px; align-items: center; }
 
-input, select, textarea { font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
-input:focus, select:focus { border-color: var(--accent); outline: none; }
-label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
 .icon-btn { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px; display: grid; place-items: center; }
 .link { background: none; border: 0; color: var(--accent-2); padding: 0; text-decoration: none; display: inline-flex; gap: 4px; align-items: center; font-size: 13px; }
 .link:hover { text-decoration: underline; }

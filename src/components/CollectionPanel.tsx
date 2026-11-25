@@ -1,3 +1,4 @@
+import { TextField } from "@juninmd/sonido";
 import { HandCoins, Tag, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { addTag, canLend, loanDays, MAX_LOAN_NAME, MAX_TAG_LEN, removeTag, tagCounts } from "../domain/collection";
@@ -35,14 +36,11 @@ function TagEditor({ game }: { game: Game }) {
           </span>
         ))}
         <form className="flex" onSubmit={(e) => { e.preventDefault(); add(draft); }}>
-          <label>
-            <span className="sr-only">Nova tag</span>
-            <input
-              value={draft} maxLength={MAX_TAG_LEN} placeholder="+ tag (Enter)"
-              onChange={(e) => setDraft(e.currentTarget.value)}
-              className="!w-36 !rounded-full !py-1.5 text-[12.5px]"
-            />
-          </label>
+          <TextField
+            compact hideLabel label="Nova tag" className="w-36"
+            value={draft} maxLength={MAX_TAG_LEN} placeholder="+ tag (Enter)"
+            onChange={(e) => setDraft(e.currentTarget.value)}
+          />
         </form>
       </div>
       {suggestions.length > 0 && (
@@ -81,10 +79,7 @@ function LoanEditor({ game }: { game: Game }) {
         setTo("");
       }}
     >
-      <label className="flex-1">
-        <span className="sr-only">Emprestar para</span>
-        <input value={to} maxLength={MAX_LOAN_NAME} placeholder="Emprestar para…" onChange={(e) => setTo(e.currentTarget.value)} className="!rounded-full !py-1.5 text-[13px]" />
-      </label>
+      <TextField compact hideLabel label="Emprestar para" className="flex-1" value={to} maxLength={MAX_LOAN_NAME} placeholder="Emprestar para…" onChange={(e) => setTo(e.currentTarget.value)} />
       <button type="submit" disabled={!to.trim()} className={`${chip} ${off} disabled:opacity-40`}><HandCoins size={13} aria-hidden /> Emprestar</button>
     </form>
   );

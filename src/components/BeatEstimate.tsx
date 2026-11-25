@@ -1,3 +1,4 @@
+import { ProgressBar, TextField } from "@juninmd/sonido";
 import { useMemo } from "react";
 import { hoursLeft, MAX_HOURS_TO_BEAT } from "../domain/backlogEstimate";
 import { groupGames } from "../domain/duplicates";
@@ -15,24 +16,19 @@ export function BeatEstimate({ game }: { game: Game }) {
 
   return (
     <div className="grid gap-2">
-      <label className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-fog">Horas para terminar</span>
-        <input
-          type="number" min={0} max={MAX_HOURS_TO_BEAT} step={1}
-          value={beat ?? ""}
-          placeholder="ex.: 40"
-          className="!w-24 !rounded-xl text-center tabular-nums"
-          onChange={(e) => {
-            const v = e.currentTarget.valueAsNumber;
-            patchGame(game.id, { hoursToBeat: Number.isFinite(v) && v > 0 ? Math.min(MAX_HOURS_TO_BEAT, Math.round(v)) : undefined });
-          }}
-        />
-      </label>
+      <TextField
+        compact label="Horas para terminar" className="beat-field"
+        type="number" min={0} max={MAX_HOURS_TO_BEAT} step={1}
+        value={beat ?? ""}
+        placeholder="ex.: 40"
+        onChange={(e) => {
+          const v = e.currentTarget.valueAsNumber;
+          patchGame(game.id, { hoursToBeat: Number.isFinite(v) && v > 0 ? Math.min(MAX_HOURS_TO_BEAT, Math.round(v)) : undefined });
+        }}
+      />
       {beat !== undefined && left !== undefined && (
         <>
-          <div className="h-1.5 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Progresso estimado">
-            <div className="h-full rounded-full bg-aurora" style={{ width: `${progress}%` }} />
-          </div>
+          <ProgressBar size="sm" tone="aqua" value={progress / 100} label="Progresso estimado" />
           <p className="muted small">{left > 0 ? `Faltam cerca de ${left.toLocaleString("pt-BR")} h` : "Você já passou da estimativa"}</p>
         </>
       )}

@@ -1,4 +1,4 @@
-import { Button, RadioGroup, Switch } from "@juninmd/sonido";
+import { Button, RadioGroup, Switch, TextField } from "@juninmd/sonido";
 import { FolderSearch, FolderOpen, RefreshCw } from "lucide-react";
 import { BackupSettings } from "../components/BackupSettings";
 import { PegasusExport } from "../components/PegasusExport";
@@ -65,8 +65,8 @@ export function SettingsView() {
       </section>
       <section className="panel narrow">
         <h3 aria-level={2}>Pastas</h3>
-        <label>Pasta de ROMs / ISOs<input value={settings.romsDir} onChange={(e) => setSettings({ romsDir: e.target.value })} placeholder="D:\ROMs" /></label>
-        <label>Pasta de emuladores<input value={settings.emulatorsDir} onChange={(e) => setSettings({ emulatorsDir: e.target.value })} placeholder="ex.: D:\Games\Emuladores" /></label>
+        <TextField label="Pasta de ROMs / ISOs" value={settings.romsDir} onChange={(e) => setSettings({ romsDir: e.target.value })} placeholder="D:\ROMs" />
+        <TextField label="Pasta de emuladores" value={settings.emulatorsDir} onChange={(e) => setSettings({ emulatorsDir: e.target.value })} placeholder="ex.: D:\Games\Emuladores" />
         <p className="muted small">
           Usada para varrer ROMs e para achar executáveis fora do PATH, do WinGet e de Program Files — necessário
           para instalações portáteis (o app procura até 4 níveis abaixo da pasta).

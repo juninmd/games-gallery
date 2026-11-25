@@ -25,20 +25,16 @@
 .cover-title { font-size: 17px; font-weight: 800; line-height: 1.15; word-break: break-word; text-shadow: 0 2px 8px rgb(0 0 0 / 50%); }
 .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 
-.native-dialog:not([open]) { display: none; }
-.native-dialog::backdrop { background: rgb(0 0 0 / 55%); }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; }
 .panel.narrow { max-width: 640px; margin-bottom: 16px; }
 .plain { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
 .row { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; }
-.hours { width: 110px; }
 .seg { display: flex; flex-wrap: wrap; gap: 6px; }
 .seg button { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 600; }
 .seg button.on { background: color-mix(in srgb, var(--c) 25%, transparent); border-color: var(--c); color: var(--c); }
 .fields { display: grid; gap: 10px; }
 .inline { display: grid; gap: 6px; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-.game-notes textarea { width: 100%; min-height: 110px; box-sizing: border-box; resize: vertical; }
 .note { font-size: 12px; color: var(--muted); }
 .note.warn { color: var(--warn); }
 .note.ok { color: var(--accent-2); }
@@ -99,7 +95,7 @@
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .scan-list { display: grid; max-height: 340px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
-.scan-row { display: grid; grid-template-columns: auto 1fr auto auto 110px; gap: 10px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.scan-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto 110px; gap: 10px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
 .scan-row:last-child { border-bottom: 0; }
 .scan-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .scan-emu { text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

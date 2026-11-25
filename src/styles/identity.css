@@ -51,10 +51,6 @@ h3 { font-size: 16px; font-weight: 650; }
 .page-head { margin-bottom: 26px; }
 
 /* controls */
-input, select, textarea { background: rgb(255 255 255 / 4%); border: 1px solid rgb(255 255 255 / 9%); border-radius: 12px; padding: 9px 12px; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
-input:hover, select:hover, textarea:hover { background: rgb(255 255 255 / 6%); }
-input:focus, select:focus, textarea:focus { outline: none; border-color: #ff6a8e; background: rgb(255 255 255 / 6%); box-shadow: 0 0 0 4px rgb(255 77 141 / 16%); }
-input[type="checkbox"], input[type="radio"] { accent-color: #ff4d8d; }
 select option, select optgroup { background: #11141e; color: var(--text); }
 .icon-btn { border-radius: 12px; background: rgb(255 255 255 / 6%); border-color: rgb(255 255 255 / 10%); transition: background 0.2s, transform 0.2s var(--ease); }
 .icon-btn:hover { background: rgb(255 255 255 / 12%); transform: rotate(90deg); }
@@ -96,7 +92,6 @@ select option, select optgroup { background: #11141e; color: var(--text); }
 .stats dd { font-family: "Bricolage Grotesque Variable", sans-serif; font-weight: 700; }
 
 /* overlays */
-.native-dialog::backdrop { background: rgb(4 5 9 / 66%); backdrop-filter: blur(10px) saturate(120%); }
 .tray { border-radius: 16px; backdrop-filter: blur(16px); }
 .empty[role="status"], .updating { animation: pulse 1.3s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: 0.45; } }

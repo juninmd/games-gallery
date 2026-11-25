@@ -1,4 +1,4 @@
-import { Button } from "@juninmd/sonido";
+import { Button, TextField } from "@juninmd/sonido";
 import { Bell, BellRing, X } from "lucide-react";
 import { useState } from "react";
 import { formatMoney } from "../domain/deals";
@@ -30,8 +30,7 @@ export function PriceAlertControl({ title, currency }: { title: string; currency
   if (editing) {
     return (
       <form className="flex items-center gap-1.5" onSubmit={(e) => { e.preventDefault(); save(); }}>
-        <label className="sr-only" htmlFor={`alert-${targetKey(title)}`}>Preço-alvo de {title}</label>
-        <input id={`alert-${targetKey(title)}`} autoFocus inputMode="decimal" value={text} onChange={(e) => setText(e.target.value)} placeholder="49,90" className="!m-0 !w-24 !py-1.5 text-sm" />
+        <TextField compact hideLabel label={`Preço-alvo de ${title}`} className="price-field" autoFocus inputMode="decimal" value={text} onChange={(e) => setText(e.target.value)} placeholder="49,90" />
         <Button type="submit" variant="secondary">Salvar</Button>
         <Button variant="ghost" aria-label="Cancelar" onClick={() => setEditing(false)}><X size={14} aria-hidden /></Button>
       </form>

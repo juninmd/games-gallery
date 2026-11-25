@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Badge, burst, SearchField } from "@juninmd/sonido";
+import { Badge, burst, SearchField, Select } from "@juninmd/sonido";
 import { Cover } from "../components/Cover";
 import { PlatformTag } from "../components/Badges";
 import { StoreChips } from "../components/StoreChips";
@@ -10,11 +10,12 @@ import type { Game, PlayStatus } from "../domain/types";
 import { useLibrary } from "../state/library";
 import { useUi } from "../state/ui";
 
-function BoardCard({ game, members, onMove, registerStatusSelect }: {
+const statusSelectId = (id: string) => `board-status-${id}`;
+
+function BoardCard({ game, members, onMove }: {
   game: Game;
   members: Game[];
   onMove: (game: Game, status: PlayStatus, from?: Element) => void;
-  registerStatusSelect: (id: string, node: HTMLSelectElement | null) => void;
 }) {
   const select = useUi((s) => s.select);
   const [dragging, setDragging] = useState(false);
@@ -33,18 +34,17 @@ function BoardCard({ game, members, onMove, registerStatusSelect }: {
         <button className="bcard-title" onClick={() => select(game.id)}>{game.title}</button>
         <div className="tags"><PlatformTag id={game.platformId} />{members.some((m) => m.installed) && <Badge tone="success">instalado</Badge>}</div>
         {members.length > 1 && <StoreChips members={members} />}
-        <label className="bcard-status-label" htmlFor={`board-status-${game.id}`}>Status de {game.title}</label>
-        <select
-          ref={(node) => registerStatusSelect(game.id, node)}
-          id={`board-status-${game.id}`}
+        <Select
+          compact
+          hideLabel
+          id={statusSelectId(game.id)}
           className="bcard-status"
+          label={`Status de ${game.title}`}
           value={game.status}
-          aria-label={`Status de ${game.title}`}
-          onChange={(e) => onMove(game, e.target.value as PlayStatus, e.currentTarget)}
+          options={STATUS_ORDER.map((status) => ({ value: status, label: STATUS_LABEL[status] }))}
+          onChange={(status) => onMove(game, status as PlayStatus, document.getElementById(statusSelectId(game.id)) ?? undefined)}
           onDragStart={(e) => e.stopPropagation()}
-        >
-          {STATUS_ORDER.map((status) => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}
-        </select>
+        />
       </div>
     </article>
   );
@@ -56,7 +56,6 @@ export function BoardView() {
   const [over, setOver] = useState<PlayStatus | null>(null);
   const [query, setQuery] = useState("");
   const [announcement, setAnnouncement] = useState("");
-  const statusSelects = useRef(new Map<string, HTMLSelectElement>());
   const focusAfterMove = useRef<string | null>(null);
 
   const grouped = useMemo(() => {
@@ -70,7 +69,7 @@ export function BoardView() {
   useLayoutEffect(() => {
     const id = focusAfterMove.current;
     if (!id) return;
-    const select = statusSelects.current.get(id);
+    const select = document.getElementById(statusSelectId(id));
     if (select) {
       focusAfterMove.current = null;
       select.focus();
@@ -127,10 +126,7 @@ export function BoardView() {
                 {col.length === 0 ? (
                   <p className="board-column-empty">{query.trim() ? "Nenhum resultado nesta coluna." : "Nenhum jogo nesta coluna."}</p>
                 ) : col.map(({ primary: game, members }) => (
-                  <BoardCard key={game.id} game={game} members={members} onMove={(item, next, from) => move(item, next, true, from)} registerStatusSelect={(id, node) => {
-                    if (node) statusSelects.current.set(id, node);
-                    else if (statusSelects.current.get(id)?.isConnected === false) statusSelects.current.delete(id);
-                  }} />
+                  <BoardCard key={game.id} game={game} members={members} onMove={(item, next, from) => move(item, next, true, from)} />
                 ))}
               </div>
             </section>
