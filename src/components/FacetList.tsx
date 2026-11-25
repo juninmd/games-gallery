@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { SearchField } from "@juninmd/sonido";
 import { useId, useMemo, useState } from "react";
 import { FACET_SEARCH_MIN, matchFacets, type Facet } from "../domain/facets";
 
@@ -22,10 +22,7 @@ export function FacetList({ title, facets, selected, onSelect, colorOf }: Props)
     <section className="facet" aria-labelledby={headingId}>
       <h3 id={headingId} className="facet-title">{title}</h3>
       {facets.length > FACET_SEARCH_MIN && (
-        <label className="facet-search">
-          <Search size={13} aria-hidden />
-          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Buscar ${title.toLowerCase()}`} aria-label={`Buscar ${title.toLowerCase()}`} />
-        </label>
+        <SearchField className="facet-search" label={`Buscar ${title.toLowerCase()}`} placeholder={`Buscar ${title.toLowerCase()}`} value={query} onChange={setQuery} />
       )}
       <ul className="facet-rows">
         {shown.map((f) => {

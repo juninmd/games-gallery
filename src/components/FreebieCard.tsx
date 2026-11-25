@@ -1,3 +1,4 @@
+import { Badge, Button } from "@juninmd/sonido";
 import { ExternalLink, Gift } from "lucide-react";
 import { useState } from "react";
 import { type Freebie, freebieToGame } from "../domain/freebies";
@@ -49,13 +50,13 @@ export function FreebieCard({ freebie: f, platformId }: { freebie: Freebie; plat
         <strong title={f.title}>{f.title}</strong>
         <span className="muted small">{when(f)}{f.originalPrice ? ` · de ${f.originalPrice}` : ""}</span>
         <div className="freebie-actions">
-          <button className="btn" onClick={open} aria-label={`${f.store === "epic" ? "Abrir na loja" : "Ver anúncio"}: ${f.title}`}><ExternalLink size={13} aria-hidden /> {f.store === "epic" ? "Abrir na loja" : "Ver anúncio"}</button>
+          <Button variant="secondary" onClick={open} aria-label={`${f.store === "epic" ? "Abrir na loja" : "Ver anúncio"}: ${f.title}`}><ExternalLink size={13} aria-hidden /> {f.store === "epic" ? "Abrir na loja" : "Ver anúncio"}</Button>
           {inLibrary ? (
-            <span className="tag ok">Na biblioteca</span>
+            <Badge tone="success">Na biblioteca</Badge>
           ) : (
             <>
-              <button className="btn ghost" onClick={() => add("wishlist")} aria-label={`Adicionar ${f.title} à wishlist`}>Wishlist</button>
-              <button className="btn ghost" onClick={() => add("owned")} aria-label={`Marcar ${f.title} como já resgatado`}>Já resgatei</button>
+              <Button variant="ghost" onClick={() => add("wishlist")} aria-label={`Adicionar ${f.title} à wishlist`}>Wishlist</Button>
+              <Button variant="ghost" onClick={() => add("owned")} aria-label={`Marcar ${f.title} como já resgatado`}>Já resgatei</Button>
             </>
           )}
         </div>

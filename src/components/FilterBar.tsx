@@ -1,3 +1,4 @@
+import { Button, Checkbox, Select } from "@juninmd/sonido";
 import { m } from "motion/react";
 import { Box, LayoutGrid, List, Rows3, SlidersHorizontal, StretchHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, type ReactNode } from "react";
@@ -92,9 +93,7 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
         <button type="button" className="bar-btn" popoverTarget="library-filters" aria-label={`Mais filtros${extra ? `, ${extra} ativos` : ""}`}>
           <SlidersHorizontal size={14} aria-hidden /> Filtros{extra > 0 && <span className="bar-count">{extra}</span>}
         </button>
-        <select className="bar-select" aria-label="Ordenar" value={filter.sort} onChange={(e) => setFilter({ sort: e.target.value as SortKey })}>
-          {SORTS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-        </select>
+        <Select className="bar-select" label="Ordenar" value={filter.sort} onChange={(v) => setFilter({ sort: v as SortKey })} options={SORTS.map(([value, label]) => ({ value, label }))} />
       </div>
 
       <div id="library-filters" popover="auto" className="filters-panel" aria-label="Mais filtros">
@@ -105,17 +104,17 @@ export function FilterBar({ lockInstalled = false }: { lockInstalled?: boolean }
         </div>
         <div className="filters-toggles">
           {!lockInstalled && (
-            <label className="check"><input type="checkbox" checked={filter.installedOnly} onChange={(e) => setFilter({ installedOnly: e.target.checked })} /> Só instalados</label>
+            <Checkbox label="Só instalados" checked={filter.installedOnly} onChange={(v) => setFilter({ installedOnly: v })} />
           )}
-          <label className="check"><input type="checkbox" checked={filter.ownedOnly} onChange={(e) => setFilter({ ownedOnly: e.target.checked })} /> Só comprados</label>
-          <label className="check"><input type="checkbox" checked={filter.multiStoreOnly} onChange={(e) => setFilter({ multiStoreOnly: e.target.checked })} /> Em mais de uma loja</label>
+          <Checkbox label="Só comprados" checked={filter.ownedOnly} onChange={(v) => setFilter({ ownedOnly: v })} />
+          <Checkbox label="Em mais de uma loja" checked={filter.multiStoreOnly} onChange={(v) => setFilter({ multiStoreOnly: v })} />
           {(loaned || filter.loanedOnly) && (
-            <label className="check"><input type="checkbox" checked={filter.loanedOnly} onChange={(e) => setFilter({ loanedOnly: e.target.checked })} /> Emprestados</label>
+            <Checkbox label="Emprestados" checked={filter.loanedOnly} onChange={(v) => setFilter({ loanedOnly: v })} />
           )}
         </div>
-        <button type="button" className="btn ghost" onClick={() => setFilter(CLEARED_FILTER)} disabled={!hasActiveFilter(filter)}>
+        <Button variant="ghost" onClick={() => setFilter(CLEARED_FILTER)} disabled={!hasActiveFilter(filter)}>
           <X size={13} aria-hidden /> Limpar filtros
-        </button>
+        </Button>
       </div>
     </div>
   );

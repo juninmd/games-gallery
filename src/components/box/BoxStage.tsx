@@ -1,10 +1,9 @@
-import { X } from "lucide-react";
+import { Button, Dialog, Kbd } from "@juninmd/sonido";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
 import type { GameGroup } from "../../domain/duplicates";
 import { PLATFORM_BY_ID } from "../../domain/platforms";
 import { PROVIDER_BY_ID } from "../../domain/providers";
 import { STATUS_LABEL } from "../../domain/status";
-import { useNativeDialog } from "../useNativeDialog";
 import { boxSpecFor } from "./boxFormats";
 import { GameBox } from "./GameBox";
 
@@ -14,7 +13,7 @@ const BACK = 180;
 const OPEN_DEG = -158;
 
 /** Inspection bench: drag to turn the box, open the lid and take the disc or cartridge out. */
-function StageBody({ group, onClose, onDetails }: { group: GameGroup; onClose: () => void; onDetails: (id: string) => void }) {
+function StageBody({ group, onDetails }: { group: GameGroup; onDetails: (id: string) => void }) {
   const game = group.primary;
   const spec = boxSpecFor(game.platformId);
   const platform = PLATFORM_BY_ID[game.platformId];
@@ -104,42 +103,33 @@ function StageBody({ group, onClose, onDetails }: { group: GameGroup; onClose: (
       </div>
       <div className="bx-info">
         <span className="bx-tag">{platform?.name}{game.genres[0] ? ` · ${game.genres[0]}` : ""}</span>
-        <h2 id="bx-stage-title">{game.title}</h2>
+        <p className="bx-title" aria-hidden>{game.title}</p>
         <dl className="bx-facts">
           {facts.map(([k, v]) => <div key={k}><dd>{v}</dd><dt>{k}</dt></div>)}
         </dl>
         {stores.length > 0 && <p className="bx-note">{stores.length > 1 ? "Lojas" : "Loja"}: {stores.join(", ")}</p>}
         <div className="bx-acts">
-          <button type="button" className="btn primary" onClick={() => onDetails(game.id)}>Ver detalhes</button>
-          <button type="button" className="btn" aria-pressed={open} onClick={() => setLid(!open)}>{open ? "Fechar caixa" : "Abrir caixa"}</button>
-          <button type="button" className="btn" aria-pressed={out} onClick={() => setMedia(!out)}>{out ? "Guardar" : "Tirar"} {spec.take}</button>
+          <Button variant="primary" onClick={() => onDetails(game.id)}>Ver detalhes</Button>
+          <Button variant="secondary" aria-pressed={open} onClick={() => setLid(!open)}>{open ? "Fechar caixa" : "Abrir caixa"}</Button>
+          <Button variant="secondary" aria-pressed={out} onClick={() => setMedia(!out)}>{out ? "Guardar" : "Tirar"} {spec.take}</Button>
         </div>
         <div className="bx-acts" role="group" aria-label="Girar a caixa">
-          <button type="button" className="btn ghost" onClick={() => face(FRONT)}>Frente</button>
-          <button type="button" className="btn ghost" onClick={() => face(SPINE)}>Lombada</button>
-          <button type="button" className="btn ghost" onClick={() => face(BACK)}>Verso</button>
+          <Button variant="ghost" onClick={() => face(FRONT)}>Frente</Button>
+          <Button variant="ghost" onClick={() => face(SPINE)}>Lombada</Button>
+          <Button variant="ghost" onClick={() => face(BACK)}>Verso</Button>
         </div>
         <p className="bx-note">
-          {game.coverUrl ? "Capa carregada da loja." : "Sem capa oficial: arte gerada."} Arraste para girar · <kbd>O</kbd> abre · <kbd>T</kbd> tira a mídia · <kbd>F</kbd> vira
+          {game.coverUrl ? "Capa carregada da loja." : "Sem capa oficial: arte gerada."} Arraste para girar · <Kbd>O</Kbd> abre · <Kbd>T</Kbd> tira a mídia · <Kbd>F</Kbd> vira
         </p>
       </div>
-      <button type="button" className="bx-close" aria-label="Fechar" onClick={onClose}><X size={18} aria-hidden /></button>
     </div>
   );
 }
 
 export function BoxStage({ group, onClose, onDetails }: { group?: GameGroup; onClose: () => void; onDetails: (id: string) => void }) {
-  const dialog = useNativeDialog(Boolean(group), onClose);
   return (
-    <dialog
-      ref={dialog.ref}
-      className="native-dialog modal bx-stage"
-      aria-labelledby="bx-stage-title"
-      onCancel={dialog.onCancel}
-      onPointerDown={dialog.onPointerDown}
-      onPointerUp={dialog.onPointerUp}
-    >
-      {group && <StageBody key={group.primary.id} group={group} onClose={onClose} onDetails={onDetails} />}
-    </dialog>
+    <Dialog open={Boolean(group)} onClose={onClose} title={group?.primary.title ?? "Caixa"} className="bx-stage">
+      {group && <StageBody key={group.primary.id} group={group} onDetails={onDetails} />}
+    </Dialog>
   );
 }

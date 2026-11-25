@@ -1,3 +1,4 @@
+import { Badge, Button } from "@juninmd/sonido";
 import { Activity, CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 import { PROBE_LABEL, type ProbeId, type ProbeResult, runProbe } from "../platform/probes";
@@ -29,17 +30,17 @@ export function ProbeList() {
             <li key={id}>
               <strong>{PROBE_LABEL[id]}</strong>{" "}
               {r && (r.ok
-                ? <span className="tag ok"><CheckCircle2 size={12} aria-hidden /> OK</span>
-                : <span className="tag warn"><XCircle size={12} aria-hidden /> Falhou</span>)}
+                ? <Badge tone="success"><CheckCircle2 size={12} aria-hidden /> OK</Badge>
+                : <Badge tone="warning"><XCircle size={12} aria-hidden /> Falhou</Badge>)}
               <div className="muted small">{r?.detail ?? "Ainda não testado"}</div>
-              <button className="btn ghost" disabled={running[id]} onClick={() => void test(id)}>
+              <Button variant="ghost" disabled={running[id]} onClick={() => void test(id)}>
                 <Activity size={13} aria-hidden /> {running[id] ? "Testando…" : "Testar"}
-              </button>
+              </Button>
             </li>
           );
         })}
       </ul>
-      <button className="btn" disabled={Object.values(running).some(Boolean)} onClick={() => void Promise.all(IDS.map(test))}>Testar todas</button>
+      <Button variant="secondary" disabled={Object.values(running).some(Boolean)} onClick={() => void Promise.all(IDS.map(test))}>Testar todas</Button>
     </section>
   );
 }

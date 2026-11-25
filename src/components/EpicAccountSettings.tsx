@@ -1,3 +1,4 @@
+import { Button, TextField } from "@juninmd/sonido";
 import { ExternalLink, Download } from "lucide-react";
 import { useState } from "react";
 import { extractAuthCode } from "../domain/epicAccount";
@@ -36,19 +37,16 @@ export function EpicAccountSettings() {
       </p>
       <ol className="plain small">
         <li>
-          <button className="btn" onClick={() => void login()}><ExternalLink size={14} aria-hidden /> Abrir login da Epic</button>
+          <Button variant="secondary" onClick={() => void login()}><ExternalLink size={14} aria-hidden /> Abrir login da Epic</Button>
         </li>
         <li>Copie o código (ou a resposta JSON inteira) que a página mostrar.</li>
       </ol>
-      <label>
-        Código de autorização
-        <input type="password" autoComplete="off" value={input} placeholder="32 caracteres ou {“authorizationCode”: …}" onChange={(e) => setInput(e.target.value)} aria-invalid={!!input.trim() && !code} />
-      </label>
+      <TextField label="Código de autorização" type="password" autoComplete="off" value={input} placeholder="32 caracteres ou {“authorizationCode”: …}" onChange={(e) => setInput(e.target.value)} aria-invalid={!!input.trim() && !code} />
       {!!input.trim() && !code && <p className="warn-text small">Não parece um código válido: são 32 caracteres hexadecimais.</p>}
       <div className="actions">
-        <button className="btn primary" disabled={!code || busy} onClick={() => { if (code) { void sync(code); setInput(""); } }}>
+        <Button variant="primary" disabled={!code || busy} onClick={() => { if (code) { void sync(code); setInput(""); } }}>
           <Download size={14} aria-hidden /> {busy ? "Lendo…" : "Importar biblioteca"}
-        </button>
+        </Button>
       </div>
     </section>
   );

@@ -1,3 +1,4 @@
+import { Button } from "@juninmd/sonido";
 import { Copy, ExternalLink } from "lucide-react";
 import { commandsFor, hostOs, isHttps } from "../domain/install";
 import type { Emulator } from "../domain/types";
@@ -25,9 +26,9 @@ export function EmulatorInstallPanel({ emulator: e }: { emulator: Emulator }) {
         <div key={c.manager} className="install-cmd">
           <span className="muted small">{c.label}</span>
           <pre className="cmd small">{c.command}</pre>
-          <button className="btn ghost" onClick={() => copy(c.command)} aria-label={`Copiar comando ${c.label} de ${e.name}`}>
+          <Button variant="ghost" onClick={() => copy(c.command)} aria-label={`Copiar comando ${c.label} de ${e.name}`}>
             <Copy size={13} aria-hidden /> Copiar
-          </button>
+          </Button>
         </div>
       ))}
     </details>

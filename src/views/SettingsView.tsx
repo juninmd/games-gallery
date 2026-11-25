@@ -1,3 +1,4 @@
+import { Button, RadioGroup, Switch } from "@juninmd/sonido";
 import { FolderSearch, FolderOpen, RefreshCw } from "lucide-react";
 import { BackupSettings } from "../components/BackupSettings";
 import { PegasusExport } from "../components/PegasusExport";
@@ -55,18 +56,12 @@ export function SettingsView() {
       <header className="page-head"><div><h1>Ajustes</h1></div></header>
       <section className="panel narrow">
         <h3 aria-level={2}>Modo TV</h3>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={tvMode} onChange={(e) => setTvMode(e.target.checked)} />
-          Letras maiores e foco bem visível para jogar no sofá
-        </label>
+        <Switch label="Letras maiores e foco bem visível para jogar no sofá" checked={tvMode} onChange={setTvMode} />
         <p className="muted small">Com um controle conectado: direcional/analógico move o foco, A abre, B volta e Start abre a paleta. Funciona com ou sem o modo TV.</p>
       </section>
       <section className="panel narrow">
         <h3 aria-level={2}>Tema</h3>
-        <div className="flex gap-4" role="radiogroup" aria-label="Tema">
-          <label className="flex items-center gap-2"><input type="radio" name="theme" checked={theme === "dark"} onChange={() => setTheme("dark")} /> Escuro</label>
-          <label className="flex items-center gap-2"><input type="radio" name="theme" checked={theme === "light"} onChange={() => setTheme("light")} /> Claro</label>
-        </div>
+        <RadioGroup label="Tema" value={theme} onChange={setTheme} options={[{ value: "dark", label: "Escuro" }, { value: "light", label: "Claro" }]} />
       </section>
       <section className="panel narrow">
         <h3 aria-level={2}>Pastas</h3>
@@ -77,9 +72,9 @@ export function SettingsView() {
           para instalações portáteis (o app procura até 4 níveis abaixo da pasta).
         </p>
         <div className="actions">
-          <button className="btn" onClick={() => void chooseEmulatorsDir()}><FolderOpen size={14} aria-hidden /> Escolher pasta de emuladores</button>
-          <button className="btn primary" onClick={() => void detect()}><FolderSearch size={14} aria-hidden /> Detectar bibliotecas agora</button>
-          <button className="btn" onClick={() => void refreshEmulators()}><RefreshCw size={14} aria-hidden /> Reconferir emuladores</button>
+          <Button variant="secondary" onClick={() => void chooseEmulatorsDir()}><FolderOpen size={14} aria-hidden /> Escolher pasta de emuladores</Button>
+          <Button variant="primary" onClick={() => void detect()}><FolderSearch size={14} aria-hidden /> Detectar bibliotecas agora</Button>
+          <Button variant="secondary" onClick={() => void refreshEmulators()}><RefreshCw size={14} aria-hidden /> Reconferir emuladores</Button>
         </div>
       </section>
       <p className="muted small">Chaves da Steam, RAWG e testes de conexão ficam em <button className="link" onClick={() => go("connections")}>Conexões</button>.</p>
@@ -98,11 +93,11 @@ export function SettingsView() {
       <section className="panel narrow">
         <h3 aria-level={2}>Biblioteca</h3>
         <p className="muted small">Apagar remove os jogos e o histórico de varreduras deste perfil. Os launchers no disco não são tocados; a detecção repovoa tudo em um clique.</p>
-        <button className="btn ghost danger" onClick={() => {
+        <Button variant="danger" onClick={() => {
           if (!window.confirm("Apagar a biblioteca deste perfil e começar do zero? Os jogos instalados continuam no disco.")) return;
           reset();
           toast("Biblioteca limpa");
-        }}>Limpar biblioteca</button>
+        }}>Limpar biblioteca</Button>
       </section>
     </>
   );

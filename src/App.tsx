@@ -1,3 +1,4 @@
+import { ToastProvider } from "@juninmd/sonido";
 import { LazyMotion, MotionConfig } from "motion/react";
 import { Component, lazy, Suspense, useEffect, useMemo, useRef, useState, type ErrorInfo, type ReactNode } from "react";
 import { AddGameModal } from "./components/AddGameModal";
@@ -9,8 +10,8 @@ import { LoadError, SkeletonGrid } from "./components/states";
 import { isCentral } from "./components/nav";
 import { AmbientBackdrop } from "./components/shell/AmbientBackdrop";
 import { CentralTabs } from "./components/shell/CentralTabs";
+import { MainNav } from "./components/shell/MainNav";
 import { DropImport } from "./components/shell/DropImport";
-import { Dock } from "./components/shell/Dock";
 import { Intro } from "./components/shell/Intro";
 import { OfflineBanner } from "./components/shell/OfflineBanner";
 import { TitleBar } from "./components/shell/TitleBar";
@@ -114,6 +115,7 @@ export function App() {
     // "user": springs and layout animations honor the OS reduced-motion setting, like the CSS.
     <MotionConfig reducedMotion="user">
     <LazyMotion features={loadMotionFeatures} strict>
+    <ToastProvider>
     <div className="app" data-layout={layout} data-frame={isTauri() ? "custom" : undefined}>
       <AmbientBackdrop />
       <TitleBar />
@@ -125,7 +127,7 @@ export function App() {
           <div className="view-enter" key={view}><CurrentView /></div>
         </div>
       </main>
-      <Dock />
+      <MainNav />
       <GameDrawer />
       <AddGameModal />
       <CommandPalette />
@@ -134,6 +136,7 @@ export function App() {
       <DropImport />
       <Intro />
     </div>
+    </ToastProvider>
     </LazyMotion>
     </MotionConfig>
   );

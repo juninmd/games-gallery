@@ -1,5 +1,5 @@
 import { lazy, Suspense, useDeferredValue, useMemo, useState } from "react";
-import { CountUp } from "../components/CountUp";
+import { Button, CountUp } from "@juninmd/sonido";
 import { FilterBar } from "../components/FilterBar";
 import { GameCard } from "../components/GameCard";
 import { GameList } from "../components/GameList";
@@ -117,9 +117,9 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
           <h2 id="empty-library-title">Sua biblioteca ainda está vazia</h2>
           <p>O app lê as bibliotecas dos launchers instalados no seu PC (Steam, Epic, GOG, itch.io…) e as pastas de ROMs que você escolher. Para listar também o que você comprou e não instalou, entre nas suas contas em Conexões.</p>
           <div className="discovery-actions">
-            <button className="btn primary" type="button" onClick={() => void detect()}>Detectar bibliotecas</button>
-            <button className="btn" type="button" onClick={() => go("connections")}>Conectar contas</button>
-            <button className="btn" type="button" onClick={() => setAddOpen(true)}>Adicionar jogo</button>
+            <Button variant="primary" onClick={() => void detect()}>Detectar bibliotecas</Button>
+            <Button variant="secondary" onClick={() => go("connections")}>Conectar contas</Button>
+            <Button variant="secondary" onClick={() => setAddOpen(true)}>Adicionar jogo</Button>
           </div>
         </section>
       ) : scope === "installed" && stats.installed === 0 ? (
@@ -127,15 +127,15 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
           <h2 id="empty-installed-title">Nenhum jogo instalado ainda</h2>
           <p>Os jogos da sua biblioteca aparecerão aqui quando forem instalados.</p>
           <div className="discovery-actions">
-            <button className="btn" type="button" onClick={() => go("library")}>Ver biblioteca</button>
-            <button className="btn primary" type="button" onClick={() => setAddOpen(true)}>Adicionar jogo</button>
+            <Button variant="secondary" onClick={() => go("library")}>Ver biblioteca</Button>
+            <Button variant="primary" onClick={() => setAddOpen(true)}>Adicionar jogo</Button>
           </div>
         </section>
       ) : shown.length === 0 ? (
         <section className="discovery-empty" aria-labelledby="empty-results-title">
           <h2 id="empty-results-title">Nenhum jogo corresponde a esta busca</h2>
           <p>Tente outro termo ou limpe os filtros para voltar a ver a biblioteca.</p>
-          <button className="btn" type="button" onClick={clearFilters}>Limpar filtros</button>
+          <Button variant="secondary" onClick={clearFilters}>Limpar filtros</Button>
         </section>
       ) : (
         <>
@@ -147,13 +147,13 @@ export function GameBrowser({ scope }: { scope: "all" | "installed" }) {
               </p>
               {pageCount > 1 && (
                 <nav className="pagination" aria-label="Paginação da biblioteca">
-                  <button className="btn" type="button" onClick={() => setPageState((s) => ({ ...s, page: Math.max(1, s.page - 1) }))} disabled={page <= 1}>
+                  <Button variant="secondary" onClick={() => setPageState((s) => ({ ...s, page: Math.max(1, s.page - 1) }))} disabled={page <= 1}>
                     Anterior
-                  </button>
+                  </Button>
                   <span aria-current="page">Página {page} de {pageCount}</span>
-                  <button className="btn" type="button" onClick={() => setPageState((s) => ({ ...s, page: Math.min(pageCount, s.page + 1) }))} disabled={page >= pageCount}>
+                  <Button variant="secondary" onClick={() => setPageState((s) => ({ ...s, page: Math.min(pageCount, s.page + 1) }))} disabled={page >= pageCount}>
                     Próxima
-                  </button>
+                  </Button>
                 </nav>
               )}
             </div>

@@ -284,7 +284,7 @@
 .bx-umd-disc { position: absolute; left: 50%; bottom: 7px; width: 36px; height: 36px; margin-left: -18px; border-radius: 50%; background: radial-gradient(circle, #05060a 0 14%, transparent 15%), conic-gradient(#d8dcec, #fff, #aab4d0, #f1f4fb, #d8dcec); }
 
 /* ---------- Bench (stage) ---------- */
-.bx-stage { width: min(1060px, 94vw); max-width: none; max-height: 94vh; padding: 0; overflow: auto; color: var(--color-mist); }
+.bx-stage { color: var(--color-mist); }
 .bx-bench { position: relative; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 8px 28px; align-items: center; padding: 24px; }
 @media (max-width: 760px) { .bx-bench { grid-template-columns: 1fr; padding: 16px; } }
 .bx-scene { position: relative; height: 500px; perspective: 1700px; touch-action: none; cursor: grab; user-select: none; }
@@ -296,17 +296,13 @@
 @media (max-width: 760px) { .bx-scene { height: 380px; } .bx-floor { width: 240px; bottom: 28px; } }
 .bx-info { display: grid; gap: 14px; align-content: center; min-width: 0; }
 .bx-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-fog); }
-.bx-info h2 { margin: 0; font-size: clamp(28px, 5vw, 40px); line-height: 1; letter-spacing: -0.02em; text-wrap: balance; }
+.bx-title { margin: 0; font-size: clamp(28px, 5vw, 40px); line-height: 1; letter-spacing: -0.02em; text-wrap: balance; }
 .bx-facts { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
 .bx-facts > div { display: flex; flex-direction: column-reverse; border: 1px solid rgb(255 255 255 / 10%); background: rgb(255 255 255 / 4%); border-radius: 12px; padding: 9px 14px; min-width: 88px; }
 .bx-facts dd { margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
 .bx-facts dt { font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-fog); }
 .bx-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.bx-acts .btn[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--color-aurora); }
 .bx-note { margin: 0; font-size: 12px; color: var(--color-fog); }
-.bx-note kbd { font: inherit; font-size: 11px; border: 1px solid rgb(255 255 255 / 15%); border-radius: 5px; padding: 1px 6px; background: rgb(255 255 255 / 6%); }
-.bx-close { position: absolute; top: 12px; right: 12px; z-index: 5; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgb(255 255 255 / 12%); background: rgb(255 255 255 / 6%); }
-.bx-close:hover { background: rgb(255 255 255 / 12%); }
 
 @media (prefers-reduced-motion: reduce) {
   .bx-slot { animation: none; }

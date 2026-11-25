@@ -1,3 +1,4 @@
+import { Badge, Button } from "@juninmd/sonido";
 import { ExternalLink, Tag } from "lucide-react";
 import { useState } from "react";
 import type { DealInsight } from "../domain/dealInsights";
@@ -51,7 +52,7 @@ export function DealCard(p: DealCardProps) {
       <div className="freebie-body">
         <strong title={p.title}>{p.title}</strong>
         <span className="small">
-          {onSale && <span className="tag ok">-{p.discountPercent}%</span>}{" "}
+          {onSale && <Badge tone="success">-{p.discountPercent}%</Badge>}{" "}
           {onSale && <s className="muted">{formatMoney(p.originalCents, p.currency)}</s>}{" "}
           <b>{p.finalCents === undefined ? "—" : p.finalCents === 0 ? "Grátis" : formatMoney(p.finalCents, p.currency)}</b>
         </span>
@@ -62,15 +63,15 @@ export function DealCard(p: DealCardProps) {
           </span>
         )}
         <div className="freebie-actions">
-          <button className="btn" onClick={open} aria-label={`Abrir na loja: ${p.title}`}><ExternalLink size={13} aria-hidden /> Abrir na loja</button>
-          {endingSoon(p.endsAt) && <span className="tag warn">{endingSoon(p.endsAt)}</span>}
-          {p.insight?.cheapest && <span className="tag ok">Menor preço</span>}
+          <Button variant="secondary" onClick={open} aria-label={`Abrir na loja: ${p.title}`}><ExternalLink size={13} aria-hidden /> Abrir na loja</Button>
+          {endingSoon(p.endsAt) && <Badge tone="warning">{endingSoon(p.endsAt)}</Badge>}
+          {p.insight?.cheapest && <Badge tone="success">Menor preço</Badge>}
           {p.insight && p.insight.ownedIn.length > 0 ? (
-            <span className="tag ok" title="Você já tem este jogo">Você tem: {p.insight.ownedIn.map(storeShort).join(" · ")}</span>
+            <Badge tone="success" title="Você já tem este jogo">Você tem: {p.insight.ownedIn.map(storeShort).join(" · ")}</Badge>
           ) : (
-            p.owned && <span className="tag ok">Na biblioteca</span>
+            p.owned && <Badge tone="success">Na biblioteca</Badge>
           )}
-          {p.insight?.wanted && !p.insight.ownedIn.length && <span className="tag">Na wishlist</span>}
+          {p.insight?.wanted && !p.insight.ownedIn.length && <Badge>Na wishlist</Badge>}
           {p.finalCents !== undefined && !p.owned && !p.insight?.ownedIn.length && <PriceAlertControl title={p.title} currency={p.currency} />}
         </div>
       </div>

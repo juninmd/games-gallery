@@ -1,7 +1,7 @@
+import { ProgressBar } from "@juninmd/sonido";
 import { LoaderCircle } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 import { useTasks } from "../state/tasks";
-import { ProgressBar } from "./Badges";
 
 /** Long-running jobs (downloads, syncs) shown where the eye already is. */
 export function SidebarTasks({ compact }: { compact: boolean }) {
@@ -26,7 +26,7 @@ export function SidebarTasks({ compact }: { compact: boolean }) {
             <span className="truncate" title={t.detail ?? t.label}>{t.label}</span>
             <span className="ml-auto tabular-nums text-fog">{Math.round(t.progress)}%</span>
           </span>
-          <ProgressBar value={t.progress} label={t.label} />
+          <ProgressBar size="sm" value={t.progress / 100} label={t.label} />
           {t.detail && <span className="truncate text-[11px] text-fog" title={t.detail}>{t.detail}</span>}
         </div>
       ))}

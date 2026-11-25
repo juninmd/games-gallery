@@ -1,7 +1,8 @@
+import { AmbientBackdrop as SonidoBackdrop } from "@juninmd/sonido";
 import { useEffect } from "react";
 import { useUi } from "../../state/ui";
 
-/** Full-window color field that fades to the game in focus; the signature colors otherwise. */
+/** Sonido's color field, fed the game in focus; also exposes the colors as --amb-* for accents. */
 export function AmbientBackdrop() {
   const ambient = useUi((s) => s.ambient);
 
@@ -16,10 +17,5 @@ export function AmbientBackdrop() {
     }
   }, [ambient]);
 
-  return (
-    <div aria-hidden className="ambient">
-      <span className="ambient-field" />
-      <span className="ambient-vignette" />
-    </div>
-  );
+  return <SonidoBackdrop className="app-ambient" colors={ambient ?? undefined} />;
 }

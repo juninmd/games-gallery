@@ -15,6 +15,7 @@
 @import "./prisma.css" layer(legacy);
 @import "./shell-ux.css" layer(legacy);
 @import "./light.css" layer(legacy);
+@import "./sonido-bridge.css";
 
 @layer base {
   button { background: none; border: 0; padding: 0; font: inherit; color: inherit; }

@@ -1,5 +1,5 @@
-import { m } from "motion/react";
-import { Minus, Plus, Star } from "lucide-react";
+import { burst, Dialog, Rating, Tabs } from "@juninmd/sonido";
+import { Minus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from "../domain/status";
 import type { Game, PlayStatus } from "../domain/types";
@@ -15,9 +15,7 @@ import { DrawerHero } from "./DrawerHero";
 import { LaunchPanel } from "./LaunchPanel";
 import { RatingsPanel } from "./RatingsPanel";
 import { StoresPanel } from "./StoresPanel";
-import { confettiFrom } from "./confetti";
 import { useLaunch } from "./useLaunch";
-import { useNativeDialog } from "./useNativeDialog";
 
 const TABS = [
   { id: "overview", label: "Visão geral" },
@@ -43,8 +41,8 @@ function Section({ title, children, aside }: { title: string; children: React.Re
 
 function StatusPicker({ game }: { game: Game }) {
   const patchGame = useLibrary((s) => s.patchGame);
-  const setStatus = (status: PlayStatus, from?: Element) => {
-    if (status === "completed" && game.status !== "completed") confettiFrom(from);
+  const setStatus = (status: PlayStatus, from?: HTMLElement) => {
+    if (status === "completed" && game.status !== "completed") { if (from) burst(from); }
     return patchGame(game.id, status === "wishlist" ? { status, owned: false, installed: false, loan: undefined } : { status, owned: true });
   };
 
@@ -75,26 +73,12 @@ function StatusPicker({ game }: { game: Game }) {
 
 function RatingStars({ game }: { game: Game }) {
   const patchGame = useLibrary((s) => s.patchGame);
-  const [hover, setHover] = useState(0);
-  const shown = hover || game.rating || 0;
+  const rating = game.rating ?? 0;
 
   return (
     <div className="flex items-center gap-3">
-      <div className="stars" role="group" aria-label="Avaliação" onPointerLeave={() => setHover(0)}>
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button
-            key={n}
-            aria-label={`${n} estrela${n > 1 ? "s" : ""}`}
-            aria-pressed={(game.rating ?? 0) >= n}
-            className={`transition-transform duration-200 ease-expo hover:scale-125 ${shown >= n ? "on" : ""}`}
-            onPointerEnter={() => setHover(n)}
-            onClick={() => patchGame(game.id, { rating: game.rating === n ? undefined : n })}
-          >
-            <Star size={26} fill={shown >= n ? "currentColor" : "none"} />
-          </button>
-        ))}
-      </div>
-      <span className="min-w-[5.5rem] text-[13px] font-medium text-warn" aria-live="polite">{shown ? STAR_LABELS[shown - 1] : "Sem nota"}</span>
+      <Rating label="Avaliação" value={rating} onChange={(n) => patchGame(game.id, { rating: rating === n ? undefined : n })} />
+      <span className="min-w-[5.5rem] text-[13px] font-medium text-warn" aria-live="polite">{rating ? STAR_LABELS[rating - 1] : "Sem nota"}</span>
     </div>
   );
 }
@@ -155,7 +139,7 @@ function Overview({ game }: { game: Game }) {
   );
 }
 
-function GameDetails({ game, onClose }: { game: Game; onClose: () => void }) {
+function GameDetails({ game }: { game: Game }) {
   const [tab, setTab] = useState<TabId>("overview");
   const launch = useLaunch(game);
   const entry = useRatings((s) => ratingEntry(s.entries, game.id));
@@ -165,41 +149,15 @@ function GameDetails({ game, onClose }: { game: Game; onClose: () => void }) {
   // The hero shows the public average, so fetch it up front rather than when the Notas tab opens.
   useEffect(() => { void refresh(game); }, [game.id, rawgKey]);
 
-  const onTabKey = (e: React.KeyboardEvent) => {
-    const i = TABS.findIndex((t) => t.id === tab);
-    const next = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : null;
-    if (next === null) return;
-    e.preventDefault();
-    const t = TABS[(next + TABS.length) % TABS.length]!;
-    setTab(t.id);
-    document.getElementById(`drawer-tab-${t.id}`)?.focus();
-  };
-
   return (
     <div className="flex min-h-full flex-col">
-      <DrawerHero game={game} ratings={entry} onClose={onClose} />
+      <DrawerHero game={game} ratings={entry} />
 
       <div className="px-6 sm:px-10">
-        <div role="tablist" aria-label="Seções do jogo" onKeyDown={onTabKey} className="relative flex gap-1 border-b border-white/10">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              id={`drawer-tab-${t.id}`}
-              role="tab"
-              aria-selected={tab === t.id}
-              aria-controls={`drawer-panel-${t.id}`}
-              tabIndex={tab === t.id ? 0 : -1}
-              onClick={() => setTab(t.id)}
-              className={`relative px-4 py-3 text-[13.5px] font-semibold transition-colors ${tab === t.id ? "text-mist" : "text-fog hover:text-mist"}`}
-            >
-              {t.label}
-              {tab === t.id && <m.span layoutId="drawer-tab" className="absolute inset-x-2 -bottom-px h-[2px] rounded-full bg-signature" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
-            </button>
-          ))}
-        </div>
+        <Tabs label="Seções do jogo" idPrefix="drawer-tab" hasPanels items={TABS.map((t) => ({ key: t.id, label: t.label }))} value={tab} onChange={setTab} />
       </div>
 
-      <div key={tab} id={`drawer-panel-${tab}`} role="tabpanel" aria-labelledby={`drawer-tab-${tab}`} className="animate-rise px-6 py-5 sm:px-10">
+      <div key={tab} id={`drawer-tab-panel-${tab}`} role="tabpanel" aria-labelledby={`drawer-tab-${tab}`} className="animate-rise px-6 py-5 sm:px-10">
         {tab === "overview" && <Overview game={game} />}
         {tab === "scores" && <RatingsPanel game={game} />}
         {tab === "play" && <LaunchPanel game={game} launch={launch} />}
@@ -213,11 +171,10 @@ function GameDetails({ game, onClose }: { game: Game; onClose: () => void }) {
 export function GameDrawer() {
   const { selectedId, select } = useUi();
   const game = useLibrary((s) => s.games.find((g) => g.id === selectedId));
-  const dialog = useNativeDialog(Boolean(game), () => select(null));
 
   return (
-    <dialog ref={dialog.ref} className="native-dialog drawer p-0 open:block" aria-labelledby="game-drawer-title" onCancel={dialog.onCancel} onPointerDown={dialog.onPointerDown} onPointerUp={dialog.onPointerUp}>
-      {game && <GameDetails key={game.id} game={game} onClose={() => select(null)} />}
-    </dialog>
+    <Dialog open={Boolean(game)} onClose={() => select(null)} title={game?.title ?? "Jogo"} className="game-drawer">
+      {game && <GameDetails key={game.id} game={game} />}
+    </Dialog>
   );
 }

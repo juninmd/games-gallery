@@ -1,3 +1,4 @@
+import { Button, TextField } from "@juninmd/sonido";
 import { Download, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { extractNpsso } from "../domain/psnAccount";
@@ -36,19 +37,16 @@ export function PsnAccountSettings() {
         PS4 e PS5 que você jogou, com as horas. O NPSSO é usado uma vez e não é salvo. Trate-o como senha.
       </p>
       <ol className="plain small">
-        <li><button className="btn" onClick={() => void open(LOGIN_URL)}><ExternalLink size={14} aria-hidden /> Entrar em playstation.com</button></li>
-        <li>Na mesma sessão do navegador, <button className="btn" onClick={() => void open(NPSSO_URL)}><ExternalLink size={14} aria-hidden /> Abrir página do NPSSO</button></li>
+        <li><Button variant="secondary" onClick={() => void open(LOGIN_URL)}><ExternalLink size={14} aria-hidden /> Entrar em playstation.com</Button></li>
+        <li>Na mesma sessão do navegador, <Button variant="secondary" onClick={() => void open(NPSSO_URL)}><ExternalLink size={14} aria-hidden /> Abrir página do NPSSO</Button></li>
         <li>Copie o valor de <code>npsso</code> (ou a resposta JSON inteira).</li>
       </ol>
-      <label>
-        NPSSO
-        <input type="password" autoComplete="off" value={input} placeholder="64 caracteres ou {“npsso”: …}" onChange={(e) => setInput(e.target.value)} aria-invalid={!!input.trim() && !npsso} />
-      </label>
+      <TextField label="NPSSO" type="password" autoComplete="off" value={input} placeholder="64 caracteres ou {“npsso”: …}" onChange={(e) => setInput(e.target.value)} aria-invalid={!!input.trim() && !npsso} />
       {!!input.trim() && !npsso && <p className="warn-text small">Não parece um NPSSO válido: são 64 letras e números.</p>}
       <div className="actions">
-        <button className="btn primary" disabled={!npsso || busy} onClick={() => { if (npsso) { void sync(npsso); setInput(""); } }}>
+        <Button variant="primary" disabled={!npsso || busy} onClick={() => { if (npsso) { void sync(npsso); setInput(""); } }}>
           <Download size={14} aria-hidden /> {busy ? "Lendo…" : "Importar jogos"}
-        </button>
+        </Button>
       </div>
     </section>
   );

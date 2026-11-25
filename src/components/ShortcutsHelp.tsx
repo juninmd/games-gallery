@@ -1,6 +1,6 @@
+import { Button, Dialog, Kbd } from "@juninmd/sonido";
 import { useEffect } from "react";
 import { useUi } from "../state/ui";
-import { useNativeDialog } from "./useNativeDialog";
 
 const mod = typeof navigator !== "undefined" && /mac/i.test(navigator.platform) ? "⌘" : "Ctrl";
 const SHORTCUTS: [string[], string][] = [
@@ -19,7 +19,7 @@ const SHORTCUTS: [string[], string][] = [
 export function ShortcutsHelp() {
   const open = useUi((s) => s.shortcutsOpen);
   const setOpen = useUi((s) => s.setShortcutsOpen);
-  const dialog = useNativeDialog(open, () => setOpen(false));
+  const close = () => setOpen(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -34,19 +34,15 @@ export function ShortcutsHelp() {
   }, [setOpen]);
 
   return (
-    <dialog ref={dialog.ref} className="native-dialog border-0 bg-transparent p-0 text-mist open:block" aria-labelledby="shortcuts-title" onCancel={dialog.onCancel} onPointerDown={dialog.onPointerDown} onPointerUp={dialog.onPointerUp}>
-      <div className="glass grid gap-4 rounded-3xl p-6" style={{ minWidth: "min(420px, 90vw)" }}>
-        <h2 id="shortcuts-title" className="text-lg">Atalhos do teclado</h2>
-        <dl className="m-0 grid gap-2.5">
-          {SHORTCUTS.map(([keys, label]) => (
-            <div key={label} className="flex items-center justify-between gap-6">
-              <dt className="flex gap-1.5">{keys.map((k) => <kbd key={k} className="rounded-md border border-white/15 bg-white/[0.06] px-2 py-0.5 font-mono text-xs text-mist">{k}</kbd>)}</dt>
-              <dd className="m-0 text-right text-sm text-fog">{label}</dd>
-            </div>
-          ))}
-        </dl>
-        <button type="button" className="btn" onClick={() => setOpen(false)}>Fechar</button>
-      </div>
-    </dialog>
+    <Dialog open={open} onClose={close} title="Atalhos do teclado" footer={<Button variant="secondary" onClick={close}>Fechar</Button>}>
+      <dl className="m-0 grid gap-2.5">
+        {SHORTCUTS.map(([keys, label]) => (
+          <div key={label} className="flex items-center justify-between gap-6">
+            <dt className="flex gap-1.5">{keys.map((k) => <Kbd key={k}>{k}</Kbd>)}</dt>
+            <dd className="m-0 text-right text-sm text-fog">{label}</dd>
+          </div>
+        ))}
+      </dl>
+    </Dialog>
   );
 }

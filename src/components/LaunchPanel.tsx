@@ -1,3 +1,4 @@
+import { Button, ProgressBar, Select, TextField } from "@juninmd/sonido";
 import { Download } from "lucide-react";
 import { NO_EMULATOR_NOTE, emulatorsFor } from "../domain/emulators";
 import { resolveEmulator } from "../domain/launch";
@@ -6,7 +7,6 @@ import type { Game } from "../domain/types";
 import { useLibrary } from "../state/library";
 import { useTasks } from "../state/tasks";
 import { useUi } from "../state/ui";
-import { ProgressBar } from "./Badges";
 import type { LaunchState } from "./useLaunch";
 
 function EmulationFields({ game }: { game: Game }) {
@@ -30,32 +30,28 @@ function EmulationFields({ game }: { game: Game }) {
 
   return (
     <div className="fields">
-      <label>
-        Emulador
-        <select value={chosen?.id} onChange={(e) => patchGame(game.id, { emulatorId: e.target.value })}>
-          {options.map((e) => (
-            <option key={e.id} value={e.id}>{e.name}{emulators[e.id] ? " ✓ instalado" : ""}</option>
-          ))}
-        </select>
-      </label>
+      <Select
+        label="Emulador"
+        value={chosen?.id ?? ""}
+        onChange={(emulatorId) => patchGame(game.id, { emulatorId })}
+        options={options.map((e) => ({ value: e.id, label: `${e.name}${emulators[e.id] ? " ✓ instalado" : ""}` }))}
+      />
       {chosen && !emulators[chosen.id] && (
         <div className="inline">
-          <button className="btn" disabled={!!task} onClick={() => void installEmulator(chosen.id)}>
+          <Button variant="secondary" disabled={!!task} onClick={() => void installEmulator(chosen.id)}>
             <Download size={15} aria-hidden /> Instalar {chosen.name}
-          </button>
-          {task && <ProgressBar value={task.progress} label={task.label} />}
+          </Button>
+          {task && <ProgressBar size="sm" value={task.progress / 100} label={task.label} />}
         </div>
       )}
       {chosen && <p className={`note ${chosen.needsBios ? "warn" : ""}`}>{chosen.notes}</p>}
-      <label>
-        ROM / ISO
-        <input
-          value={game.romPath ?? ""}
-          placeholder={`${settings.romsDir}/${game.platformId}/jogo.zip`}
-          onChange={(e) => patchGame(game.id, { romPath: e.target.value, romCrc32: undefined, datName: undefined })}
-          onBlur={() => !game.romPath && toast("Defina o caminho da ROM para poder jogar")}
-        />
-      </label>
+      <TextField
+        label="ROM / ISO"
+        value={game.romPath ?? ""}
+        placeholder={`${settings.romsDir}/${game.platformId}/jogo.zip`}
+        onChange={(e) => patchGame(game.id, { romPath: e.target.value, romCrc32: undefined, datName: undefined })}
+        onBlur={() => !game.romPath && toast("Defina o caminho da ROM para poder jogar")}
+      />
       {game.romCrc32 && (
         <p className={`note ${game.datName ? "ok" : ""}`}>
           CRC32 {game.romCrc32}: {game.datName ? `confere com o DAT (${game.datName})` : "não está no DAT carregado"}

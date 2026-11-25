@@ -1,3 +1,4 @@
+import { Badge, Button, TextField } from "@juninmd/sonido";
 import { Save } from "lucide-react";
 import { useDraft } from "./useDraft";
 import { useSecrets } from "../state/secrets";
@@ -37,19 +38,16 @@ export function RatingSourcesSettings() {
       <ul className="plain sources">
         {SOURCES.map((s) => (
           <li key={s.name}>
-            <strong>{s.name}</strong> <span className={`tag ${s.state === "ready" ? "ok" : s.state === "key" ? "warn" : ""}`}>{STATE_LABEL[s.state]}</span>
+            <strong>{s.name}</strong> <Badge tone={s.state === "ready" ? "success" : s.state === "key" ? "warning" : "neutral"}>{STATE_LABEL[s.state]}</Badge>
             <div className="muted small">{s.access}</div>
           </li>
         ))}
       </ul>
-      <label>
-        Chave da API do RAWG
-        <input type="password" autoComplete="off" value={draft} maxLength={64} placeholder="cole a chave aqui" onChange={(e) => setDraft(e.target.value)} />
-      </label>
+      <TextField label="Chave da API do RAWG" type="password" autoComplete="off" value={draft} maxLength={64} placeholder="cole a chave aqui" onChange={(e) => setDraft(e.target.value)} />
       <div className="actions">
-        <button className="btn" disabled={draft.trim() === rawgKey} onClick={() => void save()}>
+        <Button variant="secondary" disabled={draft.trim() === rawgKey} onClick={() => void save()}>
           <Save size={14} aria-hidden /> Salvar
-        </button>
+        </Button>
       </div>
       <p className="muted small">
         A chave fica no cofre do sistema (Gerenciador de Credenciais do Windows), não no armazenamento do app, e só é enviada

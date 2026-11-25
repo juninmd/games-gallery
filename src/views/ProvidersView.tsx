@@ -1,5 +1,5 @@
+import { Badge, Button, ProgressBar } from "@juninmd/sonido";
 import { RefreshCw, Search } from "lucide-react";
-import { ProgressBar } from "../components/Badges";
 import { PROVIDERS } from "../domain/providers";
 import type { ImportMethod, Provider, ProviderKind } from "../domain/types";
 import { useLibrary } from "../state/library";
@@ -45,33 +45,33 @@ function ProviderCard({ provider }: { provider: Provider }) {
           <h3>{provider.name}</h3>
           <span className="muted small">{METHOD_LABEL[provider.importMethod]}</span>
         </div>
-        <span className={`tag ${connected ? "ok" : ""}`}>{connected ? "Lido do PC" : detectable ? "Não detectado" : "Requer login"}</span>
+        <Badge tone={connected ? "success" : "neutral"}>{connected ? "Lido do PC" : detectable ? "Não detectado" : "Requer login"}</Badge>
       </div>
       <p className="muted small">{provider.importNote}</p>
       {state?.note && !connected && <p className="muted small">{state.note}</p>}
-      {busy && <ProgressBar value={busy.progress} label={busy.label} />}
+      {busy && <ProgressBar size="sm" value={busy.progress / 100} label={busy.label} />}
       <div className="vcard-foot">
         <button className="link" onClick={() => go("library", { providerIds: [provider.id] })}>{count} jogos</button>
         <div className="actions">
           {detectable ? (
-            <button className="btn" disabled={!!busy} onClick={() => void detect(provider.id)}>
+            <Button variant="secondary" disabled={!!busy} onClick={() => void detect(provider.id)}>
               <Search size={14} aria-hidden /> Detectar agora
-            </button>
+            </Button>
           ) : (
             <span className="muted small">Só com login no serviço</span>
           )}
           {(provider.id === "epic" || provider.id === "amazon" || provider.id === "ea" || provider.id === "battlenet" || provider.id === "ubisoft") && (
-            <button className="btn ghost" onClick={() => go("connections")}>Entrar na conta</button>
+            <Button variant="ghost" onClick={() => go("connections")}>Entrar na conta</Button>
           )}
           {provider.id === "steam" && (
-            <button
-              className="btn ghost"
+            <Button
+              variant="ghost"
               disabled={!!busy || !steamReady}
               title={steamReady ? "IPlayerService/GetOwnedGames com sua chave" : "Informe SteamID64 e chave em Ajustes"}
               onClick={() => void syncSteamApi()}
             >
               <RefreshCw size={14} aria-hidden /> Sincronizar conta
-            </button>
+            </Button>
           )}
         </div>
       </div>

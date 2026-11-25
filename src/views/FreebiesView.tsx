@@ -1,3 +1,4 @@
+import { Button, Select } from "@juninmd/sonido";
 import { RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { FreebieCard } from "../components/FreebieCard";
@@ -19,9 +20,9 @@ function EpicSection() {
     <section className="section-group">
       <div className="section-head">
         <h2>Epic Games Store</h2>
-        <button className="btn ghost" disabled={loading.epic} onClick={() => refreshEpic(true)}>
+        <Button variant="ghost" disabled={loading.epic} onClick={() => refreshEpic(true)}>
           <RefreshCw size={13} aria-hidden /> {loading.epic ? "Atualizando…" : "Atualizar"}
-        </button>
+        </Button>
       </div>
       <p className="muted small">Atualizado em {stamp(epic?.fetchedAt)}. Fonte: endpoint público que a própria loja usa (não oficial; pode mudar).</p>
       {errors.epic && <LoadError title="Não foi possível ler a Epic." reason={errors.epic} onRetry={() => refreshEpic(true)} />}
@@ -49,12 +50,10 @@ function PsPlusSection() {
       <div className="section-head">
         <h2>PlayStation Plus: jogos do mês</h2>
         <div className="inline">
-          <select aria-label="Plataforma dos jogos do mês" value={platformId} onChange={(e) => setPlatformId(e.target.value)}>
-            {PS_PLUS_PLATFORMS.map((p) => <option key={p} value={p}>{p.toUpperCase()}</option>)}
-          </select>
-          <button className="btn ghost" disabled={loading.ps} onClick={() => refreshPs(true)}>
+          <Select label="Plataforma" value={platformId} onChange={setPlatformId} options={PS_PLUS_PLATFORMS.map((p) => ({ value: p, label: p.toUpperCase() }))} />
+          <Button variant="ghost" disabled={loading.ps} onClick={() => refreshPs(true)}>
             <RefreshCw size={13} aria-hidden /> {loading.ps ? `Buscando… página ${psPage}/${PS_MAX_PAGES}` : "Buscar jogos do mês"}
-          </button>
+          </Button>
         </div>
       </div>
       <p className="muted small">

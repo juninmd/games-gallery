@@ -1,3 +1,4 @@
+import { Button } from "@juninmd/sonido";
 import { Check, Download, Gift } from "lucide-react";
 import { useMemo } from "react";
 import { groupGames } from "../domain/duplicates";
@@ -27,7 +28,7 @@ export function StoresPanel({ game }: { game: Game }) {
     return canMergeBack ? (
       <section className="glass flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4" aria-label="Cópia separada">
         <span className="text-sm text-fog">Esta cópia foi separada: não é unida a outras lojas com o mesmo nome.</span>
-        <button type="button" className="btn" onClick={() => patchGame(game.id, { separate: undefined })}>Unificar de novo</button>
+        <Button variant="secondary" onClick={() => patchGame(game.id, { separate: undefined })}>Unificar de novo</Button>
       </section>
     ) : null;
   }

@@ -1,3 +1,4 @@
+import { Button } from "@juninmd/sonido";
 import { Gamepad2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { shortcutEntries } from "../domain/steamShortcuts";
@@ -37,9 +38,9 @@ export function SteamShortcutsSettings() {
         fica salvo como <code>shortcuts.vdf.bak</code>.
       </p>
       <div className="actions">
-        <button className="btn" disabled={!native || busy || entries.length === 0} onClick={() => void run()} title={native ? undefined : "Só no app instalado"}>
+        <Button variant="secondary" disabled={!native || busy || entries.length === 0} onClick={() => void run()} title={native ? undefined : "Só no app instalado"}>
           <Gamepad2 size={14} aria-hidden /> Adicionar {entries.length} jogo(s) à Steam
-        </button>
+        </Button>
       </div>
     </section>
   );
