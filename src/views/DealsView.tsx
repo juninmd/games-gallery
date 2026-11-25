@@ -1,3 +1,4 @@
+import { Badge, Button } from "@juninmd/sonido";
 import { RefreshCw } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { DealCard } from "../components/DealCard";
@@ -38,9 +39,9 @@ function WishlistSection() {
     <section className="section-group">
       <div className="section-head">
         <h2>Wishlist da Steam{wishlist ? ` (${wishlist.items.length}, ${onSale} em promoção)` : ""}</h2>
-        <button className="btn ghost" disabled={!ready || loading.wishlist} onClick={() => void refreshWishlist(true)}>
+        <Button variant="ghost" disabled={!ready || loading.wishlist} onClick={() => void refreshWishlist(true)}>
           <RefreshCw size={13} aria-hidden /> {loading.wishlist ? "Atualizando…" : "Atualizar"}
-        </button>
+        </Button>
       </div>
       {!ready && (
         <p className="empty">Informe o SteamID64 em <button className="link" onClick={() => go("connections")}>Conexões</button> para ver a wishlist.</p>
@@ -88,9 +89,9 @@ function StoreSection({ store, insights }: { store: (typeof STORES)[number]; ins
     <section className="section-group">
       <div className="section-head">
         <h2>{store.name}</h2>
-        <button className="btn ghost" disabled={loading[store.id]} onClick={() => void refreshDeals(store.id, true)}>
+        <Button variant="ghost" disabled={loading[store.id]} onClick={() => void refreshDeals(store.id, true)}>
           <RefreshCw size={13} aria-hidden /> {loading[store.id] ? "Atualizando…" : "Atualizar"}
-        </button>
+        </Button>
       </div>
       <p className="muted small">Atualizado em {stamp(slot?.fetchedAt)}. {store.source} Fonte não oficial; pode mudar.</p>
       {errors[store.id] && <LoadError title={`Não foi possível ler ${store.name}.`} reason={errors[store.id]} onRetry={() => void refreshDeals(store.id, true)} />}
@@ -130,7 +131,7 @@ function AlertsSection() {
           {hits.map((h) => (
             <li key={h.title}>
               <strong>{h.title}</strong> por <b>{formatMoney(h.finalCents, h.currency)}</b> na {h.store}{" "}
-              <span className="tag ok">alvo {formatMoney(h.targetCents, h.currency)}</span>
+              <Badge tone="success">alvo {formatMoney(h.targetCents, h.currency)}</Badge>
             </li>
           ))}
         </ul>

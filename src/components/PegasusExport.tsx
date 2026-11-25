@@ -1,3 +1,4 @@
+import { Button } from "@juninmd/sonido";
 import { FileOutput } from "lucide-react";
 import { useMemo } from "react";
 import { buildPegasusMetadata } from "../domain/pegasus";
@@ -31,7 +32,7 @@ export function PegasusExport() {
         caminho completo, ano, gênero e sua nota. Salve numa pasta e adicione essa pasta em Configurações → Diretórios de jogos do Pegasus.
       </p>
       <div className="actions">
-        <button className="btn" disabled={!count} onClick={() => void run()}><FileOutput size={14} aria-hidden /> Exportar {count} jogo(s)</button>
+        <Button variant="secondary" disabled={!count} onClick={() => void run()}><FileOutput size={14} aria-hidden /> Exportar {count} jogo(s)</Button>
       </div>
     </section>
   );

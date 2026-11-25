@@ -1,3 +1,4 @@
+import { Button } from "@juninmd/sonido";
 import { FileCheck2, FileUp } from "lucide-react";
 import { useState } from "react";
 import { pickTextFile } from "../platform/files";
@@ -47,10 +48,10 @@ export function RomCheckSettings() {
       </p>
       <p className="small">{entries ? `${source}: ${entries.toLocaleString("pt-BR")} ROMs na memória` : "Nenhum DAT carregado nesta sessão."}</p>
       <div className="actions">
-        <button className="btn" onClick={() => void pickDat()}><FileUp size={14} aria-hidden /> Carregar DAT</button>
-        <button className="btn" disabled={!native || busy || roms === 0} onClick={() => void run()} title={native ? undefined : "Só no app instalado"}>
+        <Button variant="secondary" onClick={() => void pickDat()}><FileUp size={14} aria-hidden /> Carregar DAT</Button>
+        <Button variant="secondary" disabled={!native || busy || roms === 0} onClick={() => void run()} title={native ? undefined : "Só no app instalado"}>
           <FileCheck2 size={14} aria-hidden /> Conferir ROMs (até {Math.min(roms, MAX_ROMS_PER_RUN)})
-        </button>
+        </Button>
       </div>
     </section>
   );

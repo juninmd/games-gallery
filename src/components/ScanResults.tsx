@@ -1,3 +1,4 @@
+import { Badge, Button } from "@juninmd/sonido";
 import { Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EMULATOR_BY_ID } from "../domain/emulators";
@@ -7,7 +8,7 @@ import { useTasks } from "../state/tasks";
 import { PlatformTag } from "./Badges";
 
 const KIND_LABEL = { new: "Novo", link: "Vincular", same: "Já importado" } as const;
-const KIND_TAG = { new: "ok", link: "warn", same: "" } as const;
+const KIND_TONE = { new: "success", link: "warning", same: "neutral" } as const;
 const PAGE_SIZE = 100;
 
 function NeededEmulators({ items }: { items: ImportItem[] }) {
@@ -27,11 +28,11 @@ function NeededEmulators({ items }: { items: ImportItem[] }) {
             <strong>{EMULATOR_BY_ID[id]?.name}</strong>
             <span className="muted small">{n} jogo{n > 1 ? "s" : ""}</span>
             {installed[id] ? (
-              <span className="tag ok">instalado</span>
+              <Badge tone="success">instalado</Badge>
             ) : (
-              <button className="btn" disabled={!!tasks[`emu:${id}`]} onClick={() => void install(id)}>
+              <Button variant="secondary" disabled={!!tasks[`emu:${id}`]} onClick={() => void install(id)}>
                 <Download size={14} aria-hidden /> Instalar
-              </button>
+              </Button>
             )}
           </li>
         ))}
@@ -86,9 +87,9 @@ export function ScanResults({ title, items, notes, onImport, onCancel }: Props) 
       {items.length > 0 && <div className="scan-review-controls">
         <label className="scan-select-page"><input type="checkbox" checked={allPageSelected} onChange={togglePage} /> Selecionar página atual</label>
         {pageCount > 1 && <nav className="scan-pagination" aria-label="Páginas dos resultados da varredura">
-          <button className="btn ghost" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Anterior</button>
+          <Button variant="ghost" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Anterior</Button>
           <span aria-live="polite">Página {currentPage + 1} de {pageCount}</span>
-          <button className="btn ghost" disabled={currentPage + 1 >= pageCount} onClick={() => setPage(currentPage + 1)}>Próxima</button>
+          <Button variant="ghost" disabled={currentPage + 1 >= pageCount} onClick={() => setPage(currentPage + 1)}>Próxima</Button>
         </nav>}
       </div>}
       <div className="scan-list" role="list">
@@ -97,18 +98,18 @@ export function ScanResults({ title, items, notes, onImport, onCancel }: Props) 
             <input type="checkbox" checked={!off.has(i.key)} onChange={() => toggle(i.key)} />
             <span className="scan-title" title={i.romPath}>{i.title}</span>
             <PlatformTag id={i.platformId} />
-            <span className={`tag ${KIND_TAG[i.kind]}`}>{KIND_LABEL[i.kind]}</span>
-            {i.warning && <span className="tag warn scan-warning" title={i.warning} aria-label={i.warning}>Verificação</span>}
+            <Badge tone={KIND_TONE[i.kind]}>{KIND_LABEL[i.kind]}</Badge>
+            {i.warning && <Badge tone="warning" className="scan-warning" title={i.warning} aria-label={i.warning}>Verificação</Badge>}
             <span className="muted small scan-emu">{i.emulatorId ? EMULATOR_BY_ID[i.emulatorId]?.name.split(" (")[0] : ""}</span>
           </label>
         ))}
       </div>
       <NeededEmulators items={selected} />
       <div className="actions">
-        <button className="btn primary" disabled={!changes} onClick={() => onImport(selected)}>
+        <Button variant="primary" disabled={!changes} onClick={() => onImport(selected)}>
           Importar {changes} {changes === 1 ? "item" : "itens"}
-        </button>
-        <button className="btn ghost" onClick={onCancel}>Descartar</button>
+        </Button>
+        <Button variant="ghost" onClick={onCancel}>Descartar</Button>
       </div>
     </section>
   );

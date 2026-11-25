@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { confetti, confettiFrom } from "../components/confetti";
+import { Badge, burst, SearchField } from "@juninmd/sonido";
 import { Cover } from "../components/Cover";
 import { PlatformTag } from "../components/Badges";
 import { StoreChips } from "../components/StoreChips";
@@ -31,7 +31,7 @@ function BoardCard({ game, members, onMove, registerStatusSelect }: {
       </button>
       <div className="bcard-main">
         <button className="bcard-title" onClick={() => select(game.id)}>{game.title}</button>
-        <div className="tags"><PlatformTag id={game.platformId} />{members.some((m) => m.installed) && <span className="tag ok">instalado</span>}</div>
+        <div className="tags"><PlatformTag id={game.platformId} />{members.some((m) => m.installed) && <Badge tone="success">instalado</Badge>}</div>
         {members.length > 1 && <StoreChips members={members} />}
         <label className="bcard-status-label" htmlFor={`board-status-${game.id}`}>Status de {game.title}</label>
         <select
@@ -80,8 +80,8 @@ export function BoardView() {
   const move = (game: Game, status: PlayStatus, restoreFocus = false, at?: Element | { x: number; y: number }) => {
     if (game.status === status) return;
     if (status === "completed") {
-      if (at instanceof Element) confettiFrom(at);
-      else if (at) confetti(at.x, at.y);
+      const from = at instanceof Element ? at : at && document.elementFromPoint(at.x, at.y);
+      if (from) burst(from);
     }
     if (restoreFocus) focusAfterMove.current = game.id;
     patchGame(game.id, status === "wishlist" ? { status, owned: false, installed: false } : { status, owned: true });
@@ -97,10 +97,7 @@ export function BoardView() {
           <h1>Quero jogar</h1>
           <p className="muted">Arraste os cards ou escolha um status para mover um jogo.</p>
         </div>
-        <label className="board-search-label">
-          <span>Filtrar cards</span>
-          <input className="search-lite" type="search" placeholder="Nome ou gênero…" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </label>
+        <SearchField className="search-lite" label="Filtrar cards" placeholder="Nome ou gênero…" value={query} onChange={setQuery} />
       </header>
       <p className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</p>
       {query.trim() && totalMatches === 0 && (

@@ -1,3 +1,4 @@
+import { Button } from "@juninmd/sonido";
 import { Bell, BellRing, X } from "lucide-react";
 import { useState } from "react";
 import { formatMoney } from "../domain/deals";
@@ -31,18 +32,18 @@ export function PriceAlertControl({ title, currency }: { title: string; currency
       <form className="flex items-center gap-1.5" onSubmit={(e) => { e.preventDefault(); save(); }}>
         <label className="sr-only" htmlFor={`alert-${targetKey(title)}`}>Preço-alvo de {title}</label>
         <input id={`alert-${targetKey(title)}`} autoFocus inputMode="decimal" value={text} onChange={(e) => setText(e.target.value)} placeholder="49,90" className="!m-0 !w-24 !py-1.5 text-sm" />
-        <button type="submit" className="btn">Salvar</button>
-        <button type="button" className="btn ghost" aria-label="Cancelar" onClick={() => setEditing(false)}><X size={14} aria-hidden /></button>
+        <Button type="submit" variant="secondary">Salvar</Button>
+        <Button variant="ghost" aria-label="Cancelar" onClick={() => setEditing(false)}><X size={14} aria-hidden /></Button>
       </form>
     );
   }
   return target ? (
-    <button type="button" className="btn ghost" title="Remover o aviso de preço" aria-label={`Remover aviso de ${title}`} onClick={() => clearTarget(title)}>
+    <Button variant="ghost" title="Remover o aviso de preço" aria-label={`Remover aviso de ${title}`} onClick={() => clearTarget(title)}>
       <BellRing size={13} aria-hidden /> Abaixo de {formatMoney(target.cents, target.currency)} <X size={12} aria-hidden />
-    </button>
+    </Button>
   ) : (
-    <button type="button" className="btn ghost" aria-label={`Avisar quando ${title} baixar de preço`} onClick={() => setEditing(true)}>
+    <Button variant="ghost" aria-label={`Avisar quando ${title} baixar de preço`} onClick={() => setEditing(true)}>
       <Bell size={13} aria-hidden /> Avisar
-    </button>
+    </Button>
   );
 }

@@ -1,3 +1,4 @@
+import { Badge, Switch } from "@juninmd/sonido";
 import { AmazonAccountSettings } from "../components/AmazonAccountSettings";
 import { EpicAccountSettings } from "../components/EpicAccountSettings";
 import { PsnAccountSettings } from "../components/PsnAccountSettings";
@@ -19,10 +20,7 @@ function SteamReviewsToggle() {
         Nota pública (% de avaliações positivas) de <code>store.steampowered.com/appreviews</code>. Não precisa de chave.
         Vale para jogos com App ID da Steam.
       </p>
-      <label className="inline">
-        <input type="checkbox" checked={steamReviews} onChange={(e) => setSteamReviews(e.target.checked)} />
-        Buscar a nota da Steam ao abrir um jogo
-      </label>
+      <Switch label="Buscar a nota da Steam ao abrir um jogo" checked={steamReviews} onChange={setSteamReviews} />
     </section>
   );
 }
@@ -40,7 +38,7 @@ function LocalSources() {
           const st = providers[p.id];
           return (
             <li key={p.id}>
-              <strong>{p.name}</strong> <span className={`tag ${st?.connected ? "ok" : ""}`}>{st?.connected ? "Lido" : "Indisponível"}</span>
+              <strong>{p.name}</strong> <Badge tone={st?.connected ? "success" : "neutral"}>{st?.connected ? "Lido" : "Indisponível"}</Badge>
               {st?.note && <div className="muted small">{st.note}</div>}
             </li>
           );

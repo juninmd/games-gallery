@@ -36,7 +36,6 @@ html.tv-mode :focus-visible { outline-width: 4px; outline-offset: 4px; box-shado
 .small { font-size: 12px; }
 .warn-text { color: var(--warn); }
 
-
 .page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
 .stats { display: flex; gap: 10px; margin: 0; }
 .stats div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 16px; min-width: 88px; }
@@ -47,17 +46,6 @@ html.tv-mode :focus-visible { outline-width: 4px; outline-offset: 4px; box-shado
 input, select, textarea { font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
 input:focus, select:focus { border-color: var(--accent); outline: none; }
 label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
-.check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
-.check input { accent-color: var(--accent); }
-
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); font-weight: 600; }
-.btn:hover:not(:disabled) { border-color: var(--accent); }
-.btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.primary:hover:not(:disabled) { filter: brightness(1.12); }
-.btn.ghost { background: transparent; }
-.btn.danger { color: var(--bad); }
-.btn.block { width: 100%; }
 .icon-btn { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px; display: grid; place-items: center; }
 .link { background: none; border: 0; color: var(--accent-2); padding: 0; text-decoration: none; display: inline-flex; gap: 4px; align-items: center; font-size: 13px; }
 .link:hover { text-decoration: underline; }

@@ -1,6 +1,7 @@
+import { Badge, Button, Checkbox, ProgressBar, Select, type BadgeTone } from "@juninmd/sonido";
 import { Download, ExternalLink, RefreshCw, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { PlatformTag, ProgressBar } from "../components/Badges";
+import { PlatformTag } from "../components/Badges";
 import { EmulatorInstallPanel } from "../components/EmulatorInstallPanel";
 import { InstallScript } from "../components/InstallScript";
 import { PlaylistExport } from "../components/PlaylistExport";
@@ -13,11 +14,11 @@ import { useLibrary } from "../state/library";
 import { useTasks } from "../state/tasks";
 import { useUi } from "../state/ui";
 
-const STATUS: Record<EmulatorStatus, { label: string; cls: string }> = {
-  active: { label: "Ativo", cls: "ok" },
-  experimental: { label: "Experimental", cls: "warn" },
-  "community-fork": { label: "Fork da comunidade", cls: "warn" },
-  discontinued: { label: "Descontinuado", cls: "bad" },
+const STATUS: Record<EmulatorStatus, { label: string; tone: BadgeTone }> = {
+  active: { label: "Ativo", tone: "success" },
+  experimental: { label: "Experimental", tone: "warning" },
+  "community-fork": { label: "Fork da comunidade", tone: "warning" },
+  discontinued: { label: "Descontinuado", tone: "danger" },
 };
 
 function Usage({ usage }: { usage?: EmulatorUsage }) {
@@ -58,7 +59,7 @@ function EmulatorCard({ emulator: e, usage }: { emulator: Emulator; usage?: Emul
           <h3 aria-level={2}>{e.name}</h3>
           <span className="muted small">{e.os.join(" · ")}</span>
         </div>
-        <span className={`tag ${st.cls}`}>{st.label}</span>
+        <Badge tone={st.tone}>{st.label}</Badge>
       </div>
       <div className="tags">{e.platforms.map((p) => <PlatformTag key={p} id={p} />)}</div>
       <p className={`small ${e.needsBios ? "warn-text" : "muted"}`}>{e.needsBios ? "⚠ " : ""}{e.notes}</p>
@@ -74,9 +75,9 @@ function EmulatorCard({ emulator: e, usage }: { emulator: Emulator; usage?: Emul
       <EmulatorInstallPanel emulator={e} />
       {task && (
         <div className="grid gap-1">
-          <ProgressBar value={task.progress} label={task.label} />
+          <ProgressBar size="sm" value={task.progress / 100} label={task.label} />
           <span className="muted small">{task.detail ?? task.label}</span>
-          <button className="btn ghost" onClick={() => void cancelEmulator(e.id)}><X size={13} aria-hidden /> Cancelar</button>
+          <Button variant="ghost" onClick={() => void cancelEmulator(e.id)}><X size={13} aria-hidden /> Cancelar</Button>
         </div>
       )}
       <div className="vcard-foot">
@@ -84,15 +85,15 @@ function EmulatorCard({ emulator: e, usage }: { emulator: Emulator; usage?: Emul
           <a className="link" href={e.homepage} target="_blank" rel="noreferrer noopener"><ExternalLink size={13} aria-hidden /> Site</a>
         ) : <span />}
         {installed ? (
-          <button
-            className="btn ghost"
+          <Button
+            variant="ghost"
             disabled={!!task}
             onClick={() => void uninstallEmulator(e.id)}
           >
             <Trash2 size={14} aria-hidden /> Remover
-          </button>
+          </Button>
         ) : (
-          <button className="btn primary" disabled={!!task} onClick={install}><Download size={14} aria-hidden /> Instalar</button>
+          <Button variant="primary" disabled={!!task} onClick={install}><Download size={14} aria-hidden /> Instalar</Button>
         )}
       </div>
     </article>
@@ -121,13 +122,10 @@ export function EmulatorsView() {
           </p>
         </div>
         <div className="head-tools">
-          <button className="btn" onClick={() => void refresh()}><RefreshCw size={14} aria-hidden /> Reconferir instalados</button>
-          <select aria-label="Filtrar por plataforma" value={platformId} onChange={(e) => setPlatformId(e.target.value)}>
-            <option value="">Todas as plataformas</option>
-            {PLATFORMS.filter((p) => p.id !== "pc").map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+          <Button variant="secondary" onClick={() => void refresh()}><RefreshCw size={14} aria-hidden /> Reconferir instalados</Button>
+          <Select label="Plataforma" value={platformId} onChange={setPlatformId} options={[{ value: "", label: "Todas as plataformas" }, ...PLATFORMS.filter((p) => p.id !== "pc").map((p) => ({ value: p.id, label: p.name }))]} />
           <InstallScript />
-          <label className="check"><input type="checkbox" checked={onlyInstalled} onChange={(e) => setOnlyInstalled(e.target.checked)} /> Só instalados</label>
+          <Checkbox label="Só instalados" checked={onlyInstalled} onChange={setOnlyInstalled} />
         </div>
       </header>
       <div className="cards wide">{list.map((e) => <EmulatorCard key={e.id} emulator={e} usage={usage[e.id]} />)}</div>

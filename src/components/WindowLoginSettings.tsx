@@ -1,3 +1,4 @@
+import { Button } from "@juninmd/sonido";
 import { LogIn } from "lucide-react";
 import type { WindowLoginStore } from "../platform/native";
 import { nativeAvailable } from "../platform/native";
@@ -36,9 +37,9 @@ export function WindowLoginSettings() {
             <li key={s.id}>
               <strong>{s.name}</strong>
               <div className="muted small">{s.note}</div>
-              <button className="btn primary" disabled={!native || running} onClick={() => void sync(s.id)}>
+              <Button variant="primary" disabled={!native || running} onClick={() => void sync(s.id)}>
                 <LogIn size={14} aria-hidden /> {running ? "Aguardando o login…" : `Entrar na ${s.name}`}
-              </button>
+              </Button>
             </li>
           );
         })}

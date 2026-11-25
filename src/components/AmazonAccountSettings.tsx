@@ -1,3 +1,4 @@
+import { Button, TextField } from "@juninmd/sonido";
 import { Download, ExternalLink } from "lucide-react";
 import { useRef, useState } from "react";
 import { type AmazonDevice, buildAuthUrl, extractAuthorizationCode, newDevice } from "../domain/amazonAccount";
@@ -37,22 +38,19 @@ export function AmazonAccountSettings() {
         O app não guarda senha nem token e remove o dispositivo temporário ao terminar.
       </p>
       <ol className="plain small">
-        <li><button className="btn" onClick={() => void login()}><ExternalLink size={14} aria-hidden /> Abrir login da Amazon</button></li>
+        <li><Button variant="secondary" onClick={() => void login()}><ExternalLink size={14} aria-hidden /> Abrir login da Amazon</Button></li>
         <li>Entre, e copie o endereço da página para onde você for levado.</li>
       </ol>
-      <label>
-        Endereço da página após o login
-        <input type="password" autoComplete="off" value={input} placeholder="https://www.amazon.com/?openid…" onChange={(e) => setInput(e.target.value)} aria-invalid={!!input.trim() && !ready} />
-      </label>
+      <TextField label="Endereço da página após o login" type="password" autoComplete="off" value={input} placeholder="https://www.amazon.com/?openid…" onChange={(e) => setInput(e.target.value)} aria-invalid={!!input.trim() && !ready} />
       {!!input.trim() && !extractAuthorizationCode(input) && <p className="warn-text small">Não achei o código nesse endereço. Copie a URL completa, depois do login.</p>}
       <div className="actions">
-        <button
-          className="btn primary"
+        <Button
+          variant="primary"
           disabled={!ready || busy}
           onClick={() => { const d = device.current; if (d) { void sync(input, d); setInput(""); device.current = null; } }}
         >
           <Download size={14} aria-hidden /> {busy ? "Lendo…" : "Importar biblioteca"}
-        </button>
+        </Button>
       </div>
     </section>
   );

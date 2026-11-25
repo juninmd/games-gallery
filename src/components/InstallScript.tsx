@@ -1,3 +1,4 @@
+import { Button, Select } from "@juninmd/sonido";
 import { ClipboardList } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EMULATORS } from "../domain/emulators";
@@ -31,12 +32,10 @@ export function InstallScript() {
 
   return (
     <div className="inline install-script">
-      <select aria-label="Gerenciador de pacotes" value={manager} onChange={(e) => setManager(e.target.value as Manager)}>
-        {MANAGERS.map((m) => <option key={m} value={m}>{MANAGER_LABEL[m]}</option>)}
-      </select>
-      <button className="btn" disabled={!ready.length} onClick={copy}>
+      <Select label="Gerenciador de pacotes" value={manager} onChange={(v) => setManager(v as Manager)} options={MANAGERS.map((m) => ({ value: m, label: MANAGER_LABEL[m] }))} />
+      <Button variant="secondary" disabled={!ready.length} onClick={copy}>
         <ClipboardList size={14} aria-hidden /> Copiar script dos que faltam ({ready.length})
-      </button>
+      </Button>
     </div>
   );
 }

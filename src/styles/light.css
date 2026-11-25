@@ -23,22 +23,14 @@
   --color-fog: #5d6275;
 }
 :root[data-theme="light"] body::after { opacity: 0.025; }
-:root[data-theme="light"] .ambient-field { opacity: 0.28; }
-:root[data-theme="light"] .dock,
 :root[data-theme="light"] .omni-suggest { background: rgb(255 255 255 / 82%); border-color: var(--hair); box-shadow: 0 24px 60px -24px rgb(40 30 60 / 35%); }
-:root[data-theme="light"] .dock-item[aria-current="page"] { color: var(--text); }
-:root[data-theme="light"] .dock-label { background: var(--text); color: #fff; }
 :root[data-theme="light"] .glass { background: linear-gradient(160deg, rgb(255 255 255 / 75%), rgb(255 255 255 / 55%)); border-color: var(--hair); }
 :root[data-theme="light"] .omni { background: rgb(255 255 255 / 78%); }
 :root[data-theme="light"] .hero-shade { background: linear-gradient(95deg, rgb(246 244 240 / 94%) 18%, rgb(246 244 240 / 62%) 58%, rgb(246 244 240 / 15%)); }
-:root[data-theme="light"] .mode-seg,
-:root[data-theme="light"] .central-track { background: rgb(20 16 40 / 6%); }
+:root[data-theme="light"] .mode-seg { background: rgb(20 16 40 / 6%); }
 /* Controls painted with --text as background need light ink once --text turns dark. */
 :root[data-theme="light"] .mode-seg button[aria-pressed="true"],
-:root[data-theme="light"] .central-track button[aria-current="page"],
 :root[data-theme="light"] .hero-btn-go { color: #fff; }
 :root[data-theme="light"] .cover { border-color: rgb(20 16 40 / 10%); box-shadow: 0 18px 36px -20px rgb(40 30 60 / 45%); }
-:root[data-theme="light"] .drawer { background: linear-gradient(180deg, rgb(255 255 255 / 96%), rgb(246 244 240 / 98%)); border-left-color: var(--hair); }
-:root[data-theme="light"] .toast { background: rgb(255 255 255 / 92%); border-color: var(--hair); box-shadow: 0 20px 40px -16px rgb(40 30 60 / 35%); }
 /* Generated covers stay dark art in both themes, so their text keeps the light ink. */
 :root[data-theme="light"] .cover-fallback { color: #f4f1ea; }

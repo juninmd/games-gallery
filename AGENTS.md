@@ -5,7 +5,7 @@ Games Gallery: desktop app (Tauri 2) that catalogs PC and console games, with co
 ## Stack
 
 - Tauri 2 (Rust in `src-tauri/`), React 19, TypeScript, Vite
-- Tailwind CSS v4, motion
+- UI components: `@juninmd/sonido` (design system); Tailwind CSS v4 and motion for layout and app-specific pieces
 - pnpm 10.34.5, Node 22.12+ / 24.x / 26+
 - Vitest (tests), actionlint-validated GitHub Actions
 

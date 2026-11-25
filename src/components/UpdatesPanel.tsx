@@ -1,3 +1,4 @@
+import { Button, Switch } from "@juninmd/sonido";
 import { Download, RefreshCw } from "lucide-react";
 import { summarizeNotes } from "../domain/release";
 import { openReleasePage } from "../platform/updates";
@@ -49,18 +50,15 @@ export function UpdatesPanel() {
 
       <div className="actions">
         {phase === "available" && canInstall && (
-          <button type="button" className="btn primary" onClick={() => void install()}><Download size={14} aria-hidden /> Atualizar e reiniciar</button>
+          <Button variant="primary" onClick={() => void install()}><Download size={14} aria-hidden /> Atualizar e reiniciar</Button>
         )}
         {phase === "available" && !canInstall && latest && (
-          <button type="button" className="btn primary" onClick={() => void openReleasePage(latest.url)}><Download size={14} aria-hidden /> Ver release no GitHub</button>
+          <Button variant="primary" onClick={() => void openReleasePage(latest.url)}><Download size={14} aria-hidden /> Ver release no GitHub</Button>
         )}
-        <button type="button" className="btn" disabled={busy} onClick={() => void check()}><RefreshCw size={14} aria-hidden /> Verificar agora</button>
+        <Button variant="secondary" disabled={busy} onClick={() => void check()}><RefreshCw size={14} aria-hidden /> Verificar agora</Button>
       </div>
 
-      <label className="flex items-center gap-2">
-        <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
-        Verificar ao abrir o app (no máximo a cada 6 h)
-      </label>
+      <Switch label="Verificar ao abrir o app (no máximo a cada 6 h)" checked={auto} onChange={setAuto} />
       {checkedAt !== null && <p className="muted small m-0">Última verificação: {new Date(checkedAt).toLocaleString("pt-BR")}</p>}
     </section>
   );

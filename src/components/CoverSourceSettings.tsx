@@ -1,3 +1,4 @@
+import { Button, TextField } from "@juninmd/sonido";
 import { ImageDown, Save } from "lucide-react";
 import { useState } from "react";
 import { SGDB_KEY } from "../platform/steamGridDb";
@@ -41,18 +42,15 @@ export function CoverSourceSettings() {
         No app instalado, cada capa é baixada uma vez para a pasta de cache e passa a funcionar offline. Com uma chave gratuita do
         SteamGridDB (steamgriddb.com, em Preferências, API), dá para preencher as capas que faltam.
       </p>
-      <label>
-        Chave da API do SteamGridDB
-        <input type="password" autoComplete="off" value={draft} maxLength={64} placeholder="cole a chave aqui" aria-invalid={!valid} onChange={(e) => setDraft(e.target.value)} />
-      </label>
+      <TextField label="Chave da API do SteamGridDB" type="password" autoComplete="off" value={draft} maxLength={64} placeholder="cole a chave aqui" aria-invalid={!valid} onChange={(e) => setDraft(e.target.value)} />
       {!valid && <p className="small text-warn">A chave tem só letras e números.</p>}
       <div className="actions">
-        <button className="btn" disabled={!valid || draft.trim() === sgdbKey} onClick={() => void save()}>
+        <Button variant="secondary" disabled={!valid || draft.trim() === sgdbKey} onClick={() => void save()}>
           <Save size={14} aria-hidden /> Salvar
-        </button>
-        <button className="btn" disabled={!sgdbKey || busy || missing === 0} onClick={() => void run()}>
+        </Button>
+        <Button variant="secondary" disabled={!sgdbKey || busy || missing === 0} onClick={() => void run()}>
           <ImageDown size={14} aria-hidden /> Buscar capas que faltam ({Math.min(missing, MAX_COVERS_PER_RUN)})
-        </button>
+        </Button>
       </div>
       <p className="muted small">A chave fica no cofre do sistema e só é enviada para www.steamgriddb.com.</p>
     </section>

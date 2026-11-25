@@ -1,4 +1,5 @@
-import { Clock, HardDrive, Star, TrendingUp, X } from "lucide-react";
+import { Badge } from "@juninmd/sonido";
+import { Clock, HardDrive, Star, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { PLATFORM_BY_ID } from "../domain/platforms";
 import { PROVIDER_BY_ID } from "../domain/providers";
@@ -20,7 +21,7 @@ function Tile({ icon, label, value, tone = "" }: { icon: React.ReactNode; label:
 }
 
 /** Cinematic header: blurred art backdrop, floating cover, title and the three numbers that matter. */
-export function DrawerHero({ game, ratings, onClose }: { game: Game; ratings?: RatingsEntry; onClose: () => void }) {
+export function DrawerHero({ game, ratings }: { game: Game; ratings?: RatingsEntry }) {
   const [artFailed, setArtFailed] = useState(false);
   const platform = PLATFORM_BY_ID[game.platformId];
   const avg = ratings ? averageScore(ratings.scores) : undefined;
@@ -39,8 +40,6 @@ export function DrawerHero({ game, ratings, onClose }: { game: Game; ratings?: R
       )}
       <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-b from-ink-900/10 via-ink-900/60 to-ink-900" />
 
-      <button type="button" onClick={onClose} aria-label="Fechar" className="icon-btn absolute right-4 top-4 z-10 !rounded-full backdrop-blur"><X size={18} /></button>
-
       <div className="flex items-end gap-5">
         <div className="drawer-cover w-[128px] shrink-0 -rotate-2 shadow-lift transition-transform duration-500 ease-expo hover:rotate-0 hover:scale-105 sm:w-[200px]"><Cover game={game} /></div>
         <div className="grid min-w-0 gap-2.5 pb-1">
@@ -51,14 +50,14 @@ export function DrawerHero({ game, ratings, onClose }: { game: Game; ratings?: R
             <i className="size-1.5 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
             {STATUS_LABEL[game.status]}
           </span>
-          <h2 id="game-drawer-title" className="drawer-title font-display text-mist [text-wrap:balance]">{game.title}</h2>
+          <p aria-hidden className="drawer-title font-display text-mist [text-wrap:balance]">{game.title}</p>
           <p className="text-[13px] text-fog">
             {[game.year || null, game.genres.join(" · ") || null].filter(Boolean).join(" · ") || "Sem metadados"}
           </p>
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="tag" style={{ borderColor: platform?.color, color: platform?.color }} title={platform?.name}>{platform?.short ?? game.platformId}</span>
-            <span className="tag"><i className="dot" style={{ background: PROVIDER_BY_ID[game.providerId]?.color }} />{PROVIDER_BY_ID[game.providerId]?.name ?? game.providerId}</span>
-            {game.installed && <span className="tag ok">instalado</span>}
+            <Badge style={{ borderColor: platform?.color, color: platform?.color }} title={platform?.name}>{platform?.short ?? game.platformId}</Badge>
+            <Badge><i className="dot" style={{ background: PROVIDER_BY_ID[game.providerId]?.color }} />{PROVIDER_BY_ID[game.providerId]?.name ?? game.providerId}</Badge>
+            {game.installed && <Badge tone="success">instalado</Badge>}
           </div>
         </div>
       </div>

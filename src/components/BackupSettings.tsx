@@ -1,3 +1,4 @@
+import { Button } from "@juninmd/sonido";
 import { Download, Upload } from "lucide-react";
 import { backupFileName, exportBackup, parseBackup } from "../domain/backup";
 import { pickTextFile, saveTextFile } from "../platform/files";
@@ -42,8 +43,8 @@ export function BackupSettings() {
       <h3 aria-level={2}>Backup</h3>
       <p className="muted small">Exporta jogos, notas, status, vínculos de ROM, emuladores e avisos de preço em um JSON. Chaves de API e o cache de notas públicas não entram no arquivo.</p>
       <div className="actions">
-        <button className="btn" onClick={onExport}><Download size={15} aria-hidden /> Exportar</button>
-        <button className="btn" onClick={onImport}><Upload size={15} aria-hidden /> Importar</button>
+        <Button variant="secondary" onClick={onExport}><Download size={15} aria-hidden /> Exportar</Button>
+        <Button variant="secondary" onClick={onImport}><Upload size={15} aria-hidden /> Importar</Button>
       </div>
     </section>
   );

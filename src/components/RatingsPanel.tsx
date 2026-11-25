@@ -1,3 +1,4 @@
+import { Button } from "@juninmd/sonido";
 import { RefreshCw } from "lucide-react";
 import { useEffect } from "react";
 import { averageScore, scoreTone, steamAppIdOf, userScore100 } from "../domain/ratings";
@@ -41,9 +42,9 @@ export function RatingsPanel({ game }: { game: Game }) {
     <section className="glass grid gap-3.5 rounded-2xl p-4" aria-label="Notas">
       <div className="row">
         <h3>Notas</h3>
-        <button className="btn ghost" disabled={loading || !hasSource} onClick={() => void refresh(game, true)}>
+        <Button variant="ghost" disabled={loading || !hasSource} onClick={() => void refresh(game, true)}>
           <RefreshCw size={14} className={loading ? "spin" : ""} aria-hidden /> Atualizar
-        </button>
+        </Button>
       </div>
       <ul className="scores">
         {mine !== undefined ? <Row label="Minha nota" score={mine} mine /> : <li className="muted small">Você ainda não avaliou: use as estrelas acima.</li>}

@@ -1,3 +1,4 @@
+import { Button } from "@juninmd/sonido";
 import { ListMusic } from "lucide-react";
 import { useMemo } from "react";
 import { buildPlaylists } from "../domain/playlist";
@@ -23,9 +24,9 @@ export function PlaylistExport() {
 
   return (
     <div className="inline">
-      <button className="btn" disabled={!files.length} onClick={run}>
+      <Button variant="secondary" disabled={!files.length} onClick={run}>
         <ListMusic size={14} aria-hidden /> Exportar playlists (.lpl)
-      </button>
+      </Button>
       <span className="muted small">{files.length ? `${count} jogos em ${files.length} plataformas` : "Nenhuma ROM com caminho definido"}</span>
     </div>
   );

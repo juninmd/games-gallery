@@ -1,3 +1,4 @@
+import { Badge } from "@juninmd/sonido";
 import { FAMILY_LABEL, PLATFORMS } from "../domain/platforms";
 import { NO_EMULATOR_NOTE, emulatorsFor } from "../domain/emulators";
 import { useLibrary } from "../state/library";
@@ -29,11 +30,11 @@ export function PlatformsView() {
                   <div className="pcard-top"><strong>{p.name}</strong><span>{p.year}</span></div>
                   <div className="pcard-count"><b>{mine.length}</b> jogos · {mine.filter((g) => g.installed).length} instalados</div>
                   {p.id === "pc" ? (
-                    <span className="tag ok">Nativo</span>
+                    <Badge tone="success">Nativo</Badge>
                   ) : emus.length ? (
-                    <span className={`tag ${ready ? "ok" : "warn"}`}>{ready ? "Emulador pronto" : `Instalar: ${emus[0]?.name}`}</span>
+                    <Badge tone={ready ? "success" : "warning"}>{ready ? "Emulador pronto" : `Instalar: ${emus[0]?.name}`}</Badge>
                   ) : (
-                    <span className="tag bad" title={NO_EMULATOR_NOTE[p.id]}>Sem emulador viável</span>
+                    <Badge tone="danger" title={NO_EMULATOR_NOTE[p.id]}>Sem emulador viável</Badge>
                   )}
                 </button>
               );
