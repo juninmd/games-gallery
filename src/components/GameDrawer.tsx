@@ -1,4 +1,4 @@
-import { burst, Dialog, Rating, Tabs } from "@juninmd/sonido";
+import { burst, Dialog, Rating, Tabs, TextField } from "@juninmd/sonido";
 import { Minus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from "../domain/status";
@@ -91,14 +91,11 @@ function HoursStepper({ game }: { game: Game }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <button type="button" className={step} aria-label="Menos 1 hora" onClick={() => set(game.playtimeH - 1)}><Minus size={15} aria-hidden /></button>
-      <label className="relative">
-        <span className="sr-only">Horas jogadas</span>
-        <input
-          type="number" min={0} max={MAX_HOURS} value={game.playtimeH}
-          className="!w-24 !rounded-xl text-center font-display text-lg font-bold tabular-nums"
-          onChange={(e) => { const v = e.currentTarget.valueAsNumber; set(Number.isFinite(v) ? v : 0); }}
-        />
-      </label>
+      <TextField
+        compact hideLabel label="Horas jogadas" className="hours-field"
+        type="number" min={0} max={MAX_HOURS} value={game.playtimeH}
+        onChange={(e) => { const v = e.currentTarget.valueAsNumber; set(Number.isFinite(v) ? v : 0); }}
+      />
       <button type="button" className={step} aria-label="Mais 1 hora" onClick={() => set(game.playtimeH + 1)}><Plus size={15} aria-hidden /></button>
       <span className="mx-1 h-6 w-px bg-white/10" aria-hidden />
       {[2, 5, 10].map((n) => (
@@ -123,17 +120,16 @@ function Overview({ game }: { game: Game }) {
       <Section title="Tempo para terminar"><BeatEstimate game={game} /></Section>
       {steam && <Section title="Conquistas da Steam"><SteamAchievements game={game} /></Section>}
       <section className="glass grid gap-2 rounded-2xl p-4 game-notes">
-        <label htmlFor="game-personal-notes" className="!text-[15px] font-display font-semibold !text-mist">Notas pessoais</label>
-        <textarea
-          id="game-personal-notes"
+        <TextField
+          multiline
+          label="Notas pessoais"
           maxLength={5000}
           rows={4}
           value={game.notes ?? ""}
-          aria-describedby="game-note-count"
+          hint={`${(game.notes ?? "").length}/5000`}
           onChange={(e) => patchGame(game.id, { notes: e.currentTarget.value.slice(0, 5000) || undefined })}
           placeholder="Anotações sobre sua experiência, progresso ou configuração…"
         />
-        <span id="game-note-count" className="muted small text-right tabular-nums">{(game.notes ?? "").length}/5000</span>
       </section>
     </div>
   );

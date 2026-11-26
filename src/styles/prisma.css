@@ -60,29 +60,7 @@ body::before { display: none; }
 .profile-version { font-size: 11px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
 
 /* smart search */
-.omni {
-  position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; width: 100%; max-width: 760px; justify-self: center;
-  min-height: 48px; padding: 5px 8px 5px 16px; border-radius: 18px;
-  background: rgb(20 18 30 / 70%); border: 1px solid var(--hair); backdrop-filter: blur(20px);
-  transition: border-color 0.3s, box-shadow 0.4s var(--ease);
-}
-.omni.is-focused { border-color: color-mix(in oklab, var(--amb-1) 65%, white 10%); box-shadow: 0 0 0 5px color-mix(in oklab, var(--amb-1) 16%, transparent), 0 24px 60px -24px var(--amb-1); }
-.omni-icon { color: var(--muted); flex: none; }
-.omni-chips { display: contents; list-style: none; }
-.omni-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 4px 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; color: var(--text); background: color-mix(in oklab, var(--c) 22%, transparent); border: 1px solid color-mix(in oklab, var(--c) 55%, transparent); animation: chip-pop 0.35s var(--ease) both; }
-.omni-chip small { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; }
-.omni-chip button { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; opacity: 0.75; }
-.omni-chip button:hover { opacity: 1; background: rgb(255 255 255 / 14%); }
-@keyframes chip-pop { from { transform: scale(0.6); opacity: 0; } }
-.omni input { flex: 1 1 160px; min-width: 0; border: 0 !important; background: transparent !important; box-shadow: none !important; padding: 7px 0 !important; font-size: 14.5px; }
-.omni input::-webkit-search-cancel-button { display: none; }
-.omni-kbd { font: 500 11px ui-monospace, monospace; padding: 3px 7px; border-radius: 7px; border: 1px solid var(--hair); color: var(--muted); }
-.omni-clear { padding: 6px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
-.omni-clear:hover { color: var(--text); background: var(--glass-2); }
-.omni-suggest { position: absolute; left: 0; right: 0; top: calc(100% + 8px); display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; border-radius: 16px; background: rgb(22 20 32 / 96%); border: 1px solid var(--hair); backdrop-filter: blur(24px); box-shadow: 0 30px 80px -24px #000; animation: pop-in 0.25s var(--ease) both; }
-.omni-suggest p { width: 100%; padding: 0 4px 2px; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-.omni-suggest button { padding: 6px 11px; border-radius: 10px; font-size: 12.5px; background: var(--glass-1); border: 1px solid var(--hair); transition: background 0.2s, transform 0.2s var(--ease); }
-.omni-suggest button:hover { background: var(--glass-2); transform: translateY(-1px); }
+.omni { width: 100%; max-width: 760px; justify-self: center; }
 @media (max-width: 860px) {
   .topbar { grid-template-columns: auto 1fr; row-gap: 10px; --topbar-h: 128px; }
   .topbar-actions { justify-self: end; }
@@ -259,7 +237,7 @@ body::before { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   :root { transition: none; }
-  .hero-backdrop > *, .hero-cover .cover, .hero-title span, .intro, .omni-chip, .game-row { animation: none !important; }
+  .hero-backdrop > *, .hero-cover .cover, .hero-title span, .intro, .game-row { animation: none !important; }
 }
 
 /* Popovers keep the UA's hidden state; the panels above only style the open state. */

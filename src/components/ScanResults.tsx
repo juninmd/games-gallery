@@ -1,4 +1,4 @@
-import { Badge, Button } from "@juninmd/sonido";
+import { Badge, Button, Checkbox } from "@juninmd/sonido";
 import { Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EMULATOR_BY_ID } from "../domain/emulators";
@@ -85,7 +85,7 @@ export function ScanResults({ title, items, notes, onImport, onCancel }: Props) 
         Mostrando {pageStart + 1}–{pageStart + pageItems.length} de {items.length}. Seleção em todas as páginas: {selected.length} marcados ({changes} para importar).
       </p>}
       {items.length > 0 && <div className="scan-review-controls">
-        <label className="scan-select-page"><input type="checkbox" checked={allPageSelected} onChange={togglePage} /> Selecionar página atual</label>
+        <Checkbox className="scan-select-page" label="Selecionar página atual" checked={allPageSelected} onChange={togglePage} />
         {pageCount > 1 && <nav className="scan-pagination" aria-label="Páginas dos resultados da varredura">
           <Button variant="ghost" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Anterior</Button>
           <span aria-live="polite">Página {currentPage + 1} de {pageCount}</span>
@@ -94,14 +94,13 @@ export function ScanResults({ title, items, notes, onImport, onCancel }: Props) 
       </div>}
       <div className="scan-list" role="list">
         {pageItems.map((i) => (
-          <label key={i.key} className="scan-row" role="listitem">
-            <input type="checkbox" checked={!off.has(i.key)} onChange={() => toggle(i.key)} />
-            <span className="scan-title" title={i.romPath}>{i.title}</span>
+          <div key={i.key} className="scan-row" role="listitem" title={i.romPath}>
+            <Checkbox className="scan-title" label={i.title} checked={!off.has(i.key)} onChange={() => toggle(i.key)} />
             <PlatformTag id={i.platformId} />
             <Badge tone={KIND_TONE[i.kind]}>{KIND_LABEL[i.kind]}</Badge>
             {i.warning && <Badge tone="warning" className="scan-warning" title={i.warning} aria-label={i.warning}>Verificação</Badge>}
             <span className="muted small scan-emu">{i.emulatorId ? EMULATOR_BY_ID[i.emulatorId]?.name.split(" (")[0] : ""}</span>
-          </label>
+          </div>
         ))}
       </div>
       <NeededEmulators items={selected} />

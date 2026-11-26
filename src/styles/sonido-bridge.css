@@ -20,3 +20,7 @@
 
 /* Compact toolbar select: the label is announced, not shown. */
 .bar-select .sn-field__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Compact inline fields sized to their content. */
+.hours-field, .price-field { width: 6.5rem; }
+.beat-field { max-width: 12rem; }
