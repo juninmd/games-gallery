@@ -35,6 +35,20 @@ describe("classifyRom", () => {
     expect(classifyRom("roms/gc/Game.gcz")).toMatchObject({ rom: { platformId: "gc" } });
     expect(classifyRom("roms/wii/Game.gcz")).toMatchObject({ rom: { platformId: "wii" } });
   });
+  it("knows the extra dump formats and emulator folder names (from iBox platform-formats)", () => {
+    expect(classifyRom("dump/Zelda.wad")).toMatchObject({ rom: { platformId: "wii" } });
+    expect(classifyRom("dump/Pokemon (USA).agb")).toMatchObject({ rom: { platformId: "gba" } });
+    expect(classifyRom("dump/Homebrew.3dsx")).toMatchObject({ rom: { platformId: "3ds" } });
+    expect(classifyRom("dump/Game.rpx")).toMatchObject({ rom: { platformId: "wiiu" } });
+    expect(classifyRom("Emulators/dolphin/Games/Pikmin.rvz")).toMatchObject({ rom: { platformId: "gc" } });
+    expect(classifyRom("Games/xenia/Halo 3.iso")).toMatchObject({ rom: { platformId: "x360" } });
+  });
+  // .dmg is also a macOS disk image and .wia/.mdf are shared: never guessed without a folder.
+  it("keeps shared or non-ROM extensions behind a platform folder", () => {
+    expect(classifyRom("Downloads/Installer.dmg")).toEqual({ skip: "ambiguous" });
+    expect(classifyRom("roms/gb/Tetris.dmg")).toMatchObject({ rom: { platformId: "gb" } });
+    expect(classifyRom("dump/Game.wia")).toEqual({ skip: "ambiguous" });
+  });
   it("does not mistake a markdown file for a Mega Drive ROM", () => {
     expect(classifyRom("roms/README.md")).toBeNull();
     expect(classifyRom("roms/megadrive/readme.md")).toBeNull();

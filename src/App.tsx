@@ -105,6 +105,7 @@ export function App() {
       const library = useLibrary.getState();
       void library.refreshEmulators();
       if (!library.games.length) void library.detect();
+      void import("./state/romSerial").then((m) => m.readRomSerialsSoon());
     });
     void watchSessions();
     // Installed app only: look for a newer GitHub release a few seconds after the window opens.

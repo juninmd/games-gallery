@@ -156,6 +156,12 @@ export async function romCrc32(path: string): Promise<string> {
   return invoke<string>("rom_crc32", { path });
 }
 
+/** GameTDB ID from a GameCube/Wii/3DS ROM header, or null when the file has none (installed app only). */
+export async function romSerial(path: string): Promise<string | null> {
+  if (!isTauri()) throw new Error("Ler o cabeçalho da ROM só funciona no app instalado.");
+  return invoke<string | null>("rom_serial", { path });
+}
+
 /** Fires when an emulator started by `launchEmulator` exits (installed app only). */
 export async function onEmulatorExit(handler: (payload: { pid: number }) => void): Promise<() => void> {
   if (!isTauri()) return () => undefined;

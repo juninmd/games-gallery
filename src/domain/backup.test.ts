@@ -83,6 +83,10 @@ describe("parseBackup sanitizes games", () => {
     expect(g).not.toHaveProperty("evil");
     expect(g).toMatchObject({ storeId: undefined, coverUrl: undefined, emulatorId: undefined, rating: undefined, playtimeH: 0, year: 0 });
   });
+  it("keeps a disc ID only when it has the GameTDB shape (it becomes part of an image URL)", () => {
+    const r = parse([game({ id: "a", romSerial: "GALE01" }), { ...game({ id: "b" }), romSerial: "../../x" }]);
+    expect(r.ok && r.data.games.map((g) => g.romSerial)).toEqual(["GALE01", undefined]);
+  });
   it("keeps the wishlist invariant: not owned, not installed", () => {
     const r = parse([game({ status: "wishlist", owned: true, installed: true })]);
     expect(r.ok && r.data.games[0]).toMatchObject({ owned: false, installed: false });

@@ -309,3 +309,10 @@
   .bx, .bx-door, .bx-media, .bx-scene .bx.is-easing, .bx-slot::after { transition: none; }
   .bx.is-out .bx-sheen { animation: none; }
 }
+
+/* GameTDB full scan (back | spine | front): each face shows its slice; the printed scan replaces our generated print. */
+.bx.has-scan .bx-front, .bx.has-scan .bx-back, .bx.has-scan .bx-sl { background: var(--bx-scan) no-repeat; background-size: auto 100%; }
+.bx.has-scan .bx-front { background-position: right center; }
+.bx.has-scan .bx-back { background-position: left center; }
+.bx.has-scan .bx-sl { background-position: center; }
+.bx.has-scan .bx-front > :not(.bx-gloss), .bx.has-scan .bx-back > *, .bx.has-scan .bx-sl > * { visibility: hidden; }

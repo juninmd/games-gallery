@@ -85,6 +85,8 @@ export interface Game {
   romCrc32?: string;
   /** Game name from the user's DAT when `romCrc32` matched an entry. */
   datName?: string;
+  /** Disc/cartridge ID read from the ROM header (GameCube/Wii "GALE01", 3DS "AREE"); keys GameTDB scans. */
+  romSerial?: string;
   emulatorId?: string;
   notes?: string;
   /** The user said this copy is not the same game as its same-title siblings in other stores. */

@@ -6,6 +6,7 @@ import { PROVIDER_BY_ID } from "../../domain/providers";
 import { STATUS_LABEL } from "../../domain/status";
 import { boxSpecFor } from "./boxFormats";
 import { GameBox } from "./GameBox";
+import { useFullScan } from "./useScan";
 
 const FRONT = 24;
 const SPINE = 90;
@@ -16,6 +17,7 @@ const OPEN_DEG = -158;
 function StageBody({ group, onDetails }: { group: GameGroup; onDetails: (id: string) => void }) {
   const game = group.primary;
   const spec = boxSpecFor(game.platformId);
+  const scan = useFullScan(game);
   const platform = PLATFORM_BY_ID[game.platformId];
   const boxRef = useRef<HTMLDivElement>(null);
   const angle = useRef({ ry: -70, rx: 0 });
@@ -119,7 +121,7 @@ function StageBody({ group, onDetails }: { group: GameGroup; onDetails: (id: str
           <Button variant="ghost" onClick={() => face(BACK)}>Verso</Button>
         </div>
         <p className="bx-note">
-          {game.coverUrl ? "Capa carregada da loja." : "Sem capa oficial: arte gerada."} Arraste para girar · <Kbd>O</Kbd> abre · <Kbd>T</Kbd> tira a mídia · <Kbd>F</Kbd> vira
+          {scan ? "Caixa completa escaneada (GameTDB)." : game.coverUrl ? "Capa carregada da loja." : "Sem capa oficial: arte gerada."} Arraste para girar · <Kbd>O</Kbd> abre · <Kbd>T</Kbd> tira a mídia · <Kbd>F</Kbd> vira
         </p>
       </div>
     </div>
