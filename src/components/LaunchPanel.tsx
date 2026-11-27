@@ -49,7 +49,7 @@ function EmulationFields({ game }: { game: Game }) {
         label="ROM / ISO"
         value={game.romPath ?? ""}
         placeholder={`${settings.romsDir}/${game.platformId}/jogo.zip`}
-        onChange={(e) => patchGame(game.id, { romPath: e.target.value, romCrc32: undefined, datName: undefined })}
+        onChange={(e) => patchGame(game.id, { romPath: e.target.value, romCrc32: undefined, datName: undefined, romSerial: undefined })}
         onBlur={() => !game.romPath && toast("Defina o caminho da ROM para poder jogar")}
       />
       {game.romCrc32 && (
@@ -57,6 +57,7 @@ function EmulationFields({ game }: { game: Game }) {
           CRC32 {game.romCrc32}: {game.datName ? `confere com o DAT (${game.datName})` : "não está no DAT carregado"}
         </p>
       )}
+      {game.romSerial && <p className="note">ID do disco {game.romSerial} · capa completa da caixa: GameTDB</p>}
     </div>
   );
 }

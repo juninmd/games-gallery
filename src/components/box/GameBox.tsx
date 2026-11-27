@@ -4,6 +4,7 @@ import { PROVIDER_BY_ID } from "../../domain/providers";
 import type { Game } from "../../domain/types";
 import { artSeed, boxSpecFor, type BoxSpec, type Motif } from "./boxFormats";
 import { brandPath } from "./brandIcons";
+import { useFullScan } from "./useScan";
 
 export function BrandIcon({ d, className }: { d: string | null; className?: string }) {
   if (!d) return null;
@@ -110,7 +111,9 @@ export function GameBox({ game, members = [game], detail = "shelf", ref, classNa
   const icon = brandPath(game.platformId, game.providerId);
   const stores = [...new Set(members.map((m) => PROVIDER_BY_ID[m.providerId]?.name).filter(Boolean))];
   const carton = spec.format === "carton" || spec.format === "cartonSm";
+  const scan = useFullScan(game);
   const vars = {
+    ...(scan ? { "--bx-scan": `url("${scan}")` } : {}),
     "--bx-w": `${spec.w}px`, "--bx-h": `${spec.h}px`, "--bx-d": `${spec.d}px`,
     "--bx-pc": platform?.color ?? "#555", "--bx-c1": seed.dark, "--bx-c2": seed.mid,
     ...style,
@@ -118,7 +121,7 @@ export function GameBox({ game, members = [game], detail = "shelf", ref, classNa
   const stage = detail === "stage";
 
   return (
-    <div ref={ref} className={`bx bx-f-${spec.format} ${className}`} style={vars} data-media={spec.media}>
+    <div ref={ref} className={`bx bx-f-${spec.format} ${scan ? "has-scan" : ""} ${className}`} style={vars} data-media={spec.media}>
       <div className="bx-inner">
         {stage && <div className="bx-mpos"><i className="bx-hub" /><div className="bx-media"><Media game={game} spec={spec} /></div></div>}
       </div>

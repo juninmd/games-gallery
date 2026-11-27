@@ -39,7 +39,7 @@ pub(crate) fn crc32_reader(reader: impl Read) -> std::io::Result<u32> {
     }
 }
 
-fn validate(path: &str) -> Result<PathBuf, String> {
+pub(crate) fn validate(path: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(path.trim());
     if !path.is_absolute() || path.as_os_str().to_string_lossy().chars().any(char::is_control) {
         return Err("Caminho da ROM inválido".into());

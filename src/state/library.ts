@@ -71,14 +71,17 @@ export const useLibrary = create<LibraryState>()(
 
       patchGame: (id, patch) => set((s) => ({ games: applyShared(s.games, id, patch) })),
       addGame: (game) => set((s) => ({ games: [game, ...s.games] })),
-      importItems: (items, scan) =>
+      importItems: (items, scan) => {
         set((s) => ({
           games: applyImport(s.games, items),
           scans: [
             { ...scan, id: `${Date.now()}`, at: new Date().toISOString(), added: items.filter((i) => i.kind === "new").length, linked: items.filter((i) => i.kind === "link").length },
             ...s.scans,
           ].slice(0, 10),
-        })),
+        }));
+        // GameCube/Wii/3DS IDs for the GameTDB scans; lazy import avoids a state cycle.
+        void import("./romSerial").then((m) => m.readRomSerialsSoon());
+      },
       removeGame: (id) => set((s) => ({ games: s.games.filter((g) => g.id !== id) })),
 
       detect: async (providerId) => {

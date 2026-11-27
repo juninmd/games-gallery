@@ -16,6 +16,7 @@ mod covers;
 mod emulator_install;
 mod emulators;
 mod rom_hash;
+mod rom_serial;
 mod secrets;
 mod state_store;
 mod steam_shortcuts;
@@ -80,6 +81,7 @@ pub fn run() {
             covers::cover_cached,
             cover_import::cover_import,
             rom_hash::rom_crc32,
+            rom_serial::rom_serial,
             state_store::state_read,
             state_store::state_write,
             state_store::state_remove,

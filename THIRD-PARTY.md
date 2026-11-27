@@ -2,7 +2,9 @@
 
 ## iBox
 
-Console sheets (`src/domain/consoleCatalog.ts`, translated) and console photos (`public/platforms/`, see its `CREDITS.md` for each photo's own licence) come from [iBox](https://github.com/atzski/ibox).
+Console sheets (`src/domain/consoleCatalog.ts`, translated) and console photos (`public/platforms/`, see its `CREDITS.md` for each photo's own licence) come from [iBox](https://github.com/atzski/ibox), as do the ROM header reader (`src-tauri/src/rom_serial.rs`), the GameTDB scan URL rules (`src/domain/gametdb.ts`) and extra dump formats (`src/domain/scan/platformMap.ts`).
+
+Full box scans are loaded at runtime from [GameTDB](https://www.gametdb.com), whose images are free to use; they are not shipped with the app.
 
 ```
 MIT License
