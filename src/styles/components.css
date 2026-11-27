@@ -143,3 +143,16 @@
 .linkish { all: unset; cursor: pointer; }
 .linkish:hover, .linkish:focus-visible { text-decoration: underline; }
 .cards .panel { align-content: start; }
+
+/* Console photos (Platforms page and console sheet). */
+.pcard-photo { justify-self: center; height: 96px; width: 100%; object-fit: contain; filter: drop-shadow(0 12px 14px rgb(0 0 0 / 45%)); transition: transform 0.35s var(--ease-expo, ease); }
+.pcard:hover .pcard-photo { transform: scale(1.05) translateY(-2px); }
+.cs-photo { margin: 0 0 14px; padding: 18px; border-radius: var(--radius); background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--c) 35%, transparent), transparent 70%); }
+.cs-photo img { display: block; margin: 0 auto; max-height: 220px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 18px 20px rgb(0 0 0 / 50%)); }
+.cs-history { line-height: 1.55; margin: 0 0 14px; }
+.cs-specs { display: grid; gap: 6px; margin: 0 0 12px; }
+.cs-specs div { display: grid; grid-template-columns: 110px 1fr; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
+.cs-specs dt { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+.cs-specs dd { margin: 0; }
+.cs-credit { font-size: 11px; margin: 0; }
+@media (prefers-reduced-motion: reduce) { .pcard:hover .pcard-photo { transform: none; } }

@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Badge } from "@juninmd/sonido";
+import { ConsoleSheet } from "../components/ConsoleSheet";
+import { CONSOLE_SHEETS } from "../domain/consoleCatalog";
 import { FAMILY_LABEL, PLATFORMS } from "../domain/platforms";
 import { NO_EMULATOR_NOTE, emulatorsFor } from "../domain/emulators";
 import { useLibrary } from "../state/library";
@@ -8,6 +11,8 @@ export function PlatformsView() {
   const games = useLibrary((s) => s.games);
   const emulators = useLibrary((s) => s.emulators);
   const go = useUi((s) => s.go);
+  const [open, setOpen] = useState<string | null>(null);
+  const openPlatform = PLATFORMS.find((p) => p.id === open) ?? null;
 
   return (
     <>
@@ -25,8 +30,10 @@ export function PlatformsView() {
               const mine = games.filter((g) => g.platformId === p.id);
               const emus = emulatorsFor(p.id);
               const ready = emus.some((e) => emulators[e.id]);
+              const sheet = CONSOLE_SHEETS[p.id];
               return (
-                <button key={p.id} className="pcard" style={{ "--c": p.color } as React.CSSProperties} onClick={() => go("library", { platformId: p.id })}>
+                <button key={p.id} className="pcard" style={{ "--c": p.color } as React.CSSProperties} onClick={() => (sheet ? setOpen(p.id) : go("library", { platformId: p.id }))}>
+                  {sheet && <img className="pcard-photo" src={sheet.photo} alt="" loading="lazy" decoding="async" />}
                   <div className="pcard-top"><strong>{p.name}</strong><span>{p.year}</span></div>
                   <div className="pcard-count"><b>{mine.length}</b> jogos · {mine.filter((g) => g.installed).length} instalados</div>
                   {p.id === "pc" ? (
@@ -42,6 +49,12 @@ export function PlatformsView() {
           </div>
         </section>
       ))}
+      <ConsoleSheet
+        platform={openPlatform}
+        games={openPlatform ? games.filter((g) => g.platformId === openPlatform.id).length : 0}
+        onClose={() => setOpen(null)}
+        onBrowse={(platformId) => { setOpen(null); go("library", { platformId }); }}
+      />
     </>
   );
 }
